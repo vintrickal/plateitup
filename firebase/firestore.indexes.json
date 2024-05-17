@@ -1,0 +1,102 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "meal-recipe",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "author",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "dateCreated",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "meal-recipe",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "author",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "isPublic",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "dateCreated",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "meal-requested-notification",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "paired_user_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "reviewed",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date_requested",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "meal-requested-notification",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "paired_user_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date_requested",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "meal-recipe",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "isPublic",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "isReady",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "admin_approved",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "category",
+          "arrayConfig": "CONTAINS"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "partner-review",
+      "fieldPath": "date_created",
+      "indexes": [
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    }
+  ]
+}

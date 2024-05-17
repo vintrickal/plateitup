@@ -1,0 +1,98 @@
+{
+  "project_info": {
+    "project_number": "962369962598",
+    "project_id": "plateitup-89054",
+    "storage_bucket": "plateitup-89054.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:962369962598:android:21388427032017f38ae3a7",
+        "android_client_info": {
+          "package_name": "com.mycompany.plateitup"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "962369962598-4dto0n9hvgsclu5gn440vcbrbv3jbsn0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mycompany.plateitup",
+            "certificate_hash": "138365eefc35bb8351f867b081764e3c283b928d"
+          }
+        },
+        {
+          "client_id": "962369962598-9fc44g76sqv8fg8t2laogm6kmemskka8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mycompany.plateitup",
+            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
+          }
+        },
+        {
+          "client_id": "962369962598-srvdi2o2inlqevmda3od6je48gfr8b99.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHlXY6hKZXhOyGfJsu9YnkG2-RFVfbSYs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "962369962598-srvdi2o2inlqevmda3od6je48gfr8b99.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "962369962598-2c9mhb9q10anhgbtssr00a37kcdi9ga8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mycompany.plateitupguide"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:962369962598:android:eaa475b9f434f1828ae3a7",
+        "android_client_info": {
+          "package_name": "com.mycompany.plateitupguide"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "962369962598-srvdi2o2inlqevmda3od6je48gfr8b99.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHlXY6hKZXhOyGfJsu9YnkG2-RFVfbSYs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "962369962598-srvdi2o2inlqevmda3od6je48gfr8b99.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "962369962598-2c9mhb9q10anhgbtssr00a37kcdi9ga8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mycompany.plateitupguide"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
