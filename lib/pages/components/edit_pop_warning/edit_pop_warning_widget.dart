@@ -46,7 +46,7 @@ class _EditPopWarningWidgetState extends State<EditPopWarningWidget> {
         padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 12.0),
         child: Container(
           width: double.infinity,
-          height: 200.0,
+          height: 210.0,
           constraints: BoxConstraints(
             maxWidth: 530.0,
           ),
@@ -68,126 +68,121 @@ class _EditPopWarningWidgetState extends State<EditPopWarningWidget> {
               width: 1.0,
             ),
           ),
-          child: Container(
-            decoration: BoxDecoration(),
-            child: Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 12.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Divider(
-                    height: 12.0,
-                    thickness: 1.0,
-                    indent: 16.0,
-                    endIndent: 16.0,
-                    color: FlutterFlowTheme.of(context).primaryBackground,
-                  ),
-                  Padding(
-                    padding:
-                        EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 16.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Heads up!',
-                          style:
-                              FlutterFlowTheme.of(context).titleLarge.override(
-                                    fontFamily: 'Roboto',
-                                    letterSpacing: 0.0,
-                                  ),
-                        ),
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 12.0, 0.0, 0.0),
-                          child: Text(
-                            'You are about to edit the recipe and this will undergo moderator review to prevent malicious content being uploaded to the public',
-                            textAlign: TextAlign.start,
-                            style: FlutterFlowTheme.of(context)
-                                .labelMedium
-                                .override(
-                                  fontFamily: 'Poppins',
-                                  letterSpacing: 0.0,
-                                ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        EdgeInsetsDirectional.fromSTEB(24.0, 0.0, 24.0, 0.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 12.0, 0.0),
-                          child: FFButtonWidget(
-                            onPressed: () async {
-                              Navigator.pop(context, false);
-                            },
-                            text: 'Cancel',
-                            options: FFButtonOptions(
-                              height: 44.0,
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  20.0, 0.0, 20.0, 0.0),
-                              iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 0.0),
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              textStyle: FlutterFlowTheme.of(context)
-                                  .titleSmall
-                                  .override(
-                                    fontFamily: 'Poppins',
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryText,
-                                    letterSpacing: 0.0,
-                                  ),
-                              elevation: 0.0,
-                              borderSide: BorderSide(
-                                color: FlutterFlowTheme.of(context)
-                                    .primaryBackground,
-                                width: 1.0,
-                              ),
-                              borderRadius: BorderRadius.circular(40.0),
+          child: Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 12.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Divider(
+                  height: 12.0,
+                  thickness: 1.0,
+                  indent: 16.0,
+                  endIndent: 16.0,
+                  color: FlutterFlowTheme.of(context).primaryBackground,
+                ),
+                Padding(
+                  padding:
+                      EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Heads up!',
+                        style: FlutterFlowTheme.of(context).titleLarge.override(
+                              fontFamily: 'Roboto',
+                              letterSpacing: 0.0,
                             ),
-                          ),
+                      ),
+                      Padding(
+                        padding:
+                            EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
+                        child: Text(
+                          'Your recipe edit will undergo moderator review to prevent malicious content.',
+                          textAlign: TextAlign.start,
+                          style:
+                              FlutterFlowTheme.of(context).labelMedium.override(
+                                    fontFamily: 'Poppins',
+                                    letterSpacing: 0.0,
+                                  ),
                         ),
-                        FFButtonWidget(
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(24.0, 0.0, 24.0, 0.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding:
+                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 12.0, 0.0),
+                        child: FFButtonWidget(
                           onPressed: () async {
-                            Navigator.pop(context, true);
+                            Navigator.pop(context, false);
                           },
-                          text: 'Proceed',
+                          text: 'Cancel',
                           options: FFButtonOptions(
                             height: 44.0,
                             padding: EdgeInsetsDirectional.fromSTEB(
-                                20.0, 0.0, 20.0, 0.0),
+                                12.0, 0.0, 12.0, 0.0),
                             iconPadding: EdgeInsetsDirectional.fromSTEB(
                                 0.0, 0.0, 0.0, 0.0),
-                            color: FlutterFlowTheme.of(context).success,
+                            color: FlutterFlowTheme.of(context)
+                                .secondaryBackground,
                             textStyle: FlutterFlowTheme.of(context)
                                 .titleSmall
                                 .override(
                                   fontFamily: 'Poppins',
-                                  color: Colors.white,
+                                  color:
+                                      FlutterFlowTheme.of(context).primaryText,
+                                  fontSize: 14.0,
                                   letterSpacing: 0.0,
                                 ),
-                            elevation: 2.0,
+                            elevation: 0.0,
                             borderSide: BorderSide(
-                              color: Colors.transparent,
+                              color: FlutterFlowTheme.of(context)
+                                  .primaryBackground,
                               width: 1.0,
                             ),
-                            borderRadius: BorderRadius.circular(40.0),
+                            borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      FFButtonWidget(
+                        onPressed: () async {
+                          Navigator.pop(context, true);
+                        },
+                        text: 'Proceed',
+                        options: FFButtonOptions(
+                          height: 44.0,
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              12.0, 0.0, 12.0, 0.0),
+                          iconPadding: EdgeInsetsDirectional.fromSTEB(
+                              0.0, 0.0, 0.0, 0.0),
+                          color: FlutterFlowTheme.of(context).success,
+                          textStyle:
+                              FlutterFlowTheme.of(context).titleSmall.override(
+                                    fontFamily: 'Poppins',
+                                    color: Colors.white,
+                                    fontSize: 14.0,
+                                    letterSpacing: 0.0,
+                                  ),
+                          elevation: 2.0,
+                          borderSide: BorderSide(
+                            color: Colors.transparent,
+                            width: 1.0,
+                          ),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

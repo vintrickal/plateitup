@@ -2570,9 +2570,10 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                 Text(
                                                                   valueOrDefault<
                                                                       String>(
-                                                                    searchResultItem
-                                                                        .prepTime
-                                                                        ?.toString(),
+                                                                    dateTimeFormat(
+                                                                        'Hm',
+                                                                        searchResultItem
+                                                                            .prepTime),
                                                                     '00:00',
                                                                   ),
                                                                   style: FlutterFlowTheme.of(

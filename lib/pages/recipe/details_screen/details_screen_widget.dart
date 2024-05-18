@@ -1886,34 +1886,34 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                                             setState(() {});
                                                                                           },
                                                                                         ),
-                                                                                      Row(
-                                                                                        mainAxisSize: MainAxisSize.max,
-                                                                                        children: [
-                                                                                          FutureBuilder<int>(
-                                                                                            future: queryUserReviewLikesRecordCount(
-                                                                                              queryBuilder: (userReviewLikesRecord) => userReviewLikesRecord.where(
-                                                                                                'review_subcollection_ref',
-                                                                                                isEqualTo: reviewColumnReviewRecord.reference,
-                                                                                              ),
-                                                                                            ),
-                                                                                            builder: (context, snapshot) {
-                                                                                              // Customize what your widget looks like when it's loading.
-                                                                                              if (!snapshot.hasData) {
-                                                                                                return Center(
-                                                                                                  child: SizedBox(
-                                                                                                    width: 24.0,
-                                                                                                    height: 24.0,
-                                                                                                    child: CircularProgressIndicator(
-                                                                                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                                                                                        FlutterFlowTheme.of(context).success,
-                                                                                                      ),
-                                                                                                    ),
+                                                                                      FutureBuilder<int>(
+                                                                                        future: queryUserReviewLikesRecordCount(
+                                                                                          queryBuilder: (userReviewLikesRecord) => userReviewLikesRecord.where(
+                                                                                            'review_subcollection_ref',
+                                                                                            isEqualTo: reviewColumnReviewRecord.reference,
+                                                                                          ),
+                                                                                        ),
+                                                                                        builder: (context, snapshot) {
+                                                                                          // Customize what your widget looks like when it's loading.
+                                                                                          if (!snapshot.hasData) {
+                                                                                            return Center(
+                                                                                              child: SizedBox(
+                                                                                                width: 24.0,
+                                                                                                height: 24.0,
+                                                                                                child: CircularProgressIndicator(
+                                                                                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                                                                                    FlutterFlowTheme.of(context).success,
                                                                                                   ),
-                                                                                                );
-                                                                                              }
-                                                                                              int totalLikeCount = snapshot.data!;
-                                                                                              return Text(
-                                                                                                totalLikeCount == 0 ? ' ' : totalLikeCount.toString(),
+                                                                                                ),
+                                                                                              ),
+                                                                                            );
+                                                                                          }
+                                                                                          int likeRowCount = snapshot.data!;
+                                                                                          return Row(
+                                                                                            mainAxisSize: MainAxisSize.max,
+                                                                                            children: [
+                                                                                              Text(
+                                                                                                likeRowCount == 0 ? ' ' : likeRowCount.toString(),
                                                                                                 style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                                       fontFamily: 'Poppins',
                                                                                                       color: FlutterFlowTheme.of(context).success,
@@ -1921,21 +1921,21 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                                                       letterSpacing: 0.0,
                                                                                                       fontWeight: FontWeight.w500,
                                                                                                     ),
-                                                                                              );
-                                                                                            },
-                                                                                          ),
-                                                                                          if (reviewColumnReviewRecord.userRef == currentUserReference)
-                                                                                            Text(
-                                                                                              'Likes',
-                                                                                              style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                                                    fontFamily: 'Poppins',
-                                                                                                    color: FlutterFlowTheme.of(context).success,
-                                                                                                    fontSize: 12.0,
-                                                                                                    letterSpacing: 0.0,
-                                                                                                    fontWeight: FontWeight.w500,
-                                                                                                  ),
-                                                                                            ),
-                                                                                        ].divide(SizedBox(width: 4.0)),
+                                                                                              ),
+                                                                                              if ((reviewColumnReviewRecord.userRef == currentUserReference) && (likeRowCount != 0))
+                                                                                                Text(
+                                                                                                  'Likes',
+                                                                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                        fontFamily: 'Poppins',
+                                                                                                        color: FlutterFlowTheme.of(context).success,
+                                                                                                        fontSize: 12.0,
+                                                                                                        letterSpacing: 0.0,
+                                                                                                        fontWeight: FontWeight.w500,
+                                                                                                      ),
+                                                                                                ),
+                                                                                            ].divide(SizedBox(width: 4.0)),
+                                                                                          );
+                                                                                        },
                                                                                       ),
                                                                                     ],
                                                                                   );
@@ -2042,7 +2042,10 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                   .addToStart(
                                                                       SizedBox(
                                                                           height:
-                                                                              8.0)),
+                                                                              8.0))
+                                                                  .addToEnd(SizedBox(
+                                                                      height:
+                                                                          32.0)),
                                                             ),
                                                           );
                                                         },

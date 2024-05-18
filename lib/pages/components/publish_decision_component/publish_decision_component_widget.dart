@@ -8,7 +8,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'publish_decision_component_model.dart';
 export 'publish_decision_component_model.dart';
 
@@ -147,7 +146,7 @@ class _PublishDecisionComponentWidgetState
                                   return AlertDialog(
                                     title: Text('Information:'),
                                     content: Text(
-                                        'Your recipe has been saved to \'Profile\' -> \'My Recipes\'.'),
+                                        'Your recipe has been saved to \'Profile\' -> \'My Recipes\'. The recipe will be reviewed to prevent malicious content.'),
                                     actions: [
                                       TextButton(
                                         onPressed: () =>
@@ -158,18 +157,6 @@ class _PublishDecisionComponentWidgetState
                                   );
                                 },
                               );
-                              await launchUrl(Uri(
-                                  scheme: 'mailto',
-                                  path: 'plateitupmeal@gmail.com',
-                                  query: {
-                                    'subject': 'Add Meal Request',
-                                    'body':
-                                        '${currentUserDisplayName}has requested your approval for an added recipe of ${buttonMealRecipeRecord.title}, which was requested on ${dateTimeFormat('yMMMd', getCurrentTimestamp)} ${dateTimeFormat('jm', getCurrentTimestamp)}',
-                                  }
-                                      .entries
-                                      .map((MapEntry<String, String> e) =>
-                                          '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-                                      .join('&')));
                               setState(() {
                                 FFAppState().isBannerUploaded = false;
                                 FFAppState().addVideoLink = '';

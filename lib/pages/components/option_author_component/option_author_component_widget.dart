@@ -11,7 +11,6 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'option_author_component_model.dart';
 export 'option_author_component_model.dart';
 
@@ -541,21 +540,6 @@ class _OptionAuthorComponentWidgetState
                                                   createMealRecipeRecordData(
                                                 adminApproved: false,
                                               ));
-                                              await launchUrl(Uri(
-                                                  scheme: 'mailto',
-                                                  path:
-                                                      'plateitupmeal@gmail.com',
-                                                  query: {
-                                                    'subject': 'Meal Request',
-                                                    'body':
-                                                        '${currentUserDisplayName}has requested your approval for an edited recipe of ${optionsContainerMealRecipeRecord.title}, which was requested on ${dateTimeFormat('yMMMd', getCurrentTimestamp)} ${dateTimeFormat('jm', getCurrentTimestamp)}',
-                                                  }
-                                                      .entries
-                                                      .map((MapEntry<String,
-                                                                  String>
-                                                              e) =>
-                                                          '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-                                                      .join('&')));
                                               Navigator.pop(context);
                                               setState(() {
                                                 FFAppState()

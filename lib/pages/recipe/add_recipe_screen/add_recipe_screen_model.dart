@@ -32,7 +32,7 @@ class AddRecipeScreenModel extends FlutterFlowModel<AddRecipeScreenWidget> {
 
   final unfocusNode = FocusNode();
   // State field(s) for Column widget.
-  ScrollController? columnController;
+  ScrollController? columnController1;
   // State field(s) for switch_status widget.
   bool? switchStatusValue;
   // State field(s) for title widget.
@@ -81,6 +81,8 @@ class AddRecipeScreenModel extends FlutterFlowModel<AddRecipeScreenWidget> {
   ScrollController? listViewController;
   // Stores action output result for [Custom Action - onReorderProcedure] action in ListView widget.
   List<ProcedureStruct>? newProcedureList;
+  // State field(s) for Column widget.
+  ScrollController? columnController2;
   // State field(s) for steps-textfield widget.
   FocusNode? stepsTextfieldFocusNode;
   TextEditingController? stepsTextfieldTextController;
@@ -89,17 +91,18 @@ class AddRecipeScreenModel extends FlutterFlowModel<AddRecipeScreenWidget> {
 
   @override
   void initState(BuildContext context) {
-    columnController = ScrollController();
+    columnController1 = ScrollController();
     ingredientParentColumn = ScrollController();
     listviewIngredient = ScrollController();
     stepsParentColumn = ScrollController();
     listViewController = ScrollController();
+    columnController2 = ScrollController();
   }
 
   @override
   void dispose() {
     unfocusNode.dispose();
-    columnController?.dispose();
+    columnController1?.dispose();
     titleFocusNode?.dispose();
     titleTextController?.dispose();
 
@@ -118,6 +121,7 @@ class AddRecipeScreenModel extends FlutterFlowModel<AddRecipeScreenWidget> {
 
     stepsParentColumn?.dispose();
     listViewController?.dispose();
+    columnController2?.dispose();
     stepsTextfieldFocusNode?.dispose();
     stepsTextfieldTextController?.dispose();
   }
