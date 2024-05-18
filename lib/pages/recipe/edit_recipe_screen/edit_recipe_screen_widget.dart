@@ -777,6 +777,14 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                           letterSpacing: 0.0,
                                           fontWeight: FontWeight.w600,
                                         ),
+                                    maxLength: 30,
+                                    maxLengthEnforcement:
+                                        MaxLengthEnforcement.enforced,
+                                    buildCounter: (context,
+                                            {required currentLength,
+                                            required isFocused,
+                                            maxLength}) =>
+                                        null,
                                     validator: _model
                                         .titleTextfieldTextControllerValidator
                                         .asValidator(context),
@@ -940,7 +948,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                           letterSpacing: 0.0,
                                           fontWeight: FontWeight.w600,
                                         ),
-                                    maxLength: 35,
+                                    maxLength: 30,
                                     maxLengthEnforcement:
                                         MaxLengthEnforcement.enforced,
                                     buildCounter: (context,
@@ -3206,7 +3214,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                         0.0, 16.0, 0.0, 64.0),
                                                 child: Container(
                                                   width: double.infinity,
-                                                  height: 160.0,
+                                                  height: 168.0,
                                                   decoration: BoxDecoration(
                                                     color: FlutterFlowTheme.of(
                                                             context)
@@ -3215,229 +3223,239 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                         BorderRadius.circular(
                                                             10.0),
                                                   ),
-                                                  child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.max,
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.start,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment.end,
-                                                    children: [
-                                                      Padding(
-                                                        padding:
-                                                            EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    8.0,
-                                                                    0.0,
-                                                                    8.0,
-                                                                    0.0),
-                                                        child: TextFormField(
-                                                          controller: _model
-                                                              .stepsTextfieldTextController,
-                                                          focusNode: _model
-                                                              .stepsTextfieldFocusNode,
-                                                          autofocus: true,
-                                                          obscureText: false,
-                                                          decoration:
-                                                              InputDecoration(
-                                                            labelText: (_model
-                                                                            .stepsTextfieldFocusNode
-                                                                            ?.hasFocus ??
-                                                                        false) !=
-                                                                    true
-                                                                ? 'What are the steps to make this meal?'
-                                                                : 'Step ${functions.incrementSteps(FFAppState().procedureList.length).toString()}',
-                                                            labelStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelMedium
-                                                                    .override(
-                                                                      fontFamily:
-                                                                          'Poppins',
-                                                                      fontSize:
-                                                                          14.0,
-                                                                      letterSpacing:
-                                                                          0.0,
-                                                                    ),
-                                                            hintStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .labelMedium
-                                                                    .override(
-                                                                      fontFamily:
-                                                                          'Poppins',
-                                                                      letterSpacing:
-                                                                          0.0,
-                                                                    ),
-                                                            enabledBorder:
-                                                                InputBorder
-                                                                    .none,
-                                                            focusedBorder:
-                                                                InputBorder
-                                                                    .none,
-                                                            errorBorder:
-                                                                InputBorder
-                                                                    .none,
-                                                            focusedErrorBorder:
-                                                                InputBorder
-                                                                    .none,
-                                                          ),
-                                                          style: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                fontFamily:
-                                                                    'Poppins',
-                                                                letterSpacing:
-                                                                    0.0,
-                                                              ),
-                                                          maxLines: 4,
-                                                          validator: _model
-                                                              .stepsTextfieldTextControllerValidator
-                                                              .asValidator(
-                                                                  context),
-                                                        ),
-                                                      ),
-                                                      Padding(
-                                                        padding:
-                                                            EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    0.0,
-                                                                    8.0,
-                                                                    16.0,
-                                                                    0.0),
-                                                        child: FFButtonWidget(
-                                                          onPressed: () async {
-                                                            if (_model
-                                                                    .stepsTextfieldTextController
-                                                                    .text !=
-                                                                '') {
-                                                              setState(() {
-                                                                FFAppState()
-                                                                        .stepsJson =
-                                                                    <String,
-                                                                        dynamic>{
-                                                                  'steps': _model
-                                                                      .stepsTextfieldTextController
-                                                                      .text,
-                                                                };
-                                                              });
-                                                              setState(() {
-                                                                FFAppState().addToProcedureList(
-                                                                    ProcedureStruct.maybeFromMap(
-                                                                        FFAppState()
-                                                                            .stepsJson)!);
-                                                              });
-
-                                                              await editRecipeScreenMealRecipeRecord
-                                                                  .reference
-                                                                  .update({
-                                                                ...mapToFirestore(
-                                                                  {
-                                                                    'procedure':
-                                                                        FieldValue
-                                                                            .arrayUnion([
-                                                                      getProcedureFirestoreData(
-                                                                        updateProcedureStruct(
-                                                                          ProcedureStruct.maybeFromMap(
-                                                                              FFAppState().stepsJson),
-                                                                          clearUnsetFields:
-                                                                              false,
-                                                                        ),
-                                                                        true,
-                                                                      )
-                                                                    ]),
-                                                                  },
-                                                                ),
-                                                              });
-                                                              setState(() {
-                                                                _model
-                                                                    .stepsTextfieldTextController
-                                                                    ?.clear();
-                                                              });
-                                                              setState(() {
-                                                                FFAppState()
-                                                                        .isProcedureItemEdited =
-                                                                    false;
-                                                              });
-                                                            } else {
-                                                              ScaffoldMessenger
-                                                                      .of(context)
-                                                                  .showSnackBar(
-                                                                SnackBar(
-                                                                  content: Text(
-                                                                    'Are you sure you added a step?',
-                                                                    style: FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .labelMedium
-                                                                        .override(
-                                                                          fontFamily:
-                                                                              'Poppins',
-                                                                          color:
-                                                                              FlutterFlowTheme.of(context).secondaryBackground,
-                                                                          letterSpacing:
-                                                                              0.0,
-                                                                        ),
-                                                                  ),
-                                                                  duration: Duration(
-                                                                      milliseconds:
-                                                                          4000),
-                                                                  backgroundColor:
-                                                                      FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .error,
-                                                                ),
-                                                              );
-                                                            }
-                                                          },
-                                                          text: 'Add',
-                                                          options:
-                                                              FFButtonOptions(
-                                                            height: 40.0,
-                                                            padding:
-                                                                EdgeInsetsDirectional
-                                                                    .fromSTEB(
-                                                                        24.0,
-                                                                        0.0,
-                                                                        24.0,
-                                                                        0.0),
-                                                            iconPadding:
-                                                                EdgeInsetsDirectional
-                                                                    .fromSTEB(
-                                                                        0.0,
-                                                                        0.0,
-                                                                        0.0,
-                                                                        0.0),
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .success,
-                                                            textStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .titleSmall
-                                                                    .override(
-                                                                      fontFamily:
-                                                                          'Poppins',
-                                                                      color: Colors
-                                                                          .white,
-                                                                      letterSpacing:
-                                                                          0.0,
-                                                                    ),
-                                                            elevation: 3.0,
-                                                            borderSide:
-                                                                BorderSide(
-                                                              color: Colors
-                                                                  .transparent,
-                                                              width: 1.0,
+                                                  child: SingleChildScrollView(
+                                                    controller:
+                                                        _model.columnController,
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .end,
+                                                      children: [
+                                                        Padding(
+                                                          padding:
+                                                              EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                      8.0,
+                                                                      0.0,
+                                                                      8.0,
+                                                                      0.0),
+                                                          child: TextFormField(
+                                                            controller: _model
+                                                                .stepsTextfieldTextController,
+                                                            focusNode: _model
+                                                                .stepsTextfieldFocusNode,
+                                                            autofocus: true,
+                                                            obscureText: false,
+                                                            decoration:
+                                                                InputDecoration(
+                                                              labelText: (_model
+                                                                              .stepsTextfieldFocusNode
+                                                                              ?.hasFocus ??
+                                                                          false) !=
+                                                                      true
+                                                                  ? 'What are the steps to make this meal?'
+                                                                  : 'Step ${functions.incrementSteps(FFAppState().procedureList.length).toString()}',
+                                                              labelStyle:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelMedium
+                                                                      .override(
+                                                                        fontFamily:
+                                                                            'Poppins',
+                                                                        fontSize:
+                                                                            14.0,
+                                                                        letterSpacing:
+                                                                            0.0,
+                                                                      ),
+                                                              hintStyle:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .labelMedium
+                                                                      .override(
+                                                                        fontFamily:
+                                                                            'Poppins',
+                                                                        letterSpacing:
+                                                                            0.0,
+                                                                      ),
+                                                              enabledBorder:
+                                                                  InputBorder
+                                                                      .none,
+                                                              focusedBorder:
+                                                                  InputBorder
+                                                                      .none,
+                                                              errorBorder:
+                                                                  InputBorder
+                                                                      .none,
+                                                              focusedErrorBorder:
+                                                                  InputBorder
+                                                                      .none,
                                                             ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8.0),
+                                                            style: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .bodyMedium
+                                                                .override(
+                                                                  fontFamily:
+                                                                      'Poppins',
+                                                                  letterSpacing:
+                                                                      0.0,
+                                                                ),
+                                                            maxLines: 4,
+                                                            maxLength: 250,
+                                                            maxLengthEnforcement:
+                                                                MaxLengthEnforcement
+                                                                    .enforced,
+                                                            validator: _model
+                                                                .stepsTextfieldTextControllerValidator
+                                                                .asValidator(
+                                                                    context),
                                                           ),
                                                         ),
-                                                      ),
-                                                    ],
+                                                        Padding(
+                                                          padding:
+                                                              EdgeInsetsDirectional
+                                                                  .fromSTEB(
+                                                                      0.0,
+                                                                      8.0,
+                                                                      16.0,
+                                                                      0.0),
+                                                          child: FFButtonWidget(
+                                                            onPressed:
+                                                                () async {
+                                                              if (_model
+                                                                      .stepsTextfieldTextController
+                                                                      .text !=
+                                                                  '') {
+                                                                setState(() {
+                                                                  FFAppState()
+                                                                          .stepsJson =
+                                                                      <String,
+                                                                          dynamic>{
+                                                                    'steps': _model
+                                                                        .stepsTextfieldTextController
+                                                                        .text,
+                                                                  };
+                                                                });
+                                                                setState(() {
+                                                                  FFAppState().addToProcedureList(
+                                                                      ProcedureStruct.maybeFromMap(
+                                                                          FFAppState()
+                                                                              .stepsJson)!);
+                                                                });
+
+                                                                await editRecipeScreenMealRecipeRecord
+                                                                    .reference
+                                                                    .update({
+                                                                  ...mapToFirestore(
+                                                                    {
+                                                                      'procedure':
+                                                                          FieldValue
+                                                                              .arrayUnion([
+                                                                        getProcedureFirestoreData(
+                                                                          updateProcedureStruct(
+                                                                            ProcedureStruct.maybeFromMap(FFAppState().stepsJson),
+                                                                            clearUnsetFields:
+                                                                                false,
+                                                                          ),
+                                                                          true,
+                                                                        )
+                                                                      ]),
+                                                                    },
+                                                                  ),
+                                                                });
+                                                                setState(() {
+                                                                  _model
+                                                                      .stepsTextfieldTextController
+                                                                      ?.clear();
+                                                                });
+                                                                setState(() {
+                                                                  FFAppState()
+                                                                          .isProcedureItemEdited =
+                                                                      false;
+                                                                });
+                                                              } else {
+                                                                ScaffoldMessenger.of(
+                                                                        context)
+                                                                    .showSnackBar(
+                                                                  SnackBar(
+                                                                    content:
+                                                                        Text(
+                                                                      'Are you sure you added a step?',
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .labelMedium
+                                                                          .override(
+                                                                            fontFamily:
+                                                                                'Poppins',
+                                                                            color:
+                                                                                FlutterFlowTheme.of(context).secondaryBackground,
+                                                                            letterSpacing:
+                                                                                0.0,
+                                                                          ),
+                                                                    ),
+                                                                    duration: Duration(
+                                                                        milliseconds:
+                                                                            4000),
+                                                                    backgroundColor:
+                                                                        FlutterFlowTheme.of(context)
+                                                                            .error,
+                                                                  ),
+                                                                );
+                                                              }
+                                                            },
+                                                            text: 'Add',
+                                                            options:
+                                                                FFButtonOptions(
+                                                              height: 40.0,
+                                                              padding:
+                                                                  EdgeInsetsDirectional
+                                                                      .fromSTEB(
+                                                                          24.0,
+                                                                          0.0,
+                                                                          24.0,
+                                                                          0.0),
+                                                              iconPadding:
+                                                                  EdgeInsetsDirectional
+                                                                      .fromSTEB(
+                                                                          0.0,
+                                                                          0.0,
+                                                                          0.0,
+                                                                          0.0),
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .success,
+                                                              textStyle:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .titleSmall
+                                                                      .override(
+                                                                        fontFamily:
+                                                                            'Poppins',
+                                                                        color: Colors
+                                                                            .white,
+                                                                        letterSpacing:
+                                                                            0.0,
+                                                                      ),
+                                                              elevation: 3.0,
+                                                              borderSide:
+                                                                  BorderSide(
+                                                                color: Colors
+                                                                    .transparent,
+                                                                width: 1.0,
+                                                              ),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          8.0),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
                                               ),

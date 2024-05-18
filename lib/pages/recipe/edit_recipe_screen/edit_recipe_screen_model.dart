@@ -83,6 +83,8 @@ class EditRecipeScreenModel extends FlutterFlowModel<EditRecipeScreenWidget> {
   ScrollController? listViewController;
   // Stores action output result for [Custom Action - onReorderProcedure] action in ListView widget.
   List<ProcedureStruct>? newProcedureList;
+  // State field(s) for Column widget.
+  ScrollController? columnController;
   // State field(s) for steps-textfield widget.
   FocusNode? stepsTextfieldFocusNode;
   TextEditingController? stepsTextfieldTextController;
@@ -96,6 +98,7 @@ class EditRecipeScreenModel extends FlutterFlowModel<EditRecipeScreenWidget> {
     listviewIngredient = ScrollController();
     stepsParentColumn = ScrollController();
     listViewController = ScrollController();
+    columnController = ScrollController();
   }
 
   @override
@@ -120,6 +123,7 @@ class EditRecipeScreenModel extends FlutterFlowModel<EditRecipeScreenWidget> {
 
     stepsParentColumn?.dispose();
     listViewController?.dispose();
+    columnController?.dispose();
     stepsTextfieldFocusNode?.dispose();
     stepsTextfieldTextController?.dispose();
   }

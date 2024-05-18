@@ -805,6 +805,14 @@ class _AddRecipeScreenWidgetState extends State<AddRecipeScreenWidget>
                                           letterSpacing: 0.0,
                                           fontWeight: FontWeight.w600,
                                         ),
+                                    maxLength: 30,
+                                    maxLengthEnforcement:
+                                        MaxLengthEnforcement.enforced,
+                                    buildCounter: (context,
+                                            {required currentLength,
+                                            required isFocused,
+                                            maxLength}) =>
+                                        null,
                                     validator: _model
                                         .titleTextControllerValidator
                                         .asValidator(context),
@@ -1017,7 +1025,7 @@ class _AddRecipeScreenWidgetState extends State<AddRecipeScreenWidget>
                                           letterSpacing: 0.0,
                                           fontWeight: FontWeight.w600,
                                         ),
-                                    maxLength: 35,
+                                    maxLength: 30,
                                     maxLengthEnforcement:
                                         MaxLengthEnforcement.enforced,
                                     buildCounter: (context,
@@ -3375,6 +3383,10 @@ class _AddRecipeScreenWidgetState extends State<AddRecipeScreenWidget>
                                                                       0.0,
                                                                 ),
                                                             maxLines: 4,
+                                                            maxLength: 250,
+                                                            maxLengthEnforcement:
+                                                                MaxLengthEnforcement
+                                                                    .enforced,
                                                             validator: _model
                                                                 .stepsTextfieldTextControllerValidator
                                                                 .asValidator(
