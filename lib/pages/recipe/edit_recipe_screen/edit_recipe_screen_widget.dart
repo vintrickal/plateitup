@@ -777,7 +777,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                           letterSpacing: 0.0,
                                           fontWeight: FontWeight.w600,
                                         ),
-                                    maxLength: 30,
+                                    maxLength: 20,
                                     maxLengthEnforcement:
                                         MaxLengthEnforcement.enforced,
                                     buildCounter: (context,
@@ -948,7 +948,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                           letterSpacing: 0.0,
                                           fontWeight: FontWeight.w600,
                                         ),
-                                    maxLength: 30,
+                                    maxLength: 20,
                                     maxLengthEnforcement:
                                         MaxLengthEnforcement.enforced,
                                     buildCounter: (context,

@@ -805,7 +805,7 @@ class _AddRecipeScreenWidgetState extends State<AddRecipeScreenWidget>
                                           letterSpacing: 0.0,
                                           fontWeight: FontWeight.w600,
                                         ),
-                                    maxLength: 30,
+                                    maxLength: 20,
                                     maxLengthEnforcement:
                                         MaxLengthEnforcement.enforced,
                                     buildCounter: (context,
@@ -1025,7 +1025,7 @@ class _AddRecipeScreenWidgetState extends State<AddRecipeScreenWidget>
                                           letterSpacing: 0.0,
                                           fontWeight: FontWeight.w600,
                                         ),
-                                    maxLength: 30,
+                                    maxLength: 20,
                                     maxLengthEnforcement:
                                         MaxLengthEnforcement.enforced,
                                     buildCounter: (context,
