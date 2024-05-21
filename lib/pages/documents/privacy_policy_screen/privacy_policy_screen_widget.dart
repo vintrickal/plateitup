@@ -48,19 +48,26 @@ class _PrivacyPolicyScreenWidgetState extends State<PrivacyPolicyScreenWidget> {
         appBar: AppBar(
           backgroundColor: FlutterFlowTheme.of(context).success,
           automaticallyImplyLeading: false,
-          leading: FlutterFlowIconButton(
-            borderColor: Colors.transparent,
-            borderRadius: 30.0,
-            borderWidth: 1.0,
-            buttonSize: 54.0,
-            icon: Icon(
-              Icons.arrow_back_rounded,
-              color: Colors.white,
-              size: 24.0,
+          leading: Visibility(
+            visible: responsiveVisibility(
+              context: context,
+              tabletLandscape: false,
+              desktop: false,
             ),
-            onPressed: () async {
-              context.pop();
-            },
+            child: FlutterFlowIconButton(
+              borderColor: Colors.transparent,
+              borderRadius: 30.0,
+              borderWidth: 1.0,
+              buttonSize: 54.0,
+              icon: Icon(
+                Icons.arrow_back_rounded,
+                color: Colors.white,
+                size: 24.0,
+              ),
+              onPressed: () async {
+                context.pop();
+              },
+            ),
           ),
           title: Text(
             'Privacy Policy',
@@ -284,7 +291,7 @@ class _PrivacyPolicyScreenWidgetState extends State<PrivacyPolicyScreenWidget> {
                       ),
                     ),
                     Text(
-                      '8. Contact Us',
+                      '8. Camera Access',
                       style: FlutterFlowTheme.of(context).bodyMedium.override(
                             fontFamily: 'Poppins',
                             letterSpacing: 0.0,
@@ -295,12 +302,27 @@ class _PrivacyPolicyScreenWidgetState extends State<PrivacyPolicyScreenWidget> {
                       padding:
                           EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
                       child: Text(
-                        'If you have any questions or concerns about this Privacy Policy, please contact us at plateitupmeal@gmail.com',
+                        '8.1 User Choice: Some features of the App require camera access if the user chooses not to use a link for image upload. Users will be prompted to grant camera access when necessary.',
                         style: FlutterFlowTheme.of(context).bodyMedium.override(
                               fontFamily: 'Poppins',
                               letterSpacing: 0.0,
                             ),
                       ),
+                    ),
+                    Text(
+                      '9. Contact Us',
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                            fontFamily: 'Poppins',
+                            letterSpacing: 0.0,
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
+                    Text(
+                      'If you have any questions or concerns about this Privacy Policy, please contact us at plateitupmeal@gmail.com',
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                            fontFamily: 'Poppins',
+                            letterSpacing: 0.0,
+                          ),
                     ),
                   ]
                       .divide(SizedBox(height: 16.0))

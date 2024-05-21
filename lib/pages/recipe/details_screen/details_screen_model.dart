@@ -11,6 +11,7 @@ import '/pages/components/edit_meal_rating_bottomsheet_component/edit_meal_ratin
 import '/pages/components/meal_rating_bottomsheet_component/meal_rating_bottomsheet_component_widget.dart';
 import '/pages/components/option_author_component/option_author_component_widget.dart';
 import '/pages/components/option_not_author_component/option_not_author_component_widget.dart';
+import '/pages/components/reported_reason_container/reported_reason_container_widget.dart';
 import 'dart:math';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;

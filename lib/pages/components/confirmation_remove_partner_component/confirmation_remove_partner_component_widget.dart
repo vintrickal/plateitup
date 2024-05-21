@@ -172,6 +172,12 @@ class _ConfirmationRemovePartnerComponentWidgetState
                               });
                             }
                           }
+                          _model.userPartnerReviewId =
+                              await queryPartnerReviewRecordOnce(
+                            parent: _model.userPairedDetails?.reference,
+                            singleRecord: true,
+                          ).then((s) => s.firstOrNull);
+                          await _model.userPartnerReviewId!.reference.delete();
                           // Delete USER's Paired ID
                           await _model.userPairedDetails!.reference.delete();
                           setState(() {
@@ -223,6 +229,13 @@ class _ConfirmationRemovePartnerComponentWidgetState
                               });
                             }
                           }
+                          _model.partnerPartnerReviewId =
+                              await queryPartnerReviewRecordOnce(
+                            parent: _model.partnerPairedDetails?.reference,
+                            singleRecord: true,
+                          ).then((s) => s.firstOrNull);
+                          await _model.partnerPartnerReviewId!.reference
+                              .delete();
                           await _model.partnerPairedDetails!.reference.delete();
                           while (FFAppState().noMoreNotification == false) {
                             // Reciever-Notificaton for USER

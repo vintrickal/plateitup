@@ -5,7 +5,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/pages/components/confirmation_assign_meal_to_partner_screen/confirmation_assign_meal_to_partner_screen_widget.dart';
 import '/pages/components/confirmation_modal_component/confirmation_modal_component_widget.dart';
-import '/pages/components/edit_pop_warning/edit_pop_warning_widget.dart';
+import '/pages/components/reported_container/reported_container_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
@@ -385,6 +385,67 @@ class _OptionAuthorComponentWidgetState
                           ],
                         ),
                       ),
+                      Builder(
+                        builder: (context) => InkWell(
+                          splashColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          onTap: () async {
+                            await showDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                return Dialog(
+                                  elevation: 0,
+                                  insetPadding: EdgeInsets.zero,
+                                  backgroundColor: Colors.transparent,
+                                  alignment: AlignmentDirectional(0.0, 0.0)
+                                      .resolve(Directionality.of(context)),
+                                  child: Container(
+                                    height: 150.0,
+                                    width: 350.0,
+                                    child: ReportedContainerWidget(),
+                                  ),
+                                );
+                              },
+                            ).then((value) => setState(() {}));
+
+                            await widget.mealRef!
+                                .update(createMealRecipeRecordData(
+                              isRecipeReported: true,
+                            ));
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.report_outlined,
+                                  color: FlutterFlowTheme.of(context).error,
+                                  size: 24.0,
+                                ),
+                                Text(
+                                  'Report Recipe',
+                                  style: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .override(
+                                        fontFamily: 'Poppins',
+                                        letterSpacing: 0.0,
+                                      ),
+                                ),
+                              ]
+                                  .divide(SizedBox(width: 15.0))
+                                  .addToStart(SizedBox(width: 8.0)),
+                            ),
+                          ),
+                        ),
+                      ),
                       Container(
                         decoration: BoxDecoration(),
                         child: Container(
@@ -505,137 +566,99 @@ class _OptionAuthorComponentWidgetState
                                         ),
                                       ),
                                     ),
-                                    Builder(
-                                      builder: (context) => Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            0.0, 0.0, 0.0, 4.0),
-                                        child: InkWell(
-                                          splashColor: Colors.transparent,
-                                          focusColor: Colors.transparent,
-                                          hoverColor: Colors.transparent,
-                                          highlightColor: Colors.transparent,
-                                          onTap: () async {
-                                            await showDialog(
-                                              context: context,
-                                              builder: (dialogContext) {
-                                                return Dialog(
-                                                  elevation: 0,
-                                                  insetPadding: EdgeInsets.zero,
-                                                  backgroundColor:
-                                                      Colors.transparent,
-                                                  alignment:
-                                                      AlignmentDirectional(
-                                                              0.0, 0.0)
-                                                          .resolve(
-                                                              Directionality.of(
-                                                                  context)),
-                                                  child: EditPopWarningWidget(),
-                                                );
-                                              },
-                                            ).then((value) => safeSetState(() =>
-                                                _model.proceedToEdit = value));
-
-                                            if (_model.proceedToEdit == true) {
-                                              await widget.mealRef!.update(
-                                                  createMealRecipeRecordData(
-                                                adminApproved: false,
-                                              ));
-                                              Navigator.pop(context);
-                                              setState(() {
-                                                FFAppState()
-                                                        .estimatedTimeSpinner =
-                                                    optionsContainerMealRecipeRecord
-                                                        .prepTime;
-                                              });
-                                              if (Navigator.of(context)
-                                                  .canPop()) {
-                                                context.pop();
-                                              }
-                                              context.pushNamed(
-                                                'edit_recipe_screen',
-                                                queryParameters: {
-                                                  'mealRef': serializeParam(
-                                                    widget.mealRef,
-                                                    ParamType.DocumentReference,
-                                                  ),
-                                                  'ingredientList':
-                                                      serializeParam(
-                                                    widget.ingredientList,
-                                                    ParamType.DataStruct,
-                                                    true,
-                                                  ),
-                                                  'procedureList':
-                                                      serializeParam(
-                                                    widget.procedureList,
-                                                    ParamType.DataStruct,
-                                                    true,
-                                                  ),
-                                                  'recipeCategoryList':
-                                                      serializeParam(
-                                                    widget.recipeCategoryList,
-                                                    ParamType.String,
-                                                    true,
-                                                  ),
-                                                }.withoutNulls,
-                                                extra: <String, dynamic>{
-                                                  kTransitionInfoKey:
-                                                      TransitionInfo(
-                                                    hasTransition: true,
-                                                    transitionType:
-                                                        PageTransitionType.fade,
-                                                  ),
-                                                },
-                                              );
-                                            } else {
-                                              Navigator.pop(context);
-                                            }
-
-                                            setState(() {});
-                                          },
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .secondaryBackground,
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.max,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          12.0, 0.0, 0.0, 0.0),
-                                                  child: Icon(
-                                                    Icons.edit_outlined,
-                                                    color: FlutterFlowTheme.of(
+                                    Padding(
+                                      padding: EdgeInsetsDirectional.fromSTEB(
+                                          0.0, 0.0, 0.0, 4.0),
+                                      child: InkWell(
+                                        splashColor: Colors.transparent,
+                                        focusColor: Colors.transparent,
+                                        hoverColor: Colors.transparent,
+                                        highlightColor: Colors.transparent,
+                                        onTap: () async {
+                                          Navigator.pop(context);
+                                          setState(() {
+                                            FFAppState().estimatedTimeSpinner =
+                                                optionsContainerMealRecipeRecord
+                                                    .prepTime;
+                                          });
+                                          if (Navigator.of(context).canPop()) {
+                                            context.pop();
+                                          }
+                                          context.pushNamed(
+                                            'edit_recipe_screen',
+                                            queryParameters: {
+                                              'mealRef': serializeParam(
+                                                widget.mealRef,
+                                                ParamType.DocumentReference,
+                                              ),
+                                              'ingredientList': serializeParam(
+                                                widget.ingredientList,
+                                                ParamType.DataStruct,
+                                                true,
+                                              ),
+                                              'procedureList': serializeParam(
+                                                widget.procedureList,
+                                                ParamType.DataStruct,
+                                                true,
+                                              ),
+                                              'recipeCategoryList':
+                                                  serializeParam(
+                                                widget.recipeCategoryList,
+                                                ParamType.String,
+                                                true,
+                                              ),
+                                            }.withoutNulls,
+                                            extra: <String, dynamic>{
+                                              kTransitionInfoKey:
+                                                  TransitionInfo(
+                                                hasTransition: true,
+                                                transitionType:
+                                                    PageTransitionType.fade,
+                                              ),
+                                            },
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: FlutterFlowTheme.of(context)
+                                                .secondaryBackground,
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.max,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Padding(
+                                                padding: EdgeInsetsDirectional
+                                                    .fromSTEB(
+                                                        12.0, 0.0, 0.0, 0.0),
+                                                child: Icon(
+                                                  Icons.edit_outlined,
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .primaryText,
+                                                  size: 24.0,
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding: EdgeInsetsDirectional
+                                                    .fromSTEB(
+                                                        12.0, 0.0, 0.0, 0.0),
+                                                child: Container(
+                                                  decoration: BoxDecoration(),
+                                                  child: Text(
+                                                    'Edit',
+                                                    style: FlutterFlowTheme.of(
                                                             context)
-                                                        .primaryText,
-                                                    size: 24.0,
+                                                        .bodyMedium
+                                                        .override(
+                                                          fontFamily: 'Poppins',
+                                                          letterSpacing: 0.0,
+                                                        ),
                                                   ),
                                                 ),
-                                                Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          12.0, 0.0, 0.0, 0.0),
-                                                  child: Container(
-                                                    decoration: BoxDecoration(),
-                                                    child: Text(
-                                                      'Edit',
-                                                      style: FlutterFlowTheme
-                                                              .of(context)
-                                                          .bodyMedium
-                                                          .override(
-                                                            fontFamily:
-                                                                'Poppins',
-                                                            letterSpacing: 0.0,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ),

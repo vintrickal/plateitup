@@ -652,8 +652,8 @@ class _AdminHomeWidgetState extends State<AdminHomeWidget>
                                             isEqualTo: true,
                                           )
                                           .where(
-                                            'admin_approved',
-                                            isEqualTo: false,
+                                            'isRecipeReported',
+                                            isEqualTo: true,
                                           ),
                                 ),
                                 builder: (context, snapshot) {

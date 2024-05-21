@@ -3,6 +3,7 @@ import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/pages/components/confirmation_assign_meal_to_partner_screen/confirmation_assign_meal_to_partner_screen_widget.dart';
+import '/pages/components/reported_container/reported_container_widget.dart';
 import 'option_not_author_component_widget.dart'
     show OptionNotAuthorComponentWidget;
 import 'package:cloud_firestore/cloud_firestore.dart';

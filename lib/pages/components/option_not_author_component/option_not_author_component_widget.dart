@@ -3,6 +3,7 @@ import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/pages/components/confirmation_assign_meal_to_partner_screen/confirmation_assign_meal_to_partner_screen_widget.dart';
+import '/pages/components/reported_container/reported_container_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -214,48 +215,6 @@ class _OptionNotAuthorComponentWidgetState
                             ),
                           ),
                         ),
-                      if (FFAppState().tempHideWidget == false)
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
-                          ),
-                          child: Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                0.0, 8.0, 0.0, 8.0),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.max,
-                              children: [
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      12.0, 0.0, 0.0, 0.0),
-                                  child: Icon(
-                                    Icons.ios_share,
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryText,
-                                    size: 20.0,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        12.0, 0.0, 0.0, 0.0),
-                                    child: Text(
-                                      'Share',
-                                      style: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            fontFamily: 'Poppins',
-                                            letterSpacing: 0.0,
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
                       Stack(
                         children: [
                           if (optionsColumnSavedRecipeRecord?.savedMealRecipeId
@@ -391,11 +350,74 @@ class _OptionNotAuthorComponentWidgetState
                                             ),
                                       ),
                                     ),
-                                  ].divide(SizedBox(width: 4.0)),
+                                  ]
+                                      .divide(SizedBox(width: 8.0))
+                                      .addToStart(SizedBox(width: 5.0)),
                                 ),
                               ),
                             ),
                         ],
+                      ),
+                      Builder(
+                        builder: (context) => InkWell(
+                          splashColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          onTap: () async {
+                            await showDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                return Dialog(
+                                  elevation: 0,
+                                  insetPadding: EdgeInsets.zero,
+                                  backgroundColor: Colors.transparent,
+                                  alignment: AlignmentDirectional(0.0, 0.0)
+                                      .resolve(Directionality.of(context)),
+                                  child: Container(
+                                    height: 150.0,
+                                    width: 350.0,
+                                    child: ReportedContainerWidget(),
+                                  ),
+                                );
+                              },
+                            ).then((value) => setState(() {}));
+
+                            await widget.mealRef!
+                                .update(createMealRecipeRecordData(
+                              isRecipeReported: true,
+                            ));
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.report_outlined,
+                                  color: FlutterFlowTheme.of(context).error,
+                                  size: 24.0,
+                                ),
+                                Text(
+                                  'Report Recipe',
+                                  style: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .override(
+                                        fontFamily: 'Poppins',
+                                        letterSpacing: 0.0,
+                                      ),
+                                ),
+                              ]
+                                  .divide(SizedBox(width: 8.0))
+                                  .addToStart(SizedBox(width: 8.0)),
+                            ),
+                          ),
+                        ),
                       ),
                     ].divide(SizedBox(height: 16.0)),
                   );

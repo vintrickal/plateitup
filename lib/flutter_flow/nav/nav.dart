@@ -452,13 +452,13 @@ class FFRoute {
               : builder(context, ffParams);
           final child = appStateNotifier.loading
               ? Container(
-                  color: FlutterFlowTheme.of(context).accent4,
+                  color: FlutterFlowTheme.of(context).success,
                   child: Center(
                     child: Image.asset(
-                      'assets/images/cooking.png',
+                      'assets/images/plateitup_illustration-png.png',
                       width: 250.0,
                       height: 250.0,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fitWidth,
                     ),
                   ),
                 )

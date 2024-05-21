@@ -358,7 +358,8 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                             isPublic: true,
                             isReady: false,
                             prepTime: FFAppState().estimatedTimeSpinner,
-                            adminApproved: false,
+                            adminApproved: true,
+                            isRecipeReported: false,
                           ),
                           ...mapToFirestore(
                             {
@@ -393,7 +394,8 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                             isPublic: true,
                             isReady: false,
                             prepTime: FFAppState().estimatedTimeSpinner,
-                            adminApproved: false,
+                            adminApproved: true,
+                            isRecipeReported: false,
                           ),
                           ...mapToFirestore(
                             {

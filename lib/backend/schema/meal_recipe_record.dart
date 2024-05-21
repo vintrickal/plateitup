@@ -91,6 +91,16 @@ class MealRecipeRecord extends FirestoreRecord {
   bool get adminApproved => _adminApproved ?? false;
   bool hasAdminApproved() => _adminApproved != null;
 
+  // "isRecipeReported" field.
+  bool? _isRecipeReported;
+  bool get isRecipeReported => _isRecipeReported ?? false;
+  bool hasIsRecipeReported() => _isRecipeReported != null;
+
+  // "reportedReason" field.
+  String? _reportedReason;
+  String get reportedReason => _reportedReason ?? '';
+  bool hasReportedReason() => _reportedReason != null;
+
   void _initializeFields() {
     _banner = snapshotData['banner'] as String?;
     _title = snapshotData['title'] as String?;
@@ -113,6 +123,8 @@ class MealRecipeRecord extends FirestoreRecord {
     _attribution = snapshotData['attribution'] as String?;
     _mealRecipeId = snapshotData['meal_recipe_id'] as String?;
     _adminApproved = snapshotData['admin_approved'] as bool?;
+    _isRecipeReported = snapshotData['isRecipeReported'] as bool?;
+    _reportedReason = snapshotData['reportedReason'] as String?;
   }
 
   static CollectionReference get collection =>
@@ -162,6 +174,8 @@ Map<String, dynamic> createMealRecipeRecordData({
   String? attribution,
   String? mealRecipeId,
   bool? adminApproved,
+  bool? isRecipeReported,
+  String? reportedReason,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -177,6 +191,8 @@ Map<String, dynamic> createMealRecipeRecordData({
       'attribution': attribution,
       'meal_recipe_id': mealRecipeId,
       'admin_approved': adminApproved,
+      'isRecipeReported': isRecipeReported,
+      'reportedReason': reportedReason,
     }.withoutNulls,
   );
 
@@ -203,7 +219,9 @@ class MealRecipeRecordDocumentEquality implements Equality<MealRecipeRecord> {
         listEquality.equals(e1?.category, e2?.category) &&
         e1?.attribution == e2?.attribution &&
         e1?.mealRecipeId == e2?.mealRecipeId &&
-        e1?.adminApproved == e2?.adminApproved;
+        e1?.adminApproved == e2?.adminApproved &&
+        e1?.isRecipeReported == e2?.isRecipeReported &&
+        e1?.reportedReason == e2?.reportedReason;
   }
 
   @override
@@ -222,7 +240,9 @@ class MealRecipeRecordDocumentEquality implements Equality<MealRecipeRecord> {
         e?.category,
         e?.attribution,
         e?.mealRecipeId,
-        e?.adminApproved
+        e?.adminApproved,
+        e?.isRecipeReported,
+        e?.reportedReason
       ]);
 
   @override

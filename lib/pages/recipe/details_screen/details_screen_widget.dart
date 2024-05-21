@@ -11,6 +11,7 @@ import '/pages/components/edit_meal_rating_bottomsheet_component/edit_meal_ratin
 import '/pages/components/meal_rating_bottomsheet_component/meal_rating_bottomsheet_component_widget.dart';
 import '/pages/components/option_author_component/option_author_component_widget.dart';
 import '/pages/components/option_not_author_component/option_not_author_component_widget.dart';
+import '/pages/components/reported_reason_container/reported_reason_container_widget.dart';
 import 'dart:math';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
@@ -375,7 +376,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                   context)
                                                               .unfocus(),
                                                       child: Container(
-                                                        height: 300.0,
+                                                        height: 340.0,
                                                         width: 30.0,
                                                         child:
                                                             OptionAuthorComponentWidget(
@@ -430,7 +431,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                   context)
                                                               .unfocus(),
                                                       child: Container(
-                                                        height: 260.0,
+                                                        height: 300.0,
                                                         width: 30.0,
                                                         child:
                                                             OptionAuthorComponentWidget(
@@ -485,7 +486,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                   context)
                                                               .unfocus(),
                                                       child: Container(
-                                                        height: 190.0,
+                                                        height: 230.0,
                                                         width: 30.0,
                                                         child:
                                                             OptionNotAuthorComponentWidget(
@@ -532,7 +533,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                   context)
                                                               .unfocus(),
                                                       child: Container(
-                                                        height: 140.0,
+                                                        height: 170.0,
                                                         width: 30.0,
                                                         child:
                                                             OptionNotAuthorComponentWidget(
@@ -998,7 +999,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                     valueOrDefault<String>(
                                                       _model.starAverage
                                                           ?.toString(),
-                                                      '1.0',
+                                                      '0',
                                                     ),
                                                     style: FlutterFlowTheme.of(
                                                             context)
@@ -1170,41 +1171,77 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                         mainAxisAlignment:
                                             MainAxisAlignment.end,
                                         children: [
-                                          FFButtonWidget(
-                                            onPressed: () async {
-                                              await widget.mealRef!.update(
-                                                  createMealRecipeRecordData(
-                                                adminApproved: false,
-                                              ));
-                                              context.safePop();
-                                            },
-                                            text: 'Denied',
-                                            options: FFButtonOptions(
-                                              height: 40.0,
-                                              padding: EdgeInsetsDirectional
-                                                  .fromSTEB(
-                                                      12.0, 0.0, 12.0, 0.0),
-                                              iconPadding: EdgeInsetsDirectional
-                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .error,
-                                              textStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .titleSmall
-                                                      .override(
-                                                        fontFamily: 'Poppins',
-                                                        color: Colors.white,
-                                                        fontSize: 14.0,
-                                                        letterSpacing: 0.0,
+                                          Builder(
+                                            builder: (context) =>
+                                                FFButtonWidget(
+                                              onPressed: () async {
+                                                await showDialog(
+                                                  context: context,
+                                                  builder: (dialogContext) {
+                                                    return Dialog(
+                                                      elevation: 0,
+                                                      insetPadding:
+                                                          EdgeInsets.zero,
+                                                      backgroundColor:
+                                                          Colors.transparent,
+                                                      alignment:
+                                                          AlignmentDirectional(
+                                                                  0.0, 0.0)
+                                                              .resolve(
+                                                                  Directionality.of(
+                                                                      context)),
+                                                      child: GestureDetector(
+                                                        onTap: () => _model
+                                                                .unfocusNode
+                                                                .canRequestFocus
+                                                            ? FocusScope.of(
+                                                                    context)
+                                                                .requestFocus(_model
+                                                                    .unfocusNode)
+                                                            : FocusScope.of(
+                                                                    context)
+                                                                .unfocus(),
+                                                        child:
+                                                            ReportedReasonContainerWidget(
+                                                          mealRef:
+                                                              widget.mealRef!,
+                                                        ),
                                                       ),
-                                              elevation: 3.0,
-                                              borderSide: BorderSide(
-                                                color: Colors.transparent,
-                                                width: 1.0,
+                                                    );
+                                                  },
+                                                ).then(
+                                                    (value) => setState(() {}));
+                                              },
+                                              text: 'Denied',
+                                              options: FFButtonOptions(
+                                                height: 40.0,
+                                                padding: EdgeInsetsDirectional
+                                                    .fromSTEB(
+                                                        12.0, 0.0, 12.0, 0.0),
+                                                iconPadding:
+                                                    EdgeInsetsDirectional
+                                                        .fromSTEB(
+                                                            0.0, 0.0, 0.0, 0.0),
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .error,
+                                                textStyle:
+                                                    FlutterFlowTheme.of(context)
+                                                        .titleSmall
+                                                        .override(
+                                                          fontFamily: 'Poppins',
+                                                          color: Colors.white,
+                                                          fontSize: 14.0,
+                                                          letterSpacing: 0.0,
+                                                        ),
+                                                elevation: 3.0,
+                                                borderSide: BorderSide(
+                                                  color: Colors.transparent,
+                                                  width: 1.0,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
                                               ),
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
                                             ),
                                           ),
                                           FFButtonWidget(
@@ -1212,6 +1249,9 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                               await widget.mealRef!.update(
                                                   createMealRecipeRecordData(
                                                 adminApproved: true,
+                                                isPublic: true,
+                                                isRecipeReported: false,
+                                                isReady: true,
                                               ));
                                               context.safePop();
                                             },
@@ -1499,7 +1539,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                 })
                                                                     .divide(SizedBox(
                                                                         height:
-                                                                            16.0))
+                                                                            8.0))
                                                                     .addToEnd(SizedBox(
                                                                         height:
                                                                             32.0)),

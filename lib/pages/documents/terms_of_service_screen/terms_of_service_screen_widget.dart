@@ -166,7 +166,7 @@ class _TermsOfServiceScreenWidgetState
                       padding:
                           EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
                       child: Text(
-                        '2.2 Public and Private Recipes: Users can create public or private community meal recipes. Public recipes are subject to moderation by the admin to prevent malicious content. Private recipes can only be viewed by the creator.',
+                        '2.2 Public and Private Recipes: Users can create public or private community meal recipes. Public recipes can be reported by users to flag and notify the moderator of malicious content. Private recipes can only be viewed by the creator.',
                         style: FlutterFlowTheme.of(context).bodyMedium.override(
                               fontFamily: 'Poppins',
                               letterSpacing: 0.0,

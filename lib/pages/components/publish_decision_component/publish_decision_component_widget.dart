@@ -4,6 +4,7 @@ import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/pages/components/edit_recipe_with_moderator_approval_component/edit_recipe_with_moderator_approval_component_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -111,108 +112,166 @@ class _PublishDecisionComponentWidgetState
                     mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      StreamBuilder<MealRecipeRecord>(
-                        stream: MealRecipeRecord.getDocument(widget.mealRef!),
-                        builder: (context, snapshot) {
-                          // Customize what your widget looks like when it's loading.
-                          if (!snapshot.hasData) {
-                            return Center(
-                              child: SizedBox(
-                                width: 24.0,
-                                height: 24.0,
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    FlutterFlowTheme.of(context).success,
+                      Builder(
+                        builder: (context) => StreamBuilder<MealRecipeRecord>(
+                          stream: MealRecipeRecord.getDocument(widget.mealRef!),
+                          builder: (context, snapshot) {
+                            // Customize what your widget looks like when it's loading.
+                            if (!snapshot.hasData) {
+                              return Center(
+                                child: SizedBox(
+                                  width: 24.0,
+                                  height: 24.0,
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      FlutterFlowTheme.of(context).success,
+                                    ),
                                   ),
                                 ),
+                              );
+                            }
+                            final buttonMealRecipeRecord = snapshot.data!;
+                            return FFButtonWidget(
+                              onPressed: () async {
+                                if (buttonMealRecipeRecord.adminApproved ==
+                                    false) {
+                                  await showDialog(
+                                    context: context,
+                                    builder: (dialogContext) {
+                                      return Dialog(
+                                        elevation: 0,
+                                        insetPadding: EdgeInsets.zero,
+                                        backgroundColor: Colors.transparent,
+                                        alignment:
+                                            AlignmentDirectional(0.0, 0.0)
+                                                .resolve(
+                                                    Directionality.of(context)),
+                                        child:
+                                            EditRecipeWithModeratorApprovalComponentWidget(),
+                                      );
+                                    },
+                                  ).then((value) => setState(() {}));
+
+                                  await widget.mealRef!
+                                      .update(createMealRecipeRecordData(
+                                    isReady: true,
+                                    isPublic: true,
+                                  ));
+                                  setState(() {
+                                    FFAppState().isBannerUploaded = false;
+                                    FFAppState().addVideoLink = '';
+                                    FFAppState().stepsList = [];
+                                    FFAppState().addIsBasicRecipeInfoAdded =
+                                        false;
+                                    FFAppState().procedureList = [];
+                                    FFAppState().counterBtnClicked = 0;
+                                    FFAppState().isProcedureItemEdited = false;
+                                    FFAppState().procedureJson =
+                                        ProcedureStruct.fromSerializableMap(
+                                            jsonDecode('{\"steps\":\"\"}'));
+                                    FFAppState().wasProcedureListReordered =
+                                        false;
+                                    FFAppState().ingredientNewList = [];
+                                    FFAppState().chosenRecipeCategory = [];
+                                    FFAppState().recipeCategoryFromFirebase =
+                                        [];
+                                    FFAppState().attributionTemp = '';
+                                    FFAppState().estimatedTimeSpinner =
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            1714665600000);
+                                    FFAppState().yesPublishToPublic = false;
+                                  });
+
+                                  context.goNamed('home');
+                                } else {
+                                  setState(() {
+                                    FFAppState().yesPublishToPublic = true;
+                                  });
+
+                                  await widget.mealRef!
+                                      .update(createMealRecipeRecordData(
+                                    isReady: true,
+                                    isPublic: true,
+                                  ));
+                                  await showDialog(
+                                    context: context,
+                                    builder: (alertDialogContext) {
+                                      return AlertDialog(
+                                        title: Text('Information:'),
+                                        content: Text(
+                                            'Your recipe has been published.'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(
+                                                alertDialogContext),
+                                            child: Text('Ok'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                  setState(() {
+                                    FFAppState().isBannerUploaded = false;
+                                    FFAppState().addVideoLink = '';
+                                    FFAppState().stepsList = [];
+                                    FFAppState().addIsBasicRecipeInfoAdded =
+                                        false;
+                                    FFAppState().procedureList = [];
+                                    FFAppState().counterBtnClicked = 0;
+                                    FFAppState().isProcedureItemEdited = false;
+                                    FFAppState().procedureJson =
+                                        ProcedureStruct.fromSerializableMap(
+                                            jsonDecode('{\"steps\":\"\"}'));
+                                    FFAppState().wasProcedureListReordered =
+                                        false;
+                                    FFAppState().ingredientNewList = [];
+                                    FFAppState().chosenRecipeCategory = [];
+                                    FFAppState().recipeCategoryFromFirebase =
+                                        [];
+                                    FFAppState().attributionTemp = '';
+                                    FFAppState().estimatedTimeSpinner =
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            1714665600000);
+                                    FFAppState().yesPublishToPublic = false;
+                                  });
+
+                                  context.goNamed('home');
+                                }
+                              },
+                              text: 'YES',
+                              options: FFButtonOptions(
+                                height: 40.0,
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    24.0, 0.0, 24.0, 0.0),
+                                iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                    0.0, 0.0, 0.0, 0.0),
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
+                                textStyle: FlutterFlowTheme.of(context)
+                                    .bodySmall
+                                    .override(
+                                      fontFamily: 'Poppins',
+                                      color:
+                                          FlutterFlowTheme.of(context).success,
+                                      fontSize: 12.0,
+                                      letterSpacing: 0.0,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                elevation: 0.0,
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(0.0),
+                                  bottomRight: Radius.circular(0.0),
+                                  topLeft: Radius.circular(0.0),
+                                  topRight: Radius.circular(0.0),
+                                ),
+                                hoverColor: FlutterFlowTheme.of(context)
+                                    .primaryBackground,
+                                hoverTextColor:
+                                    FlutterFlowTheme.of(context).primaryText,
                               ),
                             );
-                          }
-                          final buttonMealRecipeRecord = snapshot.data!;
-                          return FFButtonWidget(
-                            onPressed: () async {
-                              setState(() {
-                                FFAppState().yesPublishToPublic = true;
-                              });
-
-                              await widget.mealRef!
-                                  .update(createMealRecipeRecordData(
-                                isReady: true,
-                                isPublic: true,
-                              ));
-                              await showDialog(
-                                context: context,
-                                builder: (alertDialogContext) {
-                                  return AlertDialog(
-                                    title: Text('Information:'),
-                                    content: Text(
-                                        'Your recipe has been saved to \'Profile\' -> \'My Recipes\'. The recipe will be reviewed to prevent malicious content.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(alertDialogContext),
-                                        child: Text('Ok'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                              setState(() {
-                                FFAppState().isBannerUploaded = false;
-                                FFAppState().addVideoLink = '';
-                                FFAppState().stepsList = [];
-                                FFAppState().addIsBasicRecipeInfoAdded = false;
-                                FFAppState().procedureList = [];
-                                FFAppState().counterBtnClicked = 0;
-                                FFAppState().isProcedureItemEdited = false;
-                                FFAppState().procedureJson =
-                                    ProcedureStruct.fromSerializableMap(
-                                        jsonDecode('{\"steps\":\"\"}'));
-                                FFAppState().wasProcedureListReordered = false;
-                                FFAppState().ingredientNewList = [];
-                                FFAppState().chosenRecipeCategory = [];
-                                FFAppState().recipeCategoryFromFirebase = [];
-                                FFAppState().attributionTemp = '';
-                                FFAppState().estimatedTimeSpinner =
-                                    DateTime.fromMillisecondsSinceEpoch(
-                                        1714665600000);
-                                FFAppState().yesPublishToPublic = false;
-                              });
-
-                              context.goNamed('home');
-                            },
-                            text: 'YES',
-                            options: FFButtonOptions(
-                              height: 40.0,
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  24.0, 0.0, 24.0, 0.0),
-                              iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 0.0),
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              textStyle: FlutterFlowTheme.of(context)
-                                  .bodySmall
-                                  .override(
-                                    fontFamily: 'Poppins',
-                                    color: FlutterFlowTheme.of(context).success,
-                                    fontSize: 12.0,
-                                    letterSpacing: 0.0,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                              elevation: 0.0,
-                              borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(0.0),
-                                bottomRight: Radius.circular(0.0),
-                                topLeft: Radius.circular(0.0),
-                                topRight: Radius.circular(0.0),
-                              ),
-                              hoverColor: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
-                              hoverTextColor:
-                                  FlutterFlowTheme.of(context).primaryText,
-                            ),
-                          );
-                        },
+                          },
+                        ),
                       ),
                       FFButtonWidget(
                         onPressed: () async {

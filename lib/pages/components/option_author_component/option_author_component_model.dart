@@ -5,7 +5,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/pages/components/confirmation_assign_meal_to_partner_screen/confirmation_assign_meal_to_partner_screen_widget.dart';
 import '/pages/components/confirmation_modal_component/confirmation_modal_component_widget.dart';
-import '/pages/components/edit_pop_warning/edit_pop_warning_widget.dart';
+import '/pages/components/reported_container/reported_container_widget.dart';
 import 'option_author_component_widget.dart' show OptionAuthorComponentWidget;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expandable/expandable.dart';
@@ -19,9 +19,6 @@ class OptionAuthorComponentModel
 
   // State field(s) for Expandable widget.
   late ExpandableController expandableExpandableController;
-
-  // Stores action output result for [Alert Dialog - Custom Dialog] action in edit-container widget.
-  bool? proceedToEdit;
 
   @override
   void initState(BuildContext context) {}

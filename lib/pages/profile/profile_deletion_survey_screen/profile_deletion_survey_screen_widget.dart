@@ -63,19 +63,26 @@ class _ProfileDeletionSurveyScreenWidgetState
         appBar: AppBar(
           backgroundColor: FlutterFlowTheme.of(context).success,
           automaticallyImplyLeading: false,
-          leading: FlutterFlowIconButton(
-            borderColor: Colors.transparent,
-            borderRadius: 30.0,
-            borderWidth: 1.0,
-            buttonSize: 60.0,
-            icon: Icon(
-              Icons.arrow_back_rounded,
-              color: Colors.white,
-              size: 24.0,
+          leading: Visibility(
+            visible: responsiveVisibility(
+              context: context,
+              tabletLandscape: false,
+              desktop: false,
             ),
-            onPressed: () async {
-              context.pop();
-            },
+            child: FlutterFlowIconButton(
+              borderColor: Colors.transparent,
+              borderRadius: 30.0,
+              borderWidth: 1.0,
+              buttonSize: 60.0,
+              icon: Icon(
+                Icons.arrow_back_rounded,
+                color: Colors.white,
+                size: 24.0,
+              ),
+              onPressed: () async {
+                context.pop();
+              },
+            ),
           ),
           title: Text(
             'Delete Account',
@@ -316,7 +323,11 @@ class _ProfileDeletionSurveyScreenWidgetState
                         ),
                       ),
                     ),
-                  if (_model.rdBtnOptionsValue != '')
+                  if ((_model.rdBtnOptionsValue != '') &&
+                      responsiveVisibility(
+                        context: context,
+                        desktop: false,
+                      ))
                     Align(
                       alignment: AlignmentDirectional(0.0, 0.0),
                       child: Builder(

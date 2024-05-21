@@ -5,6 +5,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/pages/components/confirmation_remove_partner_component/confirmation_remove_partner_component_widget.dart';
+import '/pages/components/popup_reason_component/popup_reason_component_widget.dart';
 import '/pages/components/resend_email_component/resend_email_component_widget.dart';
 import 'dart:math';
 import '/flutter_flow/custom_functions.dart' as functions;

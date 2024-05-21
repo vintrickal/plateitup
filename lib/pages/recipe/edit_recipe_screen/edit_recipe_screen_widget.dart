@@ -522,6 +522,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                 child: Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
                   child: SingleChildScrollView(
+                    primary: false,
                     controller: _model.editRecipeColumn,
                     child: Column(
                       mainAxisSize: MainAxisSize.max,
@@ -1443,6 +1444,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                         padding: EdgeInsetsDirectional.fromSTEB(
                                             0.0, 12.0, 0.0, 0.0),
                                         child: SingleChildScrollView(
+                                          primary: false,
                                           controller:
                                               _model.ingredientParentColumn,
                                           child: Column(
@@ -2818,6 +2820,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                         padding: EdgeInsetsDirectional.fromSTEB(
                                             0.0, 12.0, 0.0, 0.0),
                                         child: SingleChildScrollView(
+                                          primary: false,
                                           controller: _model.stepsParentColumn,
                                           child: Column(
                                             mainAxisSize: MainAxisSize.max,
@@ -3214,7 +3217,6 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                         0.0, 16.0, 0.0, 64.0),
                                                 child: Container(
                                                   width: double.infinity,
-                                                  height: 168.0,
                                                   decoration: BoxDecoration(
                                                     color: FlutterFlowTheme.of(
                                                             context)

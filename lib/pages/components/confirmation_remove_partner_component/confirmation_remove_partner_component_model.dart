@@ -22,11 +22,15 @@ class ConfirmationRemovePartnerComponentModel
   // Stores action output result for [Firestore Query - Query a collection] action in Button widget.
   MealRequestedNotificationRecord? mealNotificationItem;
   // Stores action output result for [Firestore Query - Query a collection] action in Button widget.
+  PartnerReviewRecord? userPartnerReviewId;
+  // Stores action output result for [Firestore Query - Query a collection] action in Button widget.
   PairedUserRecord? partnerPairedDetails;
   // Stores action output result for [Firestore Query - Query a collection] action in Button widget.
   int? pARTNERMealNotificationCount;
   // Stores action output result for [Firestore Query - Query a collection] action in Button widget.
   MealRequestedNotificationRecord? partnerMealNotificationItem;
+  // Stores action output result for [Firestore Query - Query a collection] action in Button widget.
+  PartnerReviewRecord? partnerPartnerReviewId;
   // Stores action output result for [Firestore Query - Query a collection] action in Button widget.
   int? uSERReceiverNotificationCOUNT;
   // Stores action output result for [Firestore Query - Query a collection] action in Button widget.
