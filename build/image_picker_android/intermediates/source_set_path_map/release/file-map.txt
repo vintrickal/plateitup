@@ -15,10 +15,10 @@ io.flutter.plugins.imagepicker.image_picker_android-lifecycle-runtime-2.6.1-13 C
 io.flutter.plugins.imagepicker.image_picker_android-lifecycle-livedata-2.6.1-14 C:\Users\user\.gradle\caches\transforms-3\f8f787556d8037cffefe81b11ea2d78d\transformed\lifecycle-livedata-2.6.1\res
 io.flutter.plugins.imagepicker.image_picker_android-main-15 C:\Users\user\AppData\Local\Pub\Cache\hosted\pub.dev\image_picker_android-0.8.8\android\src\main\res
 io.flutter.plugins.imagepicker.image_picker_android-release-16 C:\Users\user\AppData\Local\Pub\Cache\hosted\pub.dev\image_picker_android-0.8.8\android\src\release\res
-io.flutter.plugins.imagepicker.image_picker_android-packaged_res-17 D:\plateitupversions\01_Release\1.0.0\plateitup\build\flutter_plugin_android_lifecycle\intermediates\packaged_res\release
-io.flutter.plugins.imagepicker.image_picker_android-pngs-18 D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\generated\res\pngs\release
-io.flutter.plugins.imagepicker.image_picker_android-resValues-19 D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\generated\res\resValues\release
-io.flutter.plugins.imagepicker.image_picker_android-rs-20 D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\generated\res\rs\release
-io.flutter.plugins.imagepicker.image_picker_android-mergeReleaseResources-21 D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\intermediates\incremental\release\mergeReleaseResources\merged.dir
-io.flutter.plugins.imagepicker.image_picker_android-mergeReleaseResources-22 D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\intermediates\incremental\release\mergeReleaseResources\stripped.dir
-io.flutter.plugins.imagepicker.image_picker_android-merged_res-23 D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\intermediates\merged_res\release
+io.flutter.plugins.imagepicker.image_picker_android-packaged_res-17 D:\Portfolio\plateitup\build\flutter_plugin_android_lifecycle\intermediates\packaged_res\release
+io.flutter.plugins.imagepicker.image_picker_android-pngs-18 D:\Portfolio\plateitup\build\image_picker_android\generated\res\pngs\release
+io.flutter.plugins.imagepicker.image_picker_android-resValues-19 D:\Portfolio\plateitup\build\image_picker_android\generated\res\resValues\release
+io.flutter.plugins.imagepicker.image_picker_android-rs-20 D:\Portfolio\plateitup\build\image_picker_android\generated\res\rs\release
+io.flutter.plugins.imagepicker.image_picker_android-mergeReleaseResources-21 D:\Portfolio\plateitup\build\image_picker_android\intermediates\incremental\release\mergeReleaseResources\merged.dir
+io.flutter.plugins.imagepicker.image_picker_android-mergeReleaseResources-22 D:\Portfolio\plateitup\build\image_picker_android\intermediates\incremental\release\mergeReleaseResources\stripped.dir
+io.flutter.plugins.imagepicker.image_picker_android-merged_res-23 D:\Portfolio\plateitup\build\image_picker_android\intermediates\merged_res\release

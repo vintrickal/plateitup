@@ -6,9 +6,9 @@ io.flutter.plugins.videoplayer.video_player_android-core-1.7.0-4 C:\Users\user\.
 io.flutter.plugins.videoplayer.video_player_android-jetified-window-1.0.0-beta04-5 C:\Users\user\.gradle\caches\transforms-3\768f74a9029751ad6680571d32613ab7\transformed\jetified-window-1.0.0-beta04\res
 io.flutter.plugins.videoplayer.video_player_android-main-6 C:\Users\user\AppData\Local\Pub\Cache\hosted\pub.dev\video_player_android-2.4.10\android\src\main\res
 io.flutter.plugins.videoplayer.video_player_android-release-7 C:\Users\user\AppData\Local\Pub\Cache\hosted\pub.dev\video_player_android-2.4.10\android\src\release\res
-io.flutter.plugins.videoplayer.video_player_android-pngs-8 D:\plateitupversions\01_Release\1.0.0\plateitup\build\video_player_android\generated\res\pngs\release
-io.flutter.plugins.videoplayer.video_player_android-resValues-9 D:\plateitupversions\01_Release\1.0.0\plateitup\build\video_player_android\generated\res\resValues\release
-io.flutter.plugins.videoplayer.video_player_android-rs-10 D:\plateitupversions\01_Release\1.0.0\plateitup\build\video_player_android\generated\res\rs\release
-io.flutter.plugins.videoplayer.video_player_android-mergeReleaseResources-11 D:\plateitupversions\01_Release\1.0.0\plateitup\build\video_player_android\intermediates\incremental\release\mergeReleaseResources\merged.dir
-io.flutter.plugins.videoplayer.video_player_android-mergeReleaseResources-12 D:\plateitupversions\01_Release\1.0.0\plateitup\build\video_player_android\intermediates\incremental\release\mergeReleaseResources\stripped.dir
-io.flutter.plugins.videoplayer.video_player_android-merged_res-13 D:\plateitupversions\01_Release\1.0.0\plateitup\build\video_player_android\intermediates\merged_res\release
+io.flutter.plugins.videoplayer.video_player_android-pngs-8 D:\Portfolio\plateitup\build\video_player_android\generated\res\pngs\release
+io.flutter.plugins.videoplayer.video_player_android-resValues-9 D:\Portfolio\plateitup\build\video_player_android\generated\res\resValues\release
+io.flutter.plugins.videoplayer.video_player_android-rs-10 D:\Portfolio\plateitup\build\video_player_android\generated\res\rs\release
+io.flutter.plugins.videoplayer.video_player_android-mergeReleaseResources-11 D:\Portfolio\plateitup\build\video_player_android\intermediates\incremental\release\mergeReleaseResources\merged.dir
+io.flutter.plugins.videoplayer.video_player_android-mergeReleaseResources-12 D:\Portfolio\plateitup\build\video_player_android\intermediates\incremental\release\mergeReleaseResources\stripped.dir
+io.flutter.plugins.videoplayer.video_player_android-merged_res-13 D:\Portfolio\plateitup\build\video_player_android\intermediates\merged_res\release

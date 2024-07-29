@@ -5,9 +5,9 @@ com.dexterous.flutterlocalnotifications.flutter_local_notifications-jetified-win
 com.dexterous.flutterlocalnotifications.flutter_local_notifications-media-1.1.0-4 C:\Users\user\.gradle\caches\transforms-3\c54744d10f73b6b1277b035da11d1fa6\transformed\media-1.1.0\res
 com.dexterous.flutterlocalnotifications.flutter_local_notifications-main-5 C:\Users\user\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications-17.1.2\android\src\main\res
 com.dexterous.flutterlocalnotifications.flutter_local_notifications-release-6 C:\Users\user\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications-17.1.2\android\src\release\res
-com.dexterous.flutterlocalnotifications.flutter_local_notifications-pngs-7 D:\plateitupversions\01_Release\1.0.0\plateitup\build\flutter_local_notifications\generated\res\pngs\release
-com.dexterous.flutterlocalnotifications.flutter_local_notifications-resValues-8 D:\plateitupversions\01_Release\1.0.0\plateitup\build\flutter_local_notifications\generated\res\resValues\release
-com.dexterous.flutterlocalnotifications.flutter_local_notifications-rs-9 D:\plateitupversions\01_Release\1.0.0\plateitup\build\flutter_local_notifications\generated\res\rs\release
-com.dexterous.flutterlocalnotifications.flutter_local_notifications-mergeReleaseResources-10 D:\plateitupversions\01_Release\1.0.0\plateitup\build\flutter_local_notifications\intermediates\incremental\release\mergeReleaseResources\merged.dir
-com.dexterous.flutterlocalnotifications.flutter_local_notifications-mergeReleaseResources-11 D:\plateitupversions\01_Release\1.0.0\plateitup\build\flutter_local_notifications\intermediates\incremental\release\mergeReleaseResources\stripped.dir
-com.dexterous.flutterlocalnotifications.flutter_local_notifications-merged_res-12 D:\plateitupversions\01_Release\1.0.0\plateitup\build\flutter_local_notifications\intermediates\merged_res\release
+com.dexterous.flutterlocalnotifications.flutter_local_notifications-pngs-7 D:\Portfolio\plateitup\build\flutter_local_notifications\generated\res\pngs\release
+com.dexterous.flutterlocalnotifications.flutter_local_notifications-resValues-8 D:\Portfolio\plateitup\build\flutter_local_notifications\generated\res\resValues\release
+com.dexterous.flutterlocalnotifications.flutter_local_notifications-rs-9 D:\Portfolio\plateitup\build\flutter_local_notifications\generated\res\rs\release
+com.dexterous.flutterlocalnotifications.flutter_local_notifications-mergeReleaseResources-10 D:\Portfolio\plateitup\build\flutter_local_notifications\intermediates\incremental\release\mergeReleaseResources\merged.dir
+com.dexterous.flutterlocalnotifications.flutter_local_notifications-mergeReleaseResources-11 D:\Portfolio\plateitup\build\flutter_local_notifications\intermediates\incremental\release\mergeReleaseResources\stripped.dir
+com.dexterous.flutterlocalnotifications.flutter_local_notifications-merged_res-12 D:\Portfolio\plateitup\build\flutter_local_notifications\intermediates\merged_res\release

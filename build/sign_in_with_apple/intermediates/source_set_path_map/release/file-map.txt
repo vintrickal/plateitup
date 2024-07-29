@@ -5,9 +5,9 @@ com.aboutyou.dart_packages.sign_in_with_apple-jetified-annotation-experimental-1
 com.aboutyou.dart_packages.sign_in_with_apple-jetified-window-1.0.0-beta04-4 C:\Users\user\.gradle\caches\transforms-3\768f74a9029751ad6680571d32613ab7\transformed\jetified-window-1.0.0-beta04\res
 com.aboutyou.dart_packages.sign_in_with_apple-main-5 C:\Users\user\AppData\Local\Pub\Cache\hosted\pub.dev\sign_in_with_apple-4.3.0\android\src\main\res
 com.aboutyou.dart_packages.sign_in_with_apple-release-6 C:\Users\user\AppData\Local\Pub\Cache\hosted\pub.dev\sign_in_with_apple-4.3.0\android\src\release\res
-com.aboutyou.dart_packages.sign_in_with_apple-pngs-7 D:\plateitupversions\01_Release\1.0.0\plateitup\build\sign_in_with_apple\generated\res\pngs\release
-com.aboutyou.dart_packages.sign_in_with_apple-resValues-8 D:\plateitupversions\01_Release\1.0.0\plateitup\build\sign_in_with_apple\generated\res\resValues\release
-com.aboutyou.dart_packages.sign_in_with_apple-rs-9 D:\plateitupversions\01_Release\1.0.0\plateitup\build\sign_in_with_apple\generated\res\rs\release
-com.aboutyou.dart_packages.sign_in_with_apple-mergeReleaseResources-10 D:\plateitupversions\01_Release\1.0.0\plateitup\build\sign_in_with_apple\intermediates\incremental\release\mergeReleaseResources\merged.dir
-com.aboutyou.dart_packages.sign_in_with_apple-mergeReleaseResources-11 D:\plateitupversions\01_Release\1.0.0\plateitup\build\sign_in_with_apple\intermediates\incremental\release\mergeReleaseResources\stripped.dir
-com.aboutyou.dart_packages.sign_in_with_apple-merged_res-12 D:\plateitupversions\01_Release\1.0.0\plateitup\build\sign_in_with_apple\intermediates\merged_res\release
+com.aboutyou.dart_packages.sign_in_with_apple-pngs-7 D:\Portfolio\plateitup\build\sign_in_with_apple\generated\res\pngs\release
+com.aboutyou.dart_packages.sign_in_with_apple-resValues-8 D:\Portfolio\plateitup\build\sign_in_with_apple\generated\res\resValues\release
+com.aboutyou.dart_packages.sign_in_with_apple-rs-9 D:\Portfolio\plateitup\build\sign_in_with_apple\generated\res\rs\release
+com.aboutyou.dart_packages.sign_in_with_apple-mergeReleaseResources-10 D:\Portfolio\plateitup\build\sign_in_with_apple\intermediates\incremental\release\mergeReleaseResources\merged.dir
+com.aboutyou.dart_packages.sign_in_with_apple-mergeReleaseResources-11 D:\Portfolio\plateitup\build\sign_in_with_apple\intermediates\incremental\release\mergeReleaseResources\stripped.dir
+com.aboutyou.dart_packages.sign_in_with_apple-merged_res-12 D:\Portfolio\plateitup\build\sign_in_with_apple\intermediates\merged_res\release

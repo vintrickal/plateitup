@@ -6,9 +6,9 @@ io.flutter.plugins.firebase.core.firebase_core-jetified-annotation-experimental-
 io.flutter.plugins.firebase.core.firebase_core-jetified-window-1.0.0-beta04-5 C:\Users\user\.gradle\caches\transforms-3\768f74a9029751ad6680571d32613ab7\transformed\jetified-window-1.0.0-beta04\res
 io.flutter.plugins.firebase.core.firebase_core-main-6 C:\Users\user\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-2.26.0\android\src\main\res
 io.flutter.plugins.firebase.core.firebase_core-release-7 C:\Users\user\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-2.26.0\android\src\release\res
-io.flutter.plugins.firebase.core.firebase_core-pngs-8 D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_core\generated\res\pngs\release
-io.flutter.plugins.firebase.core.firebase_core-resValues-9 D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_core\generated\res\resValues\release
-io.flutter.plugins.firebase.core.firebase_core-rs-10 D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_core\generated\res\rs\release
-io.flutter.plugins.firebase.core.firebase_core-mergeReleaseResources-11 D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_core\intermediates\incremental\release\mergeReleaseResources\merged.dir
-io.flutter.plugins.firebase.core.firebase_core-mergeReleaseResources-12 D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_core\intermediates\incremental\release\mergeReleaseResources\stripped.dir
-io.flutter.plugins.firebase.core.firebase_core-merged_res-13 D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_core\intermediates\merged_res\release
+io.flutter.plugins.firebase.core.firebase_core-pngs-8 D:\Portfolio\plateitup\build\firebase_core\generated\res\pngs\release
+io.flutter.plugins.firebase.core.firebase_core-resValues-9 D:\Portfolio\plateitup\build\firebase_core\generated\res\resValues\release
+io.flutter.plugins.firebase.core.firebase_core-rs-10 D:\Portfolio\plateitup\build\firebase_core\generated\res\rs\release
+io.flutter.plugins.firebase.core.firebase_core-mergeReleaseResources-11 D:\Portfolio\plateitup\build\firebase_core\intermediates\incremental\release\mergeReleaseResources\merged.dir
+io.flutter.plugins.firebase.core.firebase_core-mergeReleaseResources-12 D:\Portfolio\plateitup\build\firebase_core\intermediates\incremental\release\mergeReleaseResources\stripped.dir
+io.flutter.plugins.firebase.core.firebase_core-merged_res-13 D:\Portfolio\plateitup\build\firebase_core\intermediates\merged_res\release
