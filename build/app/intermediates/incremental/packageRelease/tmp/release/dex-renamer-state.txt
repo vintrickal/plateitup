@@ -1,6 +1,6 @@
-#Sat May 18 01:37:32 SGT 2024
-base.0=D\:\\plateitupversions\\01_Release\\1.0.0\\plateitup\\build\\app\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
-base.1=D\:\\plateitupversions\\01_Release\\1.0.0\\plateitup\\build\\app\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes2.dex
+#Wed May 22 00:16:15 SGT 2024
+base.0=D\:\\Portfolio\\plateitup\\build\\app\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
+base.1=D\:\\Portfolio\\plateitup\\build\\app\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes2.dex
 path.0=classes.dex
 path.1=classes2.dex
 renamed.0=classes.dex

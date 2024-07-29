@@ -6,45 +6,45 @@
 6
 7    <uses-sdk
 8        android:minSdkVersion="21"
-8-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml
+8-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml
 9        android:targetSdkVersion="34" />
-9-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml
+9-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml
 10
 11    <uses-permission android:name="android.permission.INTERNET" />
-11-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:4:5-66
-11-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:4:22-64
+11-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:4:5-66
+11-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:4:22-64
 12    <uses-permission android:name="android.permission.CAMERA" />
-12-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:5:5-64
-12-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:5:22-62
+12-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:5:5-64
+12-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:5:22-62
 13    <uses-permission
-13-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:6:5-80
+13-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:6:5-80
 14        android:name="android.permission.READ_EXTERNAL_STORAGE"
-14-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:6:22-77
+14-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:6:22-77
 15        android:maxSdkVersion="32" />
-15-->[:file_picker] D:\plateitupversions\01_Release\1.0.0\plateitup\build\file_picker\intermediates\merged_manifest\release\AndroidManifest.xml:11:9-35
+15-->[:file_picker] D:\Portfolio\plateitup\build\file_picker\intermediates\merged_manifest\release\AndroidManifest.xml:11:9-35
 16    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-16-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:7:5-81
-16-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:7:22-78
+16-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:7:5-81
+16-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:7:22-78
 17
 18    <queries>
-18-->[:file_picker] D:\plateitupversions\01_Release\1.0.0\plateitup\build\file_picker\intermediates\merged_manifest\release\AndroidManifest.xml:13:5-19:15
+18-->[:file_picker] D:\Portfolio\plateitup\build\file_picker\intermediates\merged_manifest\release\AndroidManifest.xml:13:5-19:15
 19        <intent>
-19-->[:file_picker] D:\plateitupversions\01_Release\1.0.0\plateitup\build\file_picker\intermediates\merged_manifest\release\AndroidManifest.xml:14:9-18:18
+19-->[:file_picker] D:\Portfolio\plateitup\build\file_picker\intermediates\merged_manifest\release\AndroidManifest.xml:14:9-18:18
 20            <action android:name="android.intent.action.GET_CONTENT" />
-20-->[:file_picker] D:\plateitupversions\01_Release\1.0.0\plateitup\build\file_picker\intermediates\merged_manifest\release\AndroidManifest.xml:15:13-72
-20-->[:file_picker] D:\plateitupversions\01_Release\1.0.0\plateitup\build\file_picker\intermediates\merged_manifest\release\AndroidManifest.xml:15:21-69
+20-->[:file_picker] D:\Portfolio\plateitup\build\file_picker\intermediates\merged_manifest\release\AndroidManifest.xml:15:13-72
+20-->[:file_picker] D:\Portfolio\plateitup\build\file_picker\intermediates\merged_manifest\release\AndroidManifest.xml:15:21-69
 21
 22            <data android:mimeType="*/*" />
-22-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:50:17-81
+22-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:50:17-81
 23        </intent>
 24    </queries>
 25
 26    <uses-permission android:name="android.permission.VIBRATE" />
-26-->[:flutter_local_notifications] D:\plateitupversions\01_Release\1.0.0\plateitup\build\flutter_local_notifications\intermediates\merged_manifest\release\AndroidManifest.xml:9:5-66
-26-->[:flutter_local_notifications] D:\plateitupversions\01_Release\1.0.0\plateitup\build\flutter_local_notifications\intermediates\merged_manifest\release\AndroidManifest.xml:9:22-63
+26-->[:flutter_local_notifications] D:\Portfolio\plateitup\build\flutter_local_notifications\intermediates\merged_manifest\release\AndroidManifest.xml:9:5-66
+26-->[:flutter_local_notifications] D:\Portfolio\plateitup\build\flutter_local_notifications\intermediates\merged_manifest\release\AndroidManifest.xml:9:22-63
 27    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-27-->[:flutter_local_notifications] D:\plateitupversions\01_Release\1.0.0\plateitup\build\flutter_local_notifications\intermediates\merged_manifest\release\AndroidManifest.xml:10:5-77
-27-->[:flutter_local_notifications] D:\plateitupversions\01_Release\1.0.0\plateitup\build\flutter_local_notifications\intermediates\merged_manifest\release\AndroidManifest.xml:10:22-74
+27-->[:flutter_local_notifications] D:\Portfolio\plateitup\build\flutter_local_notifications\intermediates\merged_manifest\release\AndroidManifest.xml:10:5-77
+27-->[:flutter_local_notifications] D:\Portfolio\plateitup\build\flutter_local_notifications\intermediates\merged_manifest\release\AndroidManifest.xml:10:22-74
 28    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 28-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\user\.gradle\caches\transforms-3\3fcedce4ea45b0612e1358ef0def400a\transformed\jetified-firebase-auth-22.3.1\AndroidManifest.xml:26:5-79
 28-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\user\.gradle\caches\transforms-3\3fcedce4ea45b0612e1358ef0def400a\transformed\jetified-firebase-auth-22.3.1\AndroidManifest.xml:26:22-76
@@ -64,31 +64,31 @@
 35-->[androidx.core:core:1.10.1] C:\Users\user\.gradle\caches\transforms-3\79d0a380ebf5da1905ef93602d4944ef\transformed\core-1.10.1\AndroidManifest.xml:26:22-94
 36
 37    <application
-37-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:9:5-63:19
+37-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:9:5-63:19
 38        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
 38-->[androidx.core:core:1.10.1] C:\Users\user\.gradle\caches\transforms-3\79d0a380ebf5da1905ef93602d4944ef\transformed\core-1.10.1\AndroidManifest.xml:28:18-86
 39        android:icon="@mipmap/ic_launcher"
-39-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:12:9-43
+39-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:12:9-43
 40        android:label="Plate it Up"
-40-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:10:9-36
+40-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:10:9-36
 41        android:requestLegacyExternalStorage="true" >
-41-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:13:9-52
+41-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:13:9-52
 42        <activity
-42-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:15:9-53:20
+42-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:15:9-53:20
 43            android:name="com.mycompany.plateitup.MainActivity"
-43-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:16:13-41
+43-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:16:13-41
 44            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-44-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:20:13-163
+44-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:20:13-163
 45            android:exported="true"
-45-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:17:13-36
+45-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:17:13-36
 46            android:hardwareAccelerated="true"
-46-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:21:13-47
+46-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:21:13-47
 47            android:launchMode="singleTop"
-47-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:18:13-43
+47-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:18:13-43
 48            android:theme="@style/LaunchTheme"
-48-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:19:13-47
+48-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:19:13-47
 49            android:windowSoftInputMode="adjustResize" >
-49-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:22:13-55
+49-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:22:13-55
 50
 51            <!--
 52                 Specifies an Android theme to apply to this Activity as soon as
@@ -97,11 +97,11 @@
 55                 to determine the Window background behind the Flutter UI.
 56            -->
 57            <meta-data
-57-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:27:13-30:17
+57-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:27:13-30:17
 58                android:name="io.flutter.embedding.android.NormalTheme"
-58-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:28:15-70
+58-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:28:15-70
 59                android:resource="@style/NormalTheme" />
-59-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:29:15-52
+59-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:29:15-52
 60            <!--
 61                 Displays an Android View that continues showing the launch screen
 62                 Drawable until Flutter paints its first frame, then this splash
@@ -110,50 +110,50 @@
 65                 Flutter's first frame.
 66            -->
 67            <meta-data
-67-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:36:13-39:17
+67-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:36:13-39:17
 68                android:name="io.flutter.embedding.android.SplashScreenDrawable"
-68-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:37:15-79
+68-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:37:15-79
 69                android:resource="@drawable/launch_background" />
-69-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:38:15-61
+69-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:38:15-61
 70
 71            <intent-filter>
-71-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:40:13-43:29
+71-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:40:13-43:29
 72                <action android:name="android.intent.action.MAIN" />
-72-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:41:17-68
-72-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:41:25-66
+72-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:41:17-68
+72-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:41:25-66
 73
 74                <category android:name="android.intent.category.LAUNCHER" />
-74-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:42:17-76
-74-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:42:27-74
+74-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:42:17-76
+74-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:42:27-74
 75            </intent-filter>
 76            <!-- Deep linking -->
 77            <meta-data
-77-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:45:13-90
+77-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:45:13-90
 78                android:name="flutter_deeplinking_enabled"
-78-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:45:24-66
+78-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:45:24-66
 79                android:value="true" />
-79-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:45:67-87
+79-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:45:67-87
 80
 81            <intent-filter android:autoVerify="true" >
-81-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:46:13-51:29
-81-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:46:28-53
+81-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:46:13-51:29
+81-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:46:28-53
 82                <action android:name="android.intent.action.VIEW" />
-82-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:47:17-69
-82-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:47:25-66
+82-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:47:17-69
+82-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:47:25-66
 83
 84                <category android:name="android.intent.category.DEFAULT" />
-84-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:48:17-76
-84-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:48:27-73
+84-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:48:17-76
+84-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:48:27-73
 85                <category android:name="android.intent.category.BROWSABLE" />
-85-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:49:17-78
-85-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:49:27-75
+85-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:49:17-78
+85-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:49:27-75
 86
 87                <data
-87-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:50:17-81
+87-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:50:17-81
 88                    android:host="plateitup.com"
-88-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:50:50-78
+88-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:50:50-78
 89                    android:scheme="plateitup" />
-89-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:50:23-49
+89-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:50:23-49
 90            </intent-filter>
 91        </activity>
 92
@@ -162,50 +162,50 @@
 95             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java
 96        -->
 97        <meta-data
-97-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:57:9-59:33
+97-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:57:9-59:33
 98            android:name="flutterEmbedding"
-98-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:58:13-44
+98-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:58:13-44
 99            android:value="2" />
-99-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:59:13-30
+99-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:59:13-30
 100
 101        <service
-101-->[:firebase_performance] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_performance\intermediates\merged_manifest\release\AndroidManifest.xml:12:9-16:19
+101-->[:firebase_performance] D:\Portfolio\plateitup\build\firebase_performance\intermediates\merged_manifest\release\AndroidManifest.xml:12:9-16:19
 102            android:name="com.google.firebase.components.ComponentDiscoveryService"
-102-->[:firebase_performance] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_performance\intermediates\merged_manifest\release\AndroidManifest.xml:12:18-89
+102-->[:firebase_performance] D:\Portfolio\plateitup\build\firebase_performance\intermediates\merged_manifest\release\AndroidManifest.xml:12:18-89
 103            android:directBootAware="true"
 103-->[com.google.firebase:firebase-common:20.4.2] C:\Users\user\.gradle\caches\transforms-3\2ac1886cc7fa19cd13ffe1a07da61f70\transformed\jetified-firebase-common-20.4.2\AndroidManifest.xml:32:13-43
 104            android:exported="false" >
 104-->[com.google.firebase:firebase-perf:20.5.1] C:\Users\user\.gradle\caches\transforms-3\dc3ec3ccd58d94beb78d1e09de029ffb\transformed\jetified-firebase-perf-20.5.1\AndroidManifest.xml:13:13-37
 105            <meta-data
-105-->[:firebase_performance] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_performance\intermediates\merged_manifest\release\AndroidManifest.xml:13:13-15:85
+105-->[:firebase_performance] D:\Portfolio\plateitup\build\firebase_performance\intermediates\merged_manifest\release\AndroidManifest.xml:13:13-15:85
 106                android:name="com.google.firebase.components:io.flutter.plugins.firebase.performance.FlutterFirebaseAppRegistrar"
-106-->[:firebase_performance] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_performance\intermediates\merged_manifest\release\AndroidManifest.xml:14:17-130
+106-->[:firebase_performance] D:\Portfolio\plateitup\build\firebase_performance\intermediates\merged_manifest\release\AndroidManifest.xml:14:17-130
 107                android:value="com.google.firebase.components.ComponentRegistrar" />
-107-->[:firebase_performance] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_performance\intermediates\merged_manifest\release\AndroidManifest.xml:15:17-82
+107-->[:firebase_performance] D:\Portfolio\plateitup\build\firebase_performance\intermediates\merged_manifest\release\AndroidManifest.xml:15:17-82
 108            <meta-data
-108-->[:cloud_firestore] D:\plateitupversions\01_Release\1.0.0\plateitup\build\cloud_firestore\intermediates\merged_manifest\release\AndroidManifest.xml:11:13-13:85
+108-->[:cloud_firestore] D:\Portfolio\plateitup\build\cloud_firestore\intermediates\merged_manifest\release\AndroidManifest.xml:11:13-13:85
 109                android:name="com.google.firebase.components:io.flutter.plugins.firebase.firestore.FlutterFirebaseFirestoreRegistrar"
-109-->[:cloud_firestore] D:\plateitupversions\01_Release\1.0.0\plateitup\build\cloud_firestore\intermediates\merged_manifest\release\AndroidManifest.xml:12:17-134
+109-->[:cloud_firestore] D:\Portfolio\plateitup\build\cloud_firestore\intermediates\merged_manifest\release\AndroidManifest.xml:12:17-134
 110                android:value="com.google.firebase.components.ComponentRegistrar" />
-110-->[:cloud_firestore] D:\plateitupversions\01_Release\1.0.0\plateitup\build\cloud_firestore\intermediates\merged_manifest\release\AndroidManifest.xml:13:17-82
+110-->[:cloud_firestore] D:\Portfolio\plateitup\build\cloud_firestore\intermediates\merged_manifest\release\AndroidManifest.xml:13:17-82
 111            <meta-data
-111-->[:firebase_auth] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_auth\intermediates\merged_manifest\release\AndroidManifest.xml:11:13-13:85
+111-->[:firebase_auth] D:\Portfolio\plateitup\build\firebase_auth\intermediates\merged_manifest\release\AndroidManifest.xml:11:13-13:85
 112                android:name="com.google.firebase.components:io.flutter.plugins.firebase.auth.FlutterFirebaseAuthRegistrar"
-112-->[:firebase_auth] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_auth\intermediates\merged_manifest\release\AndroidManifest.xml:12:17-124
+112-->[:firebase_auth] D:\Portfolio\plateitup\build\firebase_auth\intermediates\merged_manifest\release\AndroidManifest.xml:12:17-124
 113                android:value="com.google.firebase.components.ComponentRegistrar" />
-113-->[:firebase_auth] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_auth\intermediates\merged_manifest\release\AndroidManifest.xml:13:17-82
+113-->[:firebase_auth] D:\Portfolio\plateitup\build\firebase_auth\intermediates\merged_manifest\release\AndroidManifest.xml:13:17-82
 114            <meta-data
-114-->[:firebase_storage] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_storage\intermediates\merged_manifest\release\AndroidManifest.xml:11:13-13:85
+114-->[:firebase_storage] D:\Portfolio\plateitup\build\firebase_storage\intermediates\merged_manifest\release\AndroidManifest.xml:11:13-13:85
 115                android:name="com.google.firebase.components:io.flutter.plugins.firebase.storage.FlutterFirebaseAppRegistrar"
-115-->[:firebase_storage] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_storage\intermediates\merged_manifest\release\AndroidManifest.xml:12:17-126
+115-->[:firebase_storage] D:\Portfolio\plateitup\build\firebase_storage\intermediates\merged_manifest\release\AndroidManifest.xml:12:17-126
 116                android:value="com.google.firebase.components.ComponentRegistrar" />
-116-->[:firebase_storage] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_storage\intermediates\merged_manifest\release\AndroidManifest.xml:13:17-82
+116-->[:firebase_storage] D:\Portfolio\plateitup\build\firebase_storage\intermediates\merged_manifest\release\AndroidManifest.xml:13:17-82
 117            <meta-data
-117-->[:firebase_core] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_core\intermediates\merged_manifest\release\AndroidManifest.xml:11:13-13:85
+117-->[:firebase_core] D:\Portfolio\plateitup\build\firebase_core\intermediates\merged_manifest\release\AndroidManifest.xml:11:13-13:85
 118                android:name="com.google.firebase.components:io.flutter.plugins.firebase.core.FlutterFirebaseCoreRegistrar"
-118-->[:firebase_core] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_core\intermediates\merged_manifest\release\AndroidManifest.xml:12:17-124
+118-->[:firebase_core] D:\Portfolio\plateitup\build\firebase_core\intermediates\merged_manifest\release\AndroidManifest.xml:12:17-124
 119                android:value="com.google.firebase.components.ComponentRegistrar" />
-119-->[:firebase_core] D:\plateitupversions\01_Release\1.0.0\plateitup\build\firebase_core\intermediates\merged_manifest\release\AndroidManifest.xml:13:17-82
+119-->[:firebase_core] D:\Portfolio\plateitup\build\firebase_core\intermediates\merged_manifest\release\AndroidManifest.xml:13:17-82
 120            <meta-data
 120-->[com.google.firebase:firebase-perf:20.5.1] C:\Users\user\.gradle\caches\transforms-3\dc3ec3ccd58d94beb78d1e09de029ffb\transformed\jetified-firebase-perf-20.5.1\AndroidManifest.xml:14:13-16:85
 121                android:name="com.google.firebase.components:com.google.firebase.perf.FirebasePerfKtxRegistrar"
@@ -317,31 +317,31 @@
 174        </service>
 175
 176        <provider
-176-->[:image_picker_android] D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:10:9-18:20
+176-->[:image_picker_android] D:\Portfolio\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:10:9-18:20
 177            android:name="io.flutter.plugins.imagepicker.ImagePickerFileProvider"
-177-->[:image_picker_android] D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:11:13-82
+177-->[:image_picker_android] D:\Portfolio\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:11:13-82
 178            android:authorities="com.mycompany.plateitup.flutter.image_provider"
-178-->[:image_picker_android] D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:12:13-74
+178-->[:image_picker_android] D:\Portfolio\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:12:13-74
 179            android:exported="false"
-179-->[:image_picker_android] D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:13:13-37
+179-->[:image_picker_android] D:\Portfolio\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:13:13-37
 180            android:grantUriPermissions="true" >
-180-->[:image_picker_android] D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:14:13-47
+180-->[:image_picker_android] D:\Portfolio\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:14:13-47
 181            <meta-data
-181-->[:image_picker_android] D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:15:13-17:75
+181-->[:image_picker_android] D:\Portfolio\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:15:13-17:75
 182                android:name="android.support.FILE_PROVIDER_PATHS"
-182-->[:image_picker_android] D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:16:17-67
+182-->[:image_picker_android] D:\Portfolio\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:16:17-67
 183                android:resource="@xml/flutter_image_picker_file_paths" />
-183-->[:image_picker_android] D:\plateitupversions\01_Release\1.0.0\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:17:17-72
+183-->[:image_picker_android] D:\Portfolio\plateitup\build\image_picker_android\intermediates\merged_manifest\release\AndroidManifest.xml:17:17-72
 184        </provider>
 185
 186        <activity
-186-->[:url_launcher_android] D:\plateitupversions\01_Release\1.0.0\plateitup\build\url_launcher_android\intermediates\merged_manifest\release\AndroidManifest.xml:10:9-13:74
+186-->[:url_launcher_android] D:\Portfolio\plateitup\build\url_launcher_android\intermediates\merged_manifest\release\AndroidManifest.xml:10:9-13:74
 187            android:name="io.flutter.plugins.urllauncher.WebViewActivity"
-187-->[:url_launcher_android] D:\plateitupversions\01_Release\1.0.0\plateitup\build\url_launcher_android\intermediates\merged_manifest\release\AndroidManifest.xml:11:13-74
+187-->[:url_launcher_android] D:\Portfolio\plateitup\build\url_launcher_android\intermediates\merged_manifest\release\AndroidManifest.xml:11:13-74
 188            android:exported="false"
-188-->[:url_launcher_android] D:\plateitupversions\01_Release\1.0.0\plateitup\build\url_launcher_android\intermediates\merged_manifest\release\AndroidManifest.xml:12:13-37
+188-->[:url_launcher_android] D:\Portfolio\plateitup\build\url_launcher_android\intermediates\merged_manifest\release\AndroidManifest.xml:12:13-37
 189            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
-189-->[:url_launcher_android] D:\plateitupversions\01_Release\1.0.0\plateitup\build\url_launcher_android\intermediates\merged_manifest\release\AndroidManifest.xml:13:13-71
+189-->[:url_launcher_android] D:\Portfolio\plateitup\build\url_launcher_android\intermediates\merged_manifest\release\AndroidManifest.xml:13:13-71
 190
 191        <service
 191-->[com.google.firebase:firebase-sessions:1.2.0] C:\Users\user\.gradle\caches\transforms-3\640707bbc6e6c4470d6ae8eef5db200e\transformed\jetified-firebase-sessions-1.2.0\AndroidManifest.xml:22:9-25:40
@@ -367,23 +367,23 @@
 202            <intent-filter>
 202-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\user\.gradle\caches\transforms-3\3fcedce4ea45b0612e1358ef0def400a\transformed\jetified-firebase-auth-22.3.1\AndroidManifest.xml:35:13-45:29
 203                <action android:name="android.intent.action.VIEW" />
-203-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:47:17-69
-203-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:47:25-66
+203-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:47:17-69
+203-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:47:25-66
 204
 205                <category android:name="android.intent.category.DEFAULT" />
-205-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:48:17-76
-205-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:48:27-73
+205-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:48:17-76
+205-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:48:27-73
 206                <category android:name="android.intent.category.BROWSABLE" />
-206-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:49:17-78
-206-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:49:27-75
+206-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:49:17-78
+206-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:49:27-75
 207
 208                <data
-208-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:50:17-81
+208-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:50:17-81
 209                    android:host="firebase.auth"
-209-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:50:50-78
+209-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:50:50-78
 210                    android:path="/"
 211                    android:scheme="genericidp" />
-211-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:50:23-49
+211-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:50:23-49
 212            </intent-filter>
 213        </activity>
 214        <activity
@@ -401,23 +401,23 @@
 220            <intent-filter>
 220-->[com.google.firebase:firebase-auth:22.3.1] C:\Users\user\.gradle\caches\transforms-3\3fcedce4ea45b0612e1358ef0def400a\transformed\jetified-firebase-auth-22.3.1\AndroidManifest.xml:53:13-63:29
 221                <action android:name="android.intent.action.VIEW" />
-221-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:47:17-69
-221-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:47:25-66
+221-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:47:17-69
+221-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:47:25-66
 222
 223                <category android:name="android.intent.category.DEFAULT" />
-223-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:48:17-76
-223-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:48:27-73
+223-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:48:17-76
+223-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:48:27-73
 224                <category android:name="android.intent.category.BROWSABLE" />
-224-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:49:17-78
-224-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:49:27-75
+224-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:49:17-78
+224-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:49:27-75
 225
 226                <data
-226-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:50:17-81
+226-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:50:17-81
 227                    android:host="firebase.auth"
-227-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:50:50-78
+227-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:50:50-78
 228                    android:path="/"
 229                    android:scheme="recaptcha" />
-229-->D:\plateitupversions\01_Release\1.0.0\plateitup\android\app\src\main\AndroidManifest.xml:50:23-49
+229-->D:\Portfolio\plateitup\android\app\src\main\AndroidManifest.xml:50:23-49
 230            </intent-filter>
 231        </activity>
 232

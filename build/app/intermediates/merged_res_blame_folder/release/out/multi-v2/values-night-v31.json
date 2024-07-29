@@ -4,7 +4,7 @@
             "outputFile": "com.mycompany.plateitup.app-mergeReleaseResources-33:/values-night-v31/values-night-v31.xml",
             "map": [
                 {
-                    "source": "D:\\plateitupversions\\01_Release\\1.0.0\\plateitup\\android\\app\\src\\main\\res\\values-night-v31\\styles.xml",
+                    "source": "D:\\Portfolio\\plateitup\\android\\app\\src\\main\\res\\values-night-v31\\styles.xml",
                     "from": {
                         "startLines": "3,14",
                         "startColumns": "4,4",

@@ -6,9 +6,9 @@ io.flutter.plugins.urllauncher.url_launcher_android-core-1.10.1-4 C:\Users\user\
 io.flutter.plugins.urllauncher.url_launcher_android-browser-1.5.0-5 C:\Users\user\.gradle\caches\transforms-3\90cb5094f3578aef5ed83fb33a3b73b7\transformed\browser-1.5.0\res
 io.flutter.plugins.urllauncher.url_launcher_android-main-6 C:\Users\user\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_android-6.3.0\android\src\main\res
 io.flutter.plugins.urllauncher.url_launcher_android-release-7 C:\Users\user\AppData\Local\Pub\Cache\hosted\pub.dev\url_launcher_android-6.3.0\android\src\release\res
-io.flutter.plugins.urllauncher.url_launcher_android-pngs-8 D:\plateitupversions\01_Release\1.0.0\plateitup\build\url_launcher_android\generated\res\pngs\release
-io.flutter.plugins.urllauncher.url_launcher_android-resValues-9 D:\plateitupversions\01_Release\1.0.0\plateitup\build\url_launcher_android\generated\res\resValues\release
-io.flutter.plugins.urllauncher.url_launcher_android-rs-10 D:\plateitupversions\01_Release\1.0.0\plateitup\build\url_launcher_android\generated\res\rs\release
-io.flutter.plugins.urllauncher.url_launcher_android-mergeReleaseResources-11 D:\plateitupversions\01_Release\1.0.0\plateitup\build\url_launcher_android\intermediates\incremental\release\mergeReleaseResources\merged.dir
-io.flutter.plugins.urllauncher.url_launcher_android-mergeReleaseResources-12 D:\plateitupversions\01_Release\1.0.0\plateitup\build\url_launcher_android\intermediates\incremental\release\mergeReleaseResources\stripped.dir
-io.flutter.plugins.urllauncher.url_launcher_android-merged_res-13 D:\plateitupversions\01_Release\1.0.0\plateitup\build\url_launcher_android\intermediates\merged_res\release
+io.flutter.plugins.urllauncher.url_launcher_android-pngs-8 D:\Portfolio\plateitup\build\url_launcher_android\generated\res\pngs\release
+io.flutter.plugins.urllauncher.url_launcher_android-resValues-9 D:\Portfolio\plateitup\build\url_launcher_android\generated\res\resValues\release
+io.flutter.plugins.urllauncher.url_launcher_android-rs-10 D:\Portfolio\plateitup\build\url_launcher_android\generated\res\rs\release
+io.flutter.plugins.urllauncher.url_launcher_android-mergeReleaseResources-11 D:\Portfolio\plateitup\build\url_launcher_android\intermediates\incremental\release\mergeReleaseResources\merged.dir
+io.flutter.plugins.urllauncher.url_launcher_android-mergeReleaseResources-12 D:\Portfolio\plateitup\build\url_launcher_android\intermediates\incremental\release\mergeReleaseResources\stripped.dir
+io.flutter.plugins.urllauncher.url_launcher_android-merged_res-13 D:\Portfolio\plateitup\build\url_launcher_android\intermediates\merged_res\release

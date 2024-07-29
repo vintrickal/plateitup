@@ -57,6 +57,23 @@
                     }
                 },
                 {
+                    "source": "D:\\Portfolio\\plateitup\\build\\app\\generated\\res\\google-services\\release\\values\\values.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8",
+                        "startColumns": "4,4,4,4,4,4,4",
+                        "startOffsets": "55,199,281,385,494,614,713",
+                        "endColumns": "143,81,103,108,119,98,75",
+                        "endOffsets": "194,276,380,489,609,708,784"
+                    },
+                    "to": {
+                        "startLines": "350,363,364,365,366,367,368",
+                        "startColumns": "4,4,4,4,4,4,4",
+                        "startOffsets": "23954,24959,25041,25145,25254,25374,25473",
+                        "endColumns": "143,81,103,108,119,98,75",
+                        "endOffsets": "24093,25036,25140,25249,25369,25468,25544"
+                    }
+                },
+                {
                     "source": "C:\\Users\\user\\.gradle\\caches\\transforms-3\\5e31d1f390361ff853931f034f76f114\\transformed\\jetified-exoplayer-core-2.18.7\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10",
@@ -71,6 +88,25 @@
                         "startOffsets": "24098,24168,24230,24295,24359,24436,24501,24591,24675",
                         "endColumns": "69,61,64,63,76,64,89,83,68",
                         "endOffsets": "24163,24225,24290,24354,24431,24496,24586,24670,24739"
+                    }
+                },
+                {
+                    "source": "D:\\Portfolio\\plateitup\\android\\app\\src\\main\\res\\values\\styles.xml",
+                    "from": {
+                        "startLines": "3,14",
+                        "startColumns": "4,4",
+                        "startOffsets": "173,816",
+                        "endLines": "7,16",
+                        "endColumns": "12,12",
+                        "endOffsets": "465,980"
+                    },
+                    "to": {
+                        "startLines": "1440,1444",
+                        "startColumns": "4,4",
+                        "startOffsets": "93648,93829",
+                        "endLines": "1443,1446",
+                        "endColumns": "12,12",
+                        "endOffsets": "93824,93993"
                     }
                 },
                 {
@@ -165,23 +201,6 @@
                     }
                 },
                 {
-                    "source": "D:\\plateitupversions\\01_Release\\1.0.0\\plateitup\\android\\app\\src\\main\\res\\values\\strings.xml",
-                    "from": {
-                        "startLines": "2",
-                        "startColumns": "4",
-                        "startOffsets": "56",
-                        "endColumns": "48",
-                        "endOffsets": "100"
-                    },
-                    "to": {
-                        "startLines": "323",
-                        "startColumns": "4",
-                        "startOffsets": "20993",
-                        "endColumns": "48",
-                        "endOffsets": "21037"
-                    }
-                },
-                {
                     "source": "C:\\Users\\user\\.gradle\\caches\\transforms-3\\dbfbc07e5d3a0512c5714bd7e07f665a\\transformed\\lifecycle-viewmodel-2.6.1\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2",
@@ -216,39 +235,20 @@
                     }
                 },
                 {
-                    "source": "D:\\plateitupversions\\01_Release\\1.0.0\\plateitup\\build\\app\\generated\\res\\google-services\\release\\values\\values.xml",
+                    "source": "D:\\Portfolio\\plateitup\\android\\app\\src\\main\\res\\values\\strings.xml",
                     "from": {
-                        "startLines": "2,3,4,5,6,7,8",
-                        "startColumns": "4,4,4,4,4,4,4",
-                        "startOffsets": "55,199,281,385,494,614,713",
-                        "endColumns": "143,81,103,108,119,98,75",
-                        "endOffsets": "194,276,380,489,609,708,784"
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "56",
+                        "endColumns": "48",
+                        "endOffsets": "100"
                     },
                     "to": {
-                        "startLines": "350,363,364,365,366,367,368",
-                        "startColumns": "4,4,4,4,4,4,4",
-                        "startOffsets": "23954,24959,25041,25145,25254,25374,25473",
-                        "endColumns": "143,81,103,108,119,98,75",
-                        "endOffsets": "24093,25036,25140,25249,25369,25468,25544"
-                    }
-                },
-                {
-                    "source": "D:\\plateitupversions\\01_Release\\1.0.0\\plateitup\\android\\app\\src\\main\\res\\values\\styles.xml",
-                    "from": {
-                        "startLines": "3,14",
-                        "startColumns": "4,4",
-                        "startOffsets": "173,816",
-                        "endLines": "7,16",
-                        "endColumns": "12,12",
-                        "endOffsets": "465,980"
-                    },
-                    "to": {
-                        "startLines": "1440,1444",
-                        "startColumns": "4,4",
-                        "startOffsets": "93648,93829",
-                        "endLines": "1443,1446",
-                        "endColumns": "12,12",
-                        "endOffsets": "93824,93993"
+                        "startLines": "323",
+                        "startColumns": "4",
+                        "startOffsets": "20993",
+                        "endColumns": "48",
+                        "endOffsets": "21037"
                     }
                 },
                 {
