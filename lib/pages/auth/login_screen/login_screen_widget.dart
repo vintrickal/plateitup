@@ -611,63 +611,63 @@ class _LoginScreenWidgetState extends State<LoginScreenWidget>
                                         ),
                                       ),
                                     ),
-                                    if (isiOS)
-                                      isAndroid
-                                          ? Container()
-                                          : FFButtonWidget(
-                                              onPressed: () async {
-                                                GoRouter.of(context)
-                                                    .prepareAuthEvent();
-                                                final user = await authManager
-                                                    .signInWithApple(context);
-                                                if (user == null) {
-                                                  return;
-                                                }
+                                    // if (isiOS)
+                                      // isAndroid
+                                      //     ? Container()
+                                      //     : FFButtonWidget(
+                                      //         onPressed: () async {
+                                      //           GoRouter.of(context)
+                                      //               .prepareAuthEvent();
+                                      //           final user = await authManager
+                                      //               .signInWithApple(context);
+                                      //           if (user == null) {
+                                      //             return;
+                                      //           }
 
-                                                context.goNamedAuth(
-                                                    'home', context.mounted);
-                                              },
-                                              text: 'Continue with Apple',
-                                              icon: FaIcon(
-                                                FontAwesomeIcons.apple,
-                                                size: 20.0,
-                                              ),
-                                              options: FFButtonOptions(
-                                                width: 230.0,
-                                                height: 44.0,
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
-                                                        0.0, 0.0, 0.0, 0.0),
-                                                iconPadding:
-                                                    EdgeInsetsDirectional
-                                                        .fromSTEB(
-                                                            0.0, 0.0, 0.0, 0.0),
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryBackground,
-                                                textStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          fontFamily: 'Poppins',
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                elevation: 0.0,
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .alternate,
-                                                  width: 2.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(12.0),
-                                                hoverColor:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primaryBackground,
-                                              ),
-                                            ),
+                                      //           context.goNamedAuth(
+                                      //               'home', context.mounted);
+                                      //         },
+                                      //         text: 'Continue with Apple',
+                                      //         icon: FaIcon(
+                                      //           FontAwesomeIcons.apple,
+                                      //           size: 20.0,
+                                      //         ),
+                                      //         options: FFButtonOptions(
+                                      //           width: 230.0,
+                                      //           height: 44.0,
+                                      //           padding: EdgeInsetsDirectional
+                                      //               .fromSTEB(
+                                      //                   0.0, 0.0, 0.0, 0.0),
+                                      //           iconPadding:
+                                      //               EdgeInsetsDirectional
+                                      //                   .fromSTEB(
+                                      //                       0.0, 0.0, 0.0, 0.0),
+                                      //           color:
+                                      //               FlutterFlowTheme.of(context)
+                                      //                   .secondaryBackground,
+                                      //           textStyle:
+                                      //               FlutterFlowTheme.of(context)
+                                      //                   .bodyMedium
+                                      //                   .override(
+                                      //                     fontFamily: 'Poppins',
+                                      //                     letterSpacing: 0.0,
+                                      //                     fontWeight:
+                                      //                         FontWeight.bold,
+                                      //                   ),
+                                      //           elevation: 0.0,
+                                      //           borderSide: BorderSide(
+                                      //             color: FlutterFlowTheme.of(
+                                      //                     context)
+                                      //                 .alternate,
+                                      //             width: 2.0,
+                                      //           ),
+                                      //           borderRadius:
+                                      //               BorderRadius.circular(12.0),
+                                      //           hoverColor:
+                                      //               FlutterFlowTheme.of(context)
+                                      //                   .primaryBackground,
+                                      //         ),
+                                      //       ),
                                   ],
                                 ),
                               ),
