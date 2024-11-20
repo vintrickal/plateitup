@@ -84,7 +84,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
       routes: [
         FFRoute(
           name: '_initialize',
-          path: '/',
+          path: '/home',
           builder: (context, _) =>
               appStateNotifier.loggedIn ? HomeWidget() : LoginScreenWidget(),
         ),

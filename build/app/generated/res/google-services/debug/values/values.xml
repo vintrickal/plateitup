@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">962369962598-srvdi2o2inlqevmda3od6je48gfr8b99.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">962369962598</string>
+    <string name="google_api_key" translatable="false">AIzaSyDHlXY6hKZXhOyGfJsu9YnkG2-RFVfbSYs</string>
+    <string name="google_app_id" translatable="false">1:962369962598:android:21388427032017f38ae3a7</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDHlXY6hKZXhOyGfJsu9YnkG2-RFVfbSYs</string>
+    <string name="google_storage_bucket" translatable="false">plateitup-89054.appspot.com</string>
+    <string name="project_id" translatable="false">plateitup-89054</string>
+</resources>

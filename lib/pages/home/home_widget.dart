@@ -950,22 +950,24 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                       ),
                                             ),
                                             showBadge:
-                                                notificationColumnCount != 0
-                                                    ? true
-                                                    : false,
-                                            shape: badges.BadgeShape.circle,
-                                            badgeColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .error,
-                                            elevation: 2.0,
-                                            padding:
-                                                EdgeInsetsDirectional.fromSTEB(
-                                                    8.0, 8.0, 8.0, 8.0),
+                                                notificationColumnCount != 0,
+                                            badgeStyle: badges.BadgeStyle(
+                                              shape: badges.BadgeShape.circle,
+                                              badgeColor:
+                                                  FlutterFlowTheme.of(context)
+                                                      .error,
+                                              elevation: 2.0,
+                                              padding: EdgeInsetsDirectional
+                                                  .fromSTEB(8.0, 8.0, 8.0, 8.0),
+                                            ),
                                             position:
                                                 badges.BadgePosition.topEnd(),
-                                            animationType:
-                                                badges.BadgeAnimationType.scale,
-                                            toAnimate: true,
+                                            // badgeAnimation:
+                                            //     badges.BadgeAnimation(
+                                            //   type: badges
+                                            //       .BadgeAnimationType.scale,
+                                            //   toAnimate: true,
+                                            // ),
                                             child: Align(
                                               alignment: AlignmentDirectional(
                                                   0.0, 0.0),
