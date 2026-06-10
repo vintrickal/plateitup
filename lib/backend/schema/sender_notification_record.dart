@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 
 import '/backend/schema/util/firestore_util.dart';
 import '/backend/schema/util/schema_util.dart';
+import '/mock/mock_firestore.dart';
 
 import 'index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -56,7 +57,7 @@ class SenderNotificationRecord extends FirestoreRecord {
   }
 
   static CollectionReference get collection =>
-      FirebaseFirestore.instance.collection('sender-notification');
+      mockFirestore.collection('sender-notification');
 
   static Stream<SenderNotificationRecord> getDocument(DocumentReference ref) =>
       ref.snapshots().map((s) => SenderNotificationRecord.fromSnapshot(s));

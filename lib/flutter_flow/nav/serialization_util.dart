@@ -5,6 +5,7 @@ import 'package:from_css_color/from_css_color.dart';
 
 import '/backend/backend.dart';
 import '/backend/schema/structs/index.dart';
+import '/mock/mock_firestore.dart';
 
 import '../../flutter_flow/lat_lng.dart';
 import '../../flutter_flow/place.dart';
@@ -164,7 +165,7 @@ DocumentReference _deserializeDocumentReference(
   for (int i = 0; i < docIds.length && i < collectionNamePath.length; i++) {
     path += '/${collectionNamePath[i]}/${docIds[i]}';
   }
-  return FirebaseFirestore.instance.doc(path);
+  return mockFirestore.doc(path);
 }
 
 enum ParamType {

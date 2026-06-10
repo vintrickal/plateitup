@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../auth/firebase_auth/auth_util.dart';
 
 import '../flutter_flow/flutter_flow_util.dart';
@@ -19,7 +18,6 @@ import 'schema/partner_review_record.dart';
 
 export 'dart:async' show StreamSubscription;
 export 'package:cloud_firestore/cloud_firestore.dart' hide Order;
-export 'package:firebase_core/firebase_core.dart';
 export 'schema/index.dart';
 export 'schema/util/firestore_util.dart';
 export 'schema/util/schema_util.dart';
@@ -586,29 +584,14 @@ Future<FFFirestorePage<T>> queryCollectionPage<T>(
   return FFFirestorePage(data, dataStream, nextPageToken);
 }
 
-// Creates a Firestore document representing the logged in user if it doesn't yet exist
-Future maybeCreateUser(User user) async {
-  final userRecord = UsersRecord.collection.doc(user.uid);
-  final userExists = await userRecord.get().then((u) => u.exists);
-  if (userExists) {
-    currentUserDocument = await UsersRecord.getDocumentOnce(userRecord);
-    return;
+// MVP mode: kept as a no-op for callers that imported it. The demo user is
+// already seeded into `mockFirestore` at boot by `seedMockData()`.
+Future maybeCreateUser([dynamic user]) async {
+  final ref = UsersRecord.collection.doc(currentUserUid);
+  final snap = await ref.get();
+  if (snap.exists) {
+    currentUserDocument = UsersRecord.fromSnapshot(snap);
   }
-
-  final userData = createUsersRecordData(
-    email: user.email ??
-        FirebaseAuth.instance.currentUser?.email ??
-        user.providerData.firstOrNull?.email,
-    displayName:
-        user.displayName ?? FirebaseAuth.instance.currentUser?.displayName,
-    photoUrl: user.photoURL,
-    uid: user.uid,
-    phoneNumber: user.phoneNumber,
-    createdTime: getCurrentTimestamp,
-  );
-
-  await userRecord.set(userData);
-  currentUserDocument = UsersRecord.getDocumentFromData(userData, userRecord);
 }
 
 Future updateUserDocument({String? email}) async {

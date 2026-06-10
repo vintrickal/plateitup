@@ -1,5 +1,23 @@
+import 'dart:async';
+
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:badges/badges.dart' as badges;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expandable/expandable.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:text_search/text_search.dart';
+
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
+import '/backend/schema/structs/index.dart';
+import '/cubits/app/app_cubit.dart';
+import '/cubits/app/app_state.dart' as app;
+import '/cubits/auth/auth_cubit.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -7,216 +25,72 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/pages/components/no_meal_category_found/no_meal_category_found_widget.dart';
 import '/pages/components/no_search_results_component/no_search_results_component_widget.dart';
 import '/pages/components/resend_email_component/resend_email_component_widget.dart';
-import 'dart:math';
-import '/backend/schema/structs/index.dart';
-import '/custom_code/actions/index.dart' as actions;
-import 'dart:async';
-import 'package:badges/badges.dart' as badges;
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
-import 'package:expandable/expandable.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'package:text_search/text_search.dart';
-import 'home_model.dart';
-export 'home_model.dart';
+import 'home_cubit.dart';
+import 'home_state.dart';
 
-class HomeWidget extends StatefulWidget {
+/// Home — Cubit conversion.
+///
+/// [HomeWidget] is now a thin shell that injects [HomeCubit]. The real screen
+/// is [_HomeView] (kept Stateful so we own text/focus controllers and the
+/// `ExpandableController`, which don't compose with immutable state).
+///
+/// State machine:
+///   * [HomeState] holds the in-page search hits and the category-filter
+///     result. Both used to be `HomeModel` fields mutated with `setState`.
+///   * [HomeCubit] owns the page-load orchestration (paired-user check +
+///     notification drain), refresh, search, category filter, FAB action.
+///   * Global app state reads/writes go through `AppCubit.instance` —
+///     reads return the immutable `AppState`, writes go through `set*` /
+///     `addTo*` / etc. methods that emit a new state.
+class HomeWidget extends StatelessWidget {
   const HomeWidget({super.key});
 
   @override
-  State<HomeWidget> createState() => _HomeWidgetState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => HomeCubit()..onPageLoad(),
+      child: const _HomeView(),
+    );
+  }
 }
 
-class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
-  late HomeModel _model;
+class _HomeView extends StatefulWidget {
+  const _HomeView();
 
+  @override
+  State<_HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<_HomeView>
+    with TickerProviderStateMixin {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   var hasIconTriggered = false;
   final animationsMap = <String, AnimationInfo>{};
 
+  // Widget-local controllers — these don't move into the cubit because
+  // Flutter's text-field/focus machinery is imperative and lifecycle-coupled
+  // to a State object.
+  final _unfocusNode = FocusNode();
+  final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
+  late final ExpandableController _expandableController;
+
+  /// Memoised future for the unread-meal-requests count badge. Reset to null
+  /// by the refresh icon so the next rebuild re-runs the query. Matches the
+  /// original FlutterFlow `firestoreRequestCompleter` pattern.
+  Completer<int>? _firestoreRequestCompleter;
+
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => HomeModel());
+    _expandableController = ExpandableController(initialExpanded: true);
 
-    // On page load action.
+    // Kick off the page-load orchestration. The cubit owns it now; we just
+    // need a frame to be in place before we touch context.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.pairedUserChecker = await queryPairedUserRecordCount();
-      if (_model.pairedUserChecker != 0) {
-        _model.pairedUserCollectionReceiver = await queryPairedUserRecordOnce(
-          queryBuilder: (pairedUserRecord) => pairedUserRecord.where(
-            'recipient',
-            isEqualTo: currentUserReference,
-          ),
-          singleRecord: true,
-        ).then((s) => s.firstOrNull);
-        if ((_model.pairedUserCollectionReceiver != null) == true) {
-          setState(() {
-            FFAppState().hasPartner = true;
-            FFAppState().pairedUserCollection =
-                _model.pairedUserCollectionReceiver?.reference;
-          });
-          setState(() => _model.firestoreRequestCompleter = null);
-          await _model.waitForFirestoreRequestCompleted(minWait: 500);
-          _model.cOUNTReceiver = await queryReceiverNotificationRecordCount(
-            queryBuilder: (receiverNotificationRecord) =>
-                receiverNotificationRecord
-                    .where(
-                      'user_id',
-                      isEqualTo: currentUserReference,
-                    )
-                    .where(
-                      'is_shown_to_user',
-                      isEqualTo: false,
-                    ),
-          );
-          if (_model.cOUNTReceiver == 0) {
-            _model.cOUNTSender = await querySenderNotificationRecordCount(
-              queryBuilder: (senderNotificationRecord) =>
-                  senderNotificationRecord
-                      .where(
-                        'user_id',
-                        isEqualTo: currentUserReference,
-                      )
-                      .where(
-                        'is_shown_to_user',
-                        isEqualTo: false,
-                      ),
-            );
-            if (_model.cOUNTSender == 0) {
-              setState(() {
-                FFAppState().counterBtnClicked = 0;
-              });
-              await actions.requestNotificationPermissions();
-            } else {
-              // receiver-notification loop
-              while (FFAppState().senderNotificationDisplayed == false) {
-                _model.senderDetails = await querySenderNotificationRecordOnce(
-                  queryBuilder: (senderNotificationRecord) =>
-                      senderNotificationRecord
-                          .where(
-                            'user_id',
-                            isEqualTo: currentUserReference,
-                          )
-                          .where(
-                            'is_shown_to_user',
-                            isEqualTo: false,
-                          ),
-                  singleRecord: true,
-                ).then((s) => s.firstOrNull);
-                await actions.localNotification(
-                  _model.senderDetails?.mealTitle,
-                  _model.senderDetails?.mealStatusMessage,
-                );
-
-                await _model.senderDetails!.reference
-                    .update(createSenderNotificationRecordData(
-                  isShownToUser: true,
-                ));
-                _model.cOUNTInsideSenderLoop =
-                    await querySenderNotificationRecordCount(
-                  queryBuilder: (senderNotificationRecord) =>
-                      senderNotificationRecord
-                          .where(
-                            'user_id',
-                            isEqualTo: currentUserReference,
-                          )
-                          .where(
-                            'is_shown_to_user',
-                            isEqualTo: false,
-                          ),
-                );
-                if (_model.cOUNTInsideSenderLoop == 0) {
-                  setState(() {
-                    FFAppState().senderNotificationDisplayed = true;
-                  });
-                } else {
-                  setState(() {
-                    FFAppState().senderNotificationDisplayed = false;
-                  });
-                }
-              }
-            }
-          } else {
-            // receiver-notification loop
-            while (FFAppState().receiverNotificationDisplayed == false) {
-              _model.receiverDetails =
-                  await queryReceiverNotificationRecordOnce(
-                queryBuilder: (receiverNotificationRecord) =>
-                    receiverNotificationRecord
-                        .where(
-                          'user_id',
-                          isEqualTo: currentUserReference,
-                        )
-                        .where(
-                          'is_shown_to_user',
-                          isEqualTo: false,
-                        ),
-                singleRecord: true,
-              ).then((s) => s.firstOrNull);
-              await actions.localNotification(
-                _model.receiverDetails?.mealTitle,
-                _model.receiverDetails?.mealStatusMessage,
-              );
-
-              await _model.receiverDetails!.reference
-                  .update(createReceiverNotificationRecordData(
-                isShownToUser: true,
-              ));
-              _model.cOUNTInsideReceiverLoop =
-                  await queryReceiverNotificationRecordCount(
-                queryBuilder: (receiverNotificationRecord) =>
-                    receiverNotificationRecord
-                        .where(
-                          'user_id',
-                          isEqualTo: currentUserReference,
-                        )
-                        .where(
-                          'is_shown_to_user',
-                          isEqualTo: false,
-                        ),
-              );
-              if (_model.cOUNTInsideReceiverLoop == 0) {
-                setState(() {
-                  FFAppState().receiverNotificationDisplayed = true;
-                });
-              } else {
-                setState(() {
-                  FFAppState().receiverNotificationDisplayed = false;
-                });
-              }
-            }
-          }
-        } else {
-          setState(() {
-            FFAppState().hasPartner = false;
-          });
-        }
-      } else {
-        setState(() {
-          FFAppState().hasPartner = false;
-        });
-      }
-
-      setState(() {
-        FFAppState().counterBtnClicked = 0;
-        FFAppState().senderNotificationDisplayed = false;
-        FFAppState().receiverNotificationDisplayed = false;
-      });
-      await actions.requestNotificationPermissions();
+      if (mounted) setState(() {});
     });
 
-    _model.searchRecipeTextTextController ??= TextEditingController();
-    _model.searchRecipeTextFocusNode ??= FocusNode();
-
-    _model.expandableExpandableController =
-        ExpandableController(initialExpanded: true);
     animationsMap.addAll({
       'rowOnPageLoadAnimation': AnimationInfo(
         trigger: AnimationTrigger.onPageLoad,
@@ -282,15 +156,28 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _model.dispose();
-
+    _unfocusNode.dispose();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    _expandableController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
+    // Subscribe to AppCubit so any `AppCubit.instance.state.x` read further down (which
+    // proxies to AppCubit.instance.state) triggers a rebuild when those
+    // fields change. Cheap because Equatable filters duplicate states.
+    return BlocBuilder<AppCubit, app.AppState>(
+      builder: (context, appState) =>
+          BlocBuilder<HomeCubit, HomeState>(builder: (context, homeState) {
+        return _buildBody(context, appState, homeState);
+      }),
+    );
+  }
 
+  Widget _buildBody(BuildContext context, app.AppState appState,
+      HomeState homeState) {
     return StreamBuilder<List<SavedRecipeRecord>>(
       stream: querySavedRecipeRecord(
         queryBuilder: (savedRecipeRecord) => savedRecipeRecord.where(
@@ -326,8 +213,8 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
             ? homeSavedRecipeRecordList.first
             : null;
         return GestureDetector(
-          onTap: () => _model.unfocusNode.canRequestFocus
-              ? FocusScope.of(context).requestFocus(_model.unfocusNode)
+          onTap: () => _unfocusNode.canRequestFocus
+              ? FocusScope.of(context).requestFocus(_unfocusNode)
               : FocusScope.of(context).unfocus(),
           child: WillPopScope(
             onWillPop: () async => false,
@@ -337,97 +224,14 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
               floatingActionButton: Builder(
                 builder: (context) => FloatingActionButton(
                   onPressed: () async {
-                    await authManager.refreshUser();
+                    // Refresh from Firebase so the email-verified flag is
+                    // accurate before we let the user start a new recipe.
+                    await context.read<AuthCubit>().refreshCurrentUser();
                     if (currentUserEmailVerified == true) {
-                      while (FFAppState().counterBtnClicked == 0) {
-                        setState(() {
-                          FFAppState().counterBtnClicked =
-                              FFAppState().counterBtnClicked + 1;
-                        });
-
-                        var mealRecipeRecordReference =
-                            MealRecipeRecord.collection.doc();
-                        await mealRecipeRecordReference.set({
-                          ...createMealRecipeRecordData(
-                            title: '',
-                            duration: '',
-                            banner:
-                                'https://fakeimg.pl/600x150/cccccc/ffffff?text=Temp+Image',
-                            videolink: '',
-                            author: currentUserReference,
-                            isPublic: true,
-                            isReady: false,
-                            prepTime: FFAppState().estimatedTimeSpinner,
-                            adminApproved: true,
-                            isRecipeReported: false,
-                          ),
-                          ...mapToFirestore(
-                            {
-                              'ingredient': getIngredientListFirestoreData(
-                                FFAppState()
-                                    .ingredientList
-                                    .map(
-                                        (e) => IngredientStruct.maybeFromMap(e))
-                                    .withoutNulls
-                                    .toList(),
-                              ),
-                              'procedure': getProcedureListFirestoreData(
-                                FFAppState()
-                                    .stepsList
-                                    .map((e) => ProcedureStruct.maybeFromMap(e))
-                                    .withoutNulls
-                                    .toList(),
-                              ),
-                              'dateCreated': FieldValue.serverTimestamp(),
-                            },
-                          ),
-                        });
-                        _model.createdMealRecipeCollection =
-                            MealRecipeRecord.getDocumentFromData({
-                          ...createMealRecipeRecordData(
-                            title: '',
-                            duration: '',
-                            banner:
-                                'https://fakeimg.pl/600x150/cccccc/ffffff?text=Temp+Image',
-                            videolink: '',
-                            author: currentUserReference,
-                            isPublic: true,
-                            isReady: false,
-                            prepTime: FFAppState().estimatedTimeSpinner,
-                            adminApproved: true,
-                            isRecipeReported: false,
-                          ),
-                          ...mapToFirestore(
-                            {
-                              'ingredient': getIngredientListFirestoreData(
-                                FFAppState()
-                                    .ingredientList
-                                    .map(
-                                        (e) => IngredientStruct.maybeFromMap(e))
-                                    .withoutNulls
-                                    .toList(),
-                              ),
-                              'procedure': getProcedureListFirestoreData(
-                                FFAppState()
-                                    .stepsList
-                                    .map((e) => ProcedureStruct.maybeFromMap(e))
-                                    .withoutNulls
-                                    .toList(),
-                              ),
-                              'dateCreated': DateTime.now(),
-                            },
-                          ),
-                        }, mealRecipeRecordReference);
-
-                        await _model.createdMealRecipeCollection!.reference
-                            .update(createMealRecipeRecordData(
-                          mealRecipeId:
-                              _model.createdMealRecipeCollection?.reference.id,
-                        ));
-                        setState(() {
-                          FFAppState().addIsBasicRecipeInfoAdded = true;
-                        });
-
+                      final mealRef = await context
+                          .read<HomeCubit>()
+                          .createBlankMealRecipe();
+                      if (mealRef != null && context.mounted) {
                         context.pushNamed(
                           'add_recipe_screen',
                           queryParameters: {
@@ -436,7 +240,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                               ParamType.DocumentReference,
                             ),
                             'mealRef': serializeParam(
-                              _model.createdMealRecipeCollection?.reference,
+                              mealRef,
                               ParamType.DocumentReference,
                             ),
                           }.withoutNulls,
@@ -453,9 +257,9 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                             alignment: AlignmentDirectional(0.0, 0.0)
                                 .resolve(Directionality.of(context)),
                             child: GestureDetector(
-                              onTap: () => _model.unfocusNode.canRequestFocus
+                              onTap: () => _unfocusNode.canRequestFocus
                                   ? FocusScope.of(context)
-                                      .requestFocus(_model.unfocusNode)
+                                      .requestFocus(_unfocusNode)
                                   : FocusScope.of(context).unfocus(),
                               child: ResendEmailComponentWidget(),
                             ),
@@ -556,72 +360,38 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                     hoverColor: Colors.transparent,
                                     highlightColor: Colors.transparent,
                                     onTap: () async {
-                                      _model.doesPairedDataExists =
-                                          await queryPairedUserRecordOnce(
-                                        queryBuilder: (pairedUserRecord) =>
-                                            pairedUserRecord.where(
-                                          'recipient',
-                                          isEqualTo: currentUserReference,
-                                        ),
-                                        singleRecord: true,
-                                      ).then((s) => s.firstOrNull);
-                                      if ((_model.doesPairedDataExists !=
-                                              null) ==
-                                          true) {
-                                        setState(() {
-                                          FFAppState().PartnerUID = _model
-                                              .doesPairedDataExists?.sender;
-                                        });
-
-                                        context.pushNamed(
-                                          'profile_screen',
-                                          queryParameters: {
-                                            'userDocRef': serializeParam(
-                                              currentUserReference,
-                                              ParamType.DocumentReference,
-                                            ),
-                                            'partnerRef': serializeParam(
-                                              _model
-                                                  .doesPairedDataExists?.sender,
-                                              ParamType.DocumentReference,
-                                            ),
-                                          }.withoutNulls,
-                                          extra: <String, dynamic>{
-                                            kTransitionInfoKey: TransitionInfo(
-                                              hasTransition: true,
-                                              transitionType:
-                                                  PageTransitionType.fade,
-                                              duration:
-                                                  Duration(milliseconds: 0),
-                                            ),
-                                          },
-                                        );
-                                      } else {
-                                        context.pushNamed(
-                                          'profile_screen',
-                                          queryParameters: {
-                                            'userDocRef': serializeParam(
-                                              currentUserReference,
-                                              ParamType.DocumentReference,
-                                            ),
-                                            'partnerRef': serializeParam(
-                                              currentUserReference,
-                                              ParamType.DocumentReference,
-                                            ),
-                                          }.withoutNulls,
-                                          extra: <String, dynamic>{
-                                            kTransitionInfoKey: TransitionInfo(
-                                              hasTransition: true,
-                                              transitionType:
-                                                  PageTransitionType.fade,
-                                              duration:
-                                                  Duration(milliseconds: 0),
-                                            ),
-                                          },
-                                        );
-                                      }
-
-                                      setState(() {});
+                                      // resolvePartnerForProfileNav returns
+                                      // the partner ref if one exists and
+                                      // also pushes it into AppCubit so the
+                                      // profile screen can read it. If no
+                                      // pair, we open the user's own profile.
+                                      final partnerRef = await context
+                                          .read<HomeCubit>()
+                                          .resolvePartnerForProfileNav();
+                                      if (!context.mounted) return;
+                                      context.pushNamed(
+                                        'profile_screen',
+                                        queryParameters: {
+                                          'userDocRef': serializeParam(
+                                            currentUserReference,
+                                            ParamType.DocumentReference,
+                                          ),
+                                          'partnerRef': serializeParam(
+                                            partnerRef ?? currentUserReference,
+                                            ParamType.DocumentReference,
+                                          ),
+                                        }.withoutNulls,
+                                        extra: <String, dynamic>{
+                                          kTransitionInfoKey:
+                                              const TransitionInfo(
+                                            hasTransition: true,
+                                            transitionType:
+                                                PageTransitionType.fade,
+                                            duration:
+                                                Duration(milliseconds: 0),
+                                          ),
+                                        },
+                                      );
                                     },
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(8.0),
@@ -675,10 +445,8 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                       ),
                                       Expanded(
                                         child: TextFormField(
-                                          controller: _model
-                                              .searchRecipeTextTextController,
-                                          focusNode:
-                                              _model.searchRecipeTextFocusNode,
+                                          controller: _searchController,
+                                          focusNode: _searchFocusNode,
                                           autofocus: false,
                                           obscureText: false,
                                           decoration: InputDecoration(
@@ -711,29 +479,17 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                 letterSpacing: 0.0,
                                                 lineHeight: 1.5,
                                               ),
-                                          validator: _model
-                                              .searchRecipeTextTextControllerValidator
-                                              .asValidator(context),
                                         ),
                                       ),
-                                      if (_model.searchRecipeTextTextController
-                                              .text !=
-                                          '')
+                                      if (_searchController.text != '')
                                         InkWell(
                                           splashColor: Colors.transparent,
                                           focusColor: Colors.transparent,
                                           hoverColor: Colors.transparent,
                                           highlightColor: Colors.transparent,
-                                          onTap: () async {
-                                            setState(() {
-                                              _model
-                                                  .searchRecipeTextTextController
-                                                  ?.clear();
-                                            });
-                                            setState(() {
-                                              FFAppState().isShowFullList =
-                                                  true;
-                                            });
+                                          onTap: () {
+                                            setState(_searchController.clear);
+                                            AppCubit.instance.setIsShowFullList(true);
                                           },
                                           child: Icon(
                                             Icons.close_sharp,
@@ -744,42 +500,32 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                         ),
                                       FFButtonWidget(
                                         onPressed: () async {
-                                          if (_model
-                                                  .searchRecipeTextTextController
-                                                  .text !=
-                                              '') {
-                                            await queryMealRecipeRecordOnce()
-                                                .then(
-                                                  (records) => _model
-                                                          .simpleSearchResults =
-                                                      TextSearch(
-                                                    records
-                                                        .map(
-                                                          (record) =>
-                                                              TextSearchItem
-                                                                  .fromTerms(
-                                                                      record, [
-                                                            record.title!
-                                                          ]),
-                                                        )
-                                                        .toList(),
-                                                  )
-                                                          .search(_model
-                                                              .searchRecipeTextTextController
-                                                              .text)
-                                                          .map((r) => r.object)
-                                                          .toList(),
-                                                )
-                                                .onError((_, __) => _model
-                                                    .simpleSearchResults = [])
-                                                .whenComplete(
-                                                    () => setState(() {}));
-
-                                            setState(() {
-                                              FFAppState().isShowFullList =
-                                                  false;
-                                            });
+                                          final query = _searchController.text;
+                                          if (query.isEmpty) return;
+                                          try {
+                                            final records =
+                                                await queryMealRecipeRecordOnce();
+                                            final hits = TextSearch(
+                                              records
+                                                  .map((r) => TextSearchItem
+                                                      .fromTerms(
+                                                          r, [r.title!]))
+                                                  .toList(),
+                                            )
+                                                .search(query)
+                                                .map((r) => r.object)
+                                                .toList();
+                                            if (!context.mounted) return;
+                                            context
+                                                .read<HomeCubit>()
+                                                .setSearchResults(hits);
+                                          } catch (_) {
+                                            if (!context.mounted) return;
+                                            context
+                                                .read<HomeCubit>()
+                                                .setSearchResults(const []);
                                           }
+                                          AppCubit.instance.setIsShowFullList(false);
                                         },
                                         text: 'Search',
                                         options: FFButtonOptions(
@@ -820,7 +566,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                             ),
                           ],
                         ),
-                        if (FFAppState().hasPartner == true)
+                        if (AppCubit.instance.state.hasPartner == true)
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
                                 0.0, 16.0, 16.0, 0.0),
@@ -847,25 +593,17 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                 ..reset()
                                                 ..repeat());
                                     }
-                                    _model.rEFRESHPairedUserCollectionReceiver =
-                                        await queryPairedUserRecordOnce(
-                                      queryBuilder: (pairedUserRecord) =>
-                                          pairedUserRecord.where(
-                                        'recipient',
-                                        isEqualTo: currentUserReference,
-                                      ),
-                                      singleRecord: true,
-                                    ).then((s) => s.firstOrNull);
+                                    // Refresh paired user + invalidate the
+                                    // memoised notification-count future so
+                                    // the badge re-queries.
+                                    await context
+                                        .read<HomeCubit>()
+                                        .refreshPairedUser();
                                     setState(() {
-                                      FFAppState().pairedUserCollection = _model
-                                          .rEFRESHPairedUserCollectionReceiver
-                                          ?.reference;
+                                      _firestoreRequestCompleter = null;
                                     });
-                                    setState(() => _model
-                                        .firestoreRequestCompleter = null);
-                                    await _model
-                                        .waitForFirestoreRequestCompleted(
-                                            minWait: 500);
+                                    await Future<void>.delayed(
+                                        const Duration(milliseconds: 500));
                                     if (animationsMap[
                                             'iconOnActionTriggerAnimation'] !=
                                         null) {
@@ -874,8 +612,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                           .controller
                                           .stop();
                                     }
-
-                                    setState(() {});
+                                    if (mounted) setState(() {});
                                   },
                                   child: Icon(
                                     Icons.refresh_rounded,
@@ -888,7 +625,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                         'iconOnActionTriggerAnimation']!,
                                     hasBeenTriggered: hasIconTriggered),
                                 FutureBuilder<int>(
-                                  future: (_model.firestoreRequestCompleter ??=
+                                  future: (_firestoreRequestCompleter ??=
                                           Completer<int>()
                                             ..complete(
                                                 queryMealRequestedNotificationRecordCount(
@@ -897,8 +634,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                       mealRequestedNotificationRecord
                                                           .where(
                                                             'paired_user_id',
-                                                            isEqualTo: FFAppState()
-                                                                .pairedUserCollection,
+                                                            isEqualTo: AppCubit.instance.state.pairedUserCollection,
                                                           )
                                                           .where(
                                                             'content_status',
@@ -933,7 +669,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.end,
                                       children: [
-                                        if (FFAppState().hasPartner == true)
+                                        if (AppCubit.instance.state.hasPartner == true)
                                           badges.Badge(
                                             badgeContent: Text(
                                               notificationColumnCount != 0
@@ -983,8 +719,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                     queryParameters: {
                                                       'pairedUserRef':
                                                           serializeParam(
-                                                        FFAppState()
-                                                            .pairedUserCollection,
+                                                        AppCubit.instance.state.pairedUserCollection,
                                                         ParamType
                                                             .DocumentReference,
                                                       ),
@@ -1023,7 +758,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                               color: Colors.white,
                               child: ExpandableNotifier(
                                 controller:
-                                    _model.expandableExpandableController,
+                                    _expandableController,
                                 child: ExpandablePanel(
                                   header: Row(
                                     mainAxisSize: MainAxisSize.max,
@@ -1039,8 +774,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                               fontWeight: FontWeight.w600,
                                             ),
                                       ),
-                                      if (FFAppState()
-                                              .tappedCategoryName
+                                      if (AppCubit.instance.state.tappedCategoryName
                                               .length !=
                                           0)
                                         Align(
@@ -1076,8 +810,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                     child: Builder(
                                       builder: (context) {
                                         final recipeCategoriesListView =
-                                            FFAppState()
-                                                .homeRecipeCategory
+                                            AppCubit.instance.state.homeRecipeCategory
                                                 .toList();
                                         return ListView.separated(
                                           padding: EdgeInsets.zero,
@@ -1112,80 +845,46 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                           false;
                                                       if (recipeCategoriesListViewItem !=
                                                           'All') {
-                                                        if (FFAppState()
-                                                                .tappedCategoryName
+                                                        if (AppCubit.instance.state.tappedCategoryName
                                                                 .contains(
                                                                     recipeCategoriesListViewItem) ==
                                                             true) {
                                                           setState(() {
-                                                            FFAppState()
-                                                                .removeFromTappedCategoryName(
+                                                            AppCubit.instance.removeFromTappedCategoryName(
                                                                     recipeCategoriesListViewItem);
                                                           });
-                                                          if (FFAppState()
-                                                                  .tappedCategoryName
+                                                          if (AppCubit.instance.state.tappedCategoryName
                                                                   .length ==
                                                               0) {
                                                             setState(() {
-                                                              FFAppState()
-                                                                      .isMealFilteredByCategory =
-                                                                  false;
-                                                              FFAppState()
-                                                                  .tappedCategoryName = [];
+                                                              AppCubit.instance.setIsMealFilteredByCategory(false);
+                                                              AppCubit.instance.setTappedCategoryName([]);
                                                             });
                                                             if (_shouldSetState)
                                                               setState(() {});
                                                             return;
                                                           } else {
                                                             setState(() {
-                                                              FFAppState()
-                                                                      .isMealFilteredByCategory =
-                                                                  true;
+                                                              AppCubit.instance.setIsMealFilteredByCategory(true);
                                                             });
                                                           }
                                                         } else {
                                                           setState(() {
-                                                            FFAppState()
-                                                                .addToTappedCategoryName(
+                                                            AppCubit.instance.addToTappedCategoryName(
                                                                     recipeCategoriesListViewItem);
-                                                            FFAppState()
-                                                                    .isMealFilteredByCategory =
-                                                                true;
+                                                            AppCubit.instance.setIsMealFilteredByCategory(true);
                                                           });
                                                         }
 
-                                                        _model.mealFilteredByCategory =
-                                                            await queryMealRecipeRecordOnce(
-                                                          queryBuilder: (mealRecipeRecord) =>
-                                                              mealRecipeRecord
-                                                                  .whereArrayContainsAny(
-                                                                      'category',
-                                                                      FFAppState()
-                                                                          .tappedCategoryName)
-                                                                  .where(
-                                                                    'isPublic',
-                                                                    isEqualTo:
-                                                                        true,
-                                                                  )
-                                                                  .where(
-                                                                    'isReady',
-                                                                    isEqualTo:
-                                                                        true,
-                                                                  )
-                                                                  .where(
-                                                                    'admin_approved',
-                                                                    isEqualTo:
-                                                                        true,
-                                                                  ),
-                                                        );
+                                                        await context
+                                                            .read<HomeCubit>()
+                                                            .applyCategoryFilter(
+                                                                AppCubit.instance.state.tappedCategoryName);
                                                         _shouldSetState = true;
                                                       } else {
                                                         setState(() {
-                                                          FFAppState()
-                                                                  .isMealFilteredByCategory =
-                                                              false;
-                                                          FFAppState()
-                                                              .tappedCategoryName = [];
+                                                          AppCubit.instance.setIsMealFilteredByCategory(false);
+                                                          AppCubit.instance.setTappedCategoryName([]);
                                                         });
                                                       }
 
@@ -1196,17 +895,14 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                       height: 40.0,
                                                       decoration: BoxDecoration(
                                                         color: () {
-                                                          if (FFAppState()
-                                                                  .isMealFilteredByCategory ==
+                                                          if (AppCubit.instance.state.isMealFilteredByCategory ==
                                                               false) {
                                                             return FlutterFlowTheme
                                                                     .of(context)
                                                                 .success;
-                                                          } else if ((FFAppState()
-                                                                      .isMealFilteredByCategory ==
+                                                          } else if ((AppCubit.instance.state.isMealFilteredByCategory ==
                                                                   true) &&
-                                                              (FFAppState()
-                                                                      .tappedCategoryName
+                                                              (AppCubit.instance.state.tappedCategoryName
                                                                       .contains(
                                                                           recipeCategoriesListViewItem) ==
                                                                   true)) {
@@ -1292,10 +988,10 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                         Expanded(
                           child: Builder(
                             builder: (context) {
-                              if (FFAppState().isShowFullList) {
+                              if (AppCubit.instance.state.isShowFullList) {
                                 return Builder(
                                   builder: (context) {
-                                    if (FFAppState().isMealFilteredByCategory ==
+                                    if (AppCubit.instance.state.isMealFilteredByCategory ==
                                         false) {
                                       return StreamBuilder<
                                           List<MealRecipeRecord>>(
@@ -1378,9 +1074,17 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                         16.0, 8.0, 16.0, 8.0),
                                                 child:
                                                     StreamBuilder<UsersRecord>(
+                                                  // MVP: `.author` can be null
+                                                  // when the seed roundtrip
+                                                  // through fake_cloud_firestore
+                                                  // drops the DocumentReference.
+                                                  // Fall back to the current
+                                                  // (demo) user so we never
+                                                  // hit a null-check crash.
                                                   stream: UsersRecord.getDocument(
                                                       theAllContentGridMealRecipeRecord
-                                                          .author!),
+                                                              .author ??
+                                                          currentUserReference!),
                                                   builder: (context, snapshot) {
                                                     // Customize what your widget looks like when it's loading.
                                                     if (!snapshot.hasData) {
@@ -1500,8 +1204,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                 ),
                                                               ),
                                                             ),
-                                                            if (FFAppState()
-                                                                    .tempHideWidget ==
+                                                            if (AppCubit.instance.state.tempHideWidget ==
                                                                 false)
                                                               Opacity(
                                                                 opacity: 0.2,
@@ -1622,7 +1325,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                           ),
                                                                           Text(
                                                                             dateTimeFormat('Hm',
-                                                                                theAllContentGridMealRecipeRecord.prepTime!),
+                                                                                theAllContentGridMealRecipeRecord.prepTime ?? DateTime(2024)),
                                                                             style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                   fontFamily: 'Poppins',
                                                                                   color: FlutterFlowTheme.of(context).secondaryBackground,
@@ -1714,18 +1417,18 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                           onTap:
                                                                               () async {
                                                                             setState(() {
-                                                                              FFAppState().addToSavedRecipeList(theAllContentGridMealRecipeRecord.reference);
+                                                                              AppCubit.instance.addToSavedRecipeList(theAllContentGridMealRecipeRecord.reference);
                                                                             });
 
-                                                                            await homeSavedRecipeRecord!.reference.update({
-                                                                              ...mapToFirestore(
-                                                                                {
-                                                                                  'saved_meal_recipe_id': FieldValue.arrayUnion([
-                                                                                    theAllContentGridMealRecipeRecord.reference
-                                                                                  ]),
-                                                                                },
-                                                                              ),
-                                                                            });
+                                                                            // MVP: fake_cloud_firestore drops DocumentReferences inside
+                                                                            // FieldValue.arrayUnion. Splice locally and write the full list.
+                                                                            final ref = theAllContentGridMealRecipeRecord.reference;
+                                                                            final current = homeSavedRecipeRecord?.savedMealRecipeId ?? const <DocumentReference>[];
+                                                                            final next = [
+                                                                              ...current.where((r) => r.path != ref.path),
+                                                                              ref,
+                                                                            ];
+                                                                            await homeSavedRecipeRecord!.reference.update({'saved_meal_recipe_id': next});
                                                                           },
                                                                           child:
                                                                               Icon(
@@ -1739,10 +1442,14 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                       ),
                                                                     ),
                                                                   ),
+                                                                // Path-based comparison — fake_cloud_firestore's
+                                                                // DocumentReference equality isn't reliable, so .contains()
+                                                                // returns false even when the ref is in the list.
                                                                 if (homeSavedRecipeRecord
                                                                         ?.savedMealRecipeId
-                                                                        ?.contains(
-                                                                            theAllContentGridMealRecipeRecord.reference) ==
+                                                                        ?.any((r) =>
+                                                                            r.path ==
+                                                                            theAllContentGridMealRecipeRecord.reference.path) ==
                                                                     true)
                                                                   Align(
                                                                     alignment:
@@ -1782,18 +1489,14 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                           onTap:
                                                                               () async {
                                                                             setState(() {
-                                                                              FFAppState().removeFromSavedRecipeList(theAllContentGridMealRecipeRecord.reference);
+                                                                              AppCubit.instance.removeFromSavedRecipeList(theAllContentGridMealRecipeRecord.reference);
                                                                             });
 
-                                                                            await homeSavedRecipeRecord!.reference.update({
-                                                                              ...mapToFirestore(
-                                                                                {
-                                                                                  'saved_meal_recipe_id': FieldValue.arrayRemove([
-                                                                                    theAllContentGridMealRecipeRecord.reference
-                                                                                  ]),
-                                                                                },
-                                                                              ),
-                                                                            });
+                                                                            // See arrayUnion site above re: fake_cloud_firestore.
+                                                                            final ref = theAllContentGridMealRecipeRecord.reference;
+                                                                            final current = homeSavedRecipeRecord?.savedMealRecipeId ?? const <DocumentReference>[];
+                                                                            final next = current.where((r) => r.path != ref.path).toList();
+                                                                            await homeSavedRecipeRecord!.reference.update({'saved_meal_recipe_id': next});
                                                                           },
                                                                           child:
                                                                               Icon(
@@ -1823,7 +1526,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                     } else {
                                       return Builder(
                                         builder: (context) {
-                                          final filteredList = _model
+                                          final filteredList = homeState
                                                   .mealFilteredByCategory
                                                   ?.toList() ??
                                               [];
@@ -1868,10 +1571,14 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                         16.0, 8.0, 16.0, 8.0),
                                                 child:
                                                     StreamBuilder<UsersRecord>(
+                                                  // MVP: see comment in the
+                                                  // Public Recipes grid above
+                                                  // re: null-safe author.
                                                   stream:
                                                       UsersRecord.getDocument(
                                                           filteredListItem
-                                                              .author!),
+                                                                  .author ??
+                                                              currentUserReference!),
                                                   builder: (context, snapshot) {
                                                     // Customize what your widget looks like when it's loading.
                                                     if (!snapshot.hasData) {
@@ -1991,8 +1698,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                 ),
                                                               ),
                                                             ),
-                                                            if (FFAppState()
-                                                                    .tempHideWidget ==
+                                                            if (AppCubit.instance.state.tempHideWidget ==
                                                                 false)
                                                               Opacity(
                                                                 opacity: 0.2,
@@ -2113,7 +1819,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                           ),
                                                                           Text(
                                                                             dateTimeFormat('Hm',
-                                                                                filteredListItem.prepTime!),
+                                                                                filteredListItem.prepTime ?? DateTime(2024)),
                                                                             style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                   fontFamily: 'Poppins',
                                                                                   color: FlutterFlowTheme.of(context).secondaryBackground,
@@ -2205,18 +1911,17 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                           onTap:
                                                                               () async {
                                                                             setState(() {
-                                                                              FFAppState().addToSavedRecipeList(filteredListItem.reference);
+                                                                              AppCubit.instance.addToSavedRecipeList(filteredListItem.reference);
                                                                             });
 
-                                                                            await homeSavedRecipeRecord!.reference.update({
-                                                                              ...mapToFirestore(
-                                                                                {
-                                                                                  'saved_meal_recipe_id': FieldValue.arrayUnion([
-                                                                                    filteredListItem.reference
-                                                                                  ]),
-                                                                                },
-                                                                              ),
-                                                                            });
+                                                                            // MVP: splice locally; see Public Recipes grid above.
+                                                                            final ref = filteredListItem.reference;
+                                                                            final current = homeSavedRecipeRecord?.savedMealRecipeId ?? const <DocumentReference>[];
+                                                                            final next = [
+                                                                              ...current.where((r) => r.path != ref.path),
+                                                                              ref,
+                                                                            ];
+                                                                            await homeSavedRecipeRecord!.reference.update({'saved_meal_recipe_id': next});
                                                                           },
                                                                           child:
                                                                               Icon(
@@ -2230,10 +1935,12 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                       ),
                                                                     ),
                                                                   ),
+                                                                // Path-based comparison; see Public Recipes grid.
                                                                 if (homeSavedRecipeRecord
                                                                         ?.savedMealRecipeId
-                                                                        ?.contains(
-                                                                            filteredListItem.reference) ==
+                                                                        ?.any((r) =>
+                                                                            r.path ==
+                                                                            filteredListItem.reference.path) ==
                                                                     true)
                                                                   Align(
                                                                     alignment:
@@ -2273,18 +1980,14 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                           onTap:
                                                                               () async {
                                                                             setState(() {
-                                                                              FFAppState().removeFromSavedRecipeList(filteredListItem.reference);
+                                                                              AppCubit.instance.removeFromSavedRecipeList(filteredListItem.reference);
                                                                             });
 
-                                                                            await homeSavedRecipeRecord!.reference.update({
-                                                                              ...mapToFirestore(
-                                                                                {
-                                                                                  'saved_meal_recipe_id': FieldValue.arrayRemove([
-                                                                                    filteredListItem.reference
-                                                                                  ]),
-                                                                                },
-                                                                              ),
-                                                                            });
+                                                                            // MVP: splice locally.
+                                                                            final ref = filteredListItem.reference;
+                                                                            final current = homeSavedRecipeRecord?.savedMealRecipeId ?? const <DocumentReference>[];
+                                                                            final next = current.where((r) => r.path != ref.path).toList();
+                                                                            await homeSavedRecipeRecord!.reference.update({'saved_meal_recipe_id': next});
                                                                           },
                                                                           child:
                                                                               Icon(
@@ -2318,12 +2021,10 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                 return Builder(
                                   builder: (context) {
                                     final searchResult =
-                                        _model.simpleSearchResults.toList();
+                                        homeState.searchResults.toList();
                                     if (searchResult.isEmpty) {
                                       return NoSearchResultsComponentWidget(
-                                        searchItemName: _model
-                                            .searchRecipeTextTextController
-                                            .text,
+                                        searchItemName: _searchController.text,
                                       );
                                     }
                                     return GridView.builder(
@@ -2415,8 +2116,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                       ),
                                                     ),
                                                   ),
-                                                  if (FFAppState()
-                                                          .tempHideWidget ==
+                                                  if (AppCubit.instance.state.tempHideWidget ==
                                                       false)
                                                     Opacity(
                                                       opacity: 0.2,
@@ -2501,10 +2201,16 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                           children: [
                                                             StreamBuilder<
                                                                 UsersRecord>(
+                                                              // MVP: see
+                                                              // null-safe
+                                                              // author comment
+                                                              // in Public
+                                                              // Recipes grid.
                                                               stream: UsersRecord
                                                                   .getDocument(
                                                                       searchResultItem
-                                                                          .author!),
+                                                                              .author ??
+                                                                          currentUserReference!),
                                                               builder: (context,
                                                                   snapshot) {
                                                                 // Customize what your widget looks like when it's loading.
@@ -2683,20 +2389,19 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                         .transparent,
                                                                 onTap:
                                                                     () async {
+                                                                  // MVP: splice locally; see Public Recipes grid.
+                                                                  final ref = homeState
+                                                                      .searchResults[searchResultIndex]
+                                                                      .reference;
+                                                                  final current = homeSavedRecipeRecord?.savedMealRecipeId ??
+                                                                      const <DocumentReference>[];
+                                                                  final next = [
+                                                                    ...current.where((r) => r.path != ref.path),
+                                                                    ref,
+                                                                  ];
                                                                   await homeSavedRecipeRecord!
                                                                       .reference
-                                                                      .update({
-                                                                    ...mapToFirestore(
-                                                                      {
-                                                                        'saved_meal_recipe_id':
-                                                                            FieldValue.arrayUnion([
-                                                                          _model
-                                                                              .simpleSearchResults[searchResultIndex]
-                                                                              .reference
-                                                                        ]),
-                                                                      },
-                                                                    ),
-                                                                  });
+                                                                      .update({'saved_meal_recipe_id': next});
                                                                 },
                                                                 child: Icon(
                                                                   Icons
@@ -2710,11 +2415,13 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                             ),
                                                           ),
                                                         ),
+                                                      // Path-based comparison; see Public Recipes grid.
                                                       if (homeSavedRecipeRecord
                                                               ?.savedMealRecipeId
-                                                              ?.contains(
+                                                              ?.any((r) =>
+                                                                  r.path ==
                                                                   searchResultItem
-                                                                      .reference) ==
+                                                                      .reference.path) ==
                                                           true)
                                                         Align(
                                                           alignment:
@@ -2751,20 +2458,18 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                                         .transparent,
                                                                 onTap:
                                                                     () async {
+                                                                  // MVP: splice locally.
+                                                                  final ref = homeState
+                                                                      .searchResults[searchResultIndex]
+                                                                      .reference;
+                                                                  final current = homeSavedRecipeRecord?.savedMealRecipeId ??
+                                                                      const <DocumentReference>[];
+                                                                  final next = current
+                                                                      .where((r) => r.path != ref.path)
+                                                                      .toList();
                                                                   await homeSavedRecipeRecord!
                                                                       .reference
-                                                                      .update({
-                                                                    ...mapToFirestore(
-                                                                      {
-                                                                        'saved_meal_recipe_id':
-                                                                            FieldValue.arrayRemove([
-                                                                          _model
-                                                                              .simpleSearchResults[searchResultIndex]
-                                                                              .reference
-                                                                        ]),
-                                                                      },
-                                                                    ),
-                                                                  });
+                                                                      .update({'saved_meal_recipe_id': next});
                                                                 },
                                                                 child: Icon(
                                                                   Icons

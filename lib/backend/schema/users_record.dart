@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 
 import '/backend/schema/util/firestore_util.dart';
 import '/backend/schema/util/schema_util.dart';
+import '/mock/mock_firestore.dart';
 
 import 'index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -74,7 +75,7 @@ class UsersRecord extends FirestoreRecord {
   }
 
   static CollectionReference get collection =>
-      FirebaseFirestore.instance.collection('users');
+      mockFirestore.collection('users');
 
   static Stream<UsersRecord> getDocument(DocumentReference ref) =>
       ref.snapshots().map((s) => UsersRecord.fromSnapshot(s));

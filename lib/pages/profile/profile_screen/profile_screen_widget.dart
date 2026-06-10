@@ -1,5 +1,19 @@
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
+import '/cubits/app/app_cubit.dart';
+import '/cubits/app/app_state.dart' as app;
+import '/cubits/auth/auth_cubit.dart';
+import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -7,104 +21,105 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/pages/components/confirmation_remove_partner_component/confirmation_remove_partner_component_widget.dart';
 import '/pages/components/popup_reason_component/popup_reason_component_widget.dart';
 import '/pages/components/resend_email_component/resend_email_component_widget.dart';
-import 'dart:math';
-import '/flutter_flow/custom_functions.dart' as functions;
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'profile_screen_model.dart';
-export 'profile_screen_model.dart';
+import 'profile_screen_cubit.dart';
+import 'profile_screen_state.dart';
 
-class ProfileScreenWidget extends StatefulWidget {
+/// Profile screen — Cubit conversion.
+///
+/// [ProfileScreenCubit] handles the page-load paired-user check. Tab
+/// controllers stay widget-local (they need `TickerProviderStateMixin`).
+class ProfileScreenWidget extends StatelessWidget {
   const ProfileScreenWidget({
     super.key,
     required this.userDocRef,
     this.partnerRef,
     int? tabIndex,
-  }) : this.tabIndex = tabIndex ?? 0;
+  }) : tabIndex = tabIndex ?? 0;
 
   final DocumentReference? userDocRef;
   final DocumentReference? partnerRef;
   final int tabIndex;
 
   @override
-  State<ProfileScreenWidget> createState() => _ProfileScreenWidgetState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => ProfileScreenCubit()..onPageLoad(),
+      child: _ProfileScreenView(
+        userDocRef: userDocRef,
+        partnerRef: partnerRef,
+        tabIndex: tabIndex,
+      ),
+    );
+  }
 }
 
-class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
-    with TickerProviderStateMixin {
-  late ProfileScreenModel _model;
+class _ProfileScreenView extends StatefulWidget {
+  const _ProfileScreenView({
+    required this.userDocRef,
+    required this.partnerRef,
+    required this.tabIndex,
+  });
 
+  final DocumentReference? userDocRef;
+  final DocumentReference? partnerRef;
+  final int tabIndex;
+
+  @override
+  State<_ProfileScreenView> createState() => _ProfileScreenViewState();
+}
+
+class _ProfileScreenViewState extends State<_ProfileScreenView>
+    with TickerProviderStateMixin {
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  final _unfocusNode = FocusNode();
+  late final TabController _ownerTabBarController = TabController(
+    vsync: this,
+    length: 3,
+    initialIndex: 0,
+  )..addListener(() => setState(() {}));
+  late final TabController _visitorTabBarController = TabController(
+    vsync: this,
+    length: 1,
+    initialIndex: 0,
+  )..addListener(() => setState(() {}));
 
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => ProfileScreenModel());
-
-    // On page load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.doesPairedDataExists = await queryPairedUserRecordOnce(
-        queryBuilder: (pairedUserRecord) => pairedUserRecord.where(
-          'recipient',
-          isEqualTo: currentUserReference,
-        ),
-        singleRecord: true,
-      ).then((s) => s.firstOrNull);
-      if ((_model.doesPairedDataExists != null) == true) {
-        setState(() {
-          FFAppState().hasPartner = true;
-        });
-      } else {
-        setState(() {
-          FFAppState().hasPartner = false;
-        });
-      }
-
-      setState(() {
-        _model.ownerTabBarController!.animateTo(
-          widget.tabIndex,
-          duration: Duration(milliseconds: 300),
-          curve: Curves.ease,
-        );
-      });
+    // Once the cubit finishes the on-page-load paired-user lookup, jump the
+    // owner tab to the requested initial index. Doing it here keeps the
+    // tab-controller construction local to the widget.
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _ownerTabBarController.animateTo(
+        widget.tabIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.ease,
+      );
     });
-
-    _model.ownerTabBarController = TabController(
-      vsync: this,
-      length: 3,
-      initialIndex: 0,
-    )..addListener(() => setState(() {}));
-    _model.visitorTabBarController = TabController(
-      vsync: this,
-      length: 1,
-      initialIndex: 0,
-    )..addListener(() => setState(() {}));
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
   }
 
   @override
   void dispose() {
-    _model.dispose();
-
+    _unfocusNode.dispose();
+    _ownerTabBarController.dispose();
+    _visitorTabBarController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
-    return StreamBuilder<UsersRecord>(
-      stream: _model.profile(
-        requestFn: () => UsersRecord.getDocument(widget.userDocRef!),
+    return BlocBuilder<AppCubit, app.AppState>(
+      builder: (context, appState) =>
+          BlocBuilder<ProfileScreenCubit, ProfileScreenState>(
+        builder: (context, _) => _buildBody(context),
       ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    return StreamBuilder<UsersRecord>(
+      stream: UsersRecord.getDocument(widget.userDocRef!),
       builder: (context, snapshot) {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
@@ -125,8 +140,8 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
         }
         final profileScreenUsersRecord = snapshot.data!;
         return GestureDetector(
-          onTap: () => _model.unfocusNode.canRequestFocus
-              ? FocusScope.of(context).requestFocus(_model.unfocusNode)
+          onTap: () => _unfocusNode.canRequestFocus
+              ? FocusScope.of(context).requestFocus(_unfocusNode)
               : FocusScope.of(context).unfocus(),
           child: Scaffold(
             key: scaffoldKey,
@@ -203,21 +218,21 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                       height: 310.0,
                       child: Stack(
                         children: [
+                          // Cover photo — local Plate It Up illustration.
+                          // BoxFit.contain shows the full illustration with
+                          // no cropping, on a brand-tinted background so
+                          // the letterbox area reads as intentional.
                           ClipRRect(
                             borderRadius: BorderRadius.circular(0.0),
-                            child: CachedNetworkImage(
-                              fadeInDuration: Duration(milliseconds: 500),
-                              fadeOutDuration: Duration(milliseconds: 500),
-                              imageUrl: profileScreenUsersRecord.coverPhotoUrl,
+                            child: Container(
                               width: double.infinity,
                               height: 200.0,
-                              fit: BoxFit.cover,
-                              errorWidget: (context, error, stackTrace) =>
-                                  Image.asset(
-                                'assets/images/error_image.png',
+                              color: FlutterFlowTheme.of(context).success,
+                              child: Image.asset(
+                                'assets/images/plateitup_illustration-png.png',
                                 width: double.infinity,
                                 height: 200.0,
-                                fit: BoxFit.cover,
+                                fit: BoxFit.contain,
                               ),
                             ),
                           ),
@@ -361,8 +376,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.max,
                                                 children: [
-                                                  if ((FFAppState()
-                                                              .hasPartner ==
+                                                  if ((AppCubit.instance.state.hasPartner ==
                                                           true) &&
                                                       (widget.userDocRef !=
                                                           widget.partnerRef))
@@ -429,25 +443,32 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                                                             Directionality.of(context)),
                                                                     child:
                                                                         GestureDetector(
-                                                                      onTap: () => _model
-                                                                              .unfocusNode
+                                                                      onTap: () => _unfocusNode
                                                                               .canRequestFocus
-                                                                          ? FocusScope.of(context).requestFocus(_model
-                                                                              .unfocusNode)
-                                                                          : FocusScope.of(context)
-                                                                              .unfocus(),
-                                                                      child:
-                                                                          ConfirmationRemovePartnerComponentWidget(
-                                                                        displayName: _model
-                                                                            .doesPairedDataExists!
-                                                                            .senderName,
-                                                                        pairedUserRef: _model
-                                                                            .doesPairedDataExists!
-                                                                            .reference,
-                                                                        partnerUserRef:
-                                                                            widget.partnerRef!,
-                                                                        userDocRef:
-                                                                            widget.userDocRef!,
+                                                                          ? FocusScope.of(context).requestFocus(_unfocusNode)
+                                                                          : FocusScope.of(context).unfocus(),
+                                                                      child: FutureBuilder<
+                                                                          PairedUserRecord?>(
+                                                                        // Re-query the paired-user record so we have the latest
+                                                                        // senderName/reference at dialog-open time. The original
+                                                                        // page-load lookup was stored on the model; we don't
+                                                                        // keep it in state because nothing else needs it.
+                                                                        future: queryPairedUserRecordOnce(
+                                                                          queryBuilder: (q) => q.where('recipient', isEqualTo: currentUserReference),
+                                                                          singleRecord: true,
+                                                                        ).then((s) => s.firstOrNull),
+                                                                        builder: (context, snap) {
+                                                                          final paired = snap.data;
+                                                                          if (paired == null) {
+                                                                            return const SizedBox.shrink();
+                                                                          }
+                                                                          return ConfirmationRemovePartnerComponentWidget(
+                                                                            displayName: paired.senderName,
+                                                                            pairedUserRef: paired.reference,
+                                                                            partnerUserRef: widget.partnerRef!,
+                                                                            userDocRef: widget.userDocRef!,
+                                                                          );
+                                                                        },
                                                                       ),
                                                                     ),
                                                                   );
@@ -529,7 +550,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                                                             ),
                                                                           ),
                                                                         ),
-                                                                        if (FFAppState().hasPartner ==
+                                                                        if (AppCubit.instance.state.hasPartner ==
                                                                             true)
                                                                           Align(
                                                                             alignment:
@@ -582,8 +603,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                                         },
                                                       ),
                                                     ),
-                                                  if ((FFAppState()
-                                                              .hasPartner ==
+                                                  if ((AppCubit.instance.state.hasPartner ==
                                                           false) &&
                                                       (widget.userDocRef ==
                                                           widget.partnerRef))
@@ -608,8 +628,9 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                                                   Colors
                                                                       .transparent,
                                                               onTap: () async {
-                                                                await authManager
-                                                                    .refreshUser();
+                                                                await context
+                                                                    .read<AuthCubit>()
+                                                                    .refreshCurrentUser();
                                                                 if (currentUserEmailVerified ==
                                                                     true) {
                                                                   context
@@ -643,8 +664,8 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                                                             AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
                                                                         child:
                                                                             GestureDetector(
-                                                                          onTap: () => _model.unfocusNode.canRequestFocus
-                                                                              ? FocusScope.of(context).requestFocus(_model.unfocusNode)
+                                                                          onTap: () => _unfocusNode.canRequestFocus
+                                                                              ? FocusScope.of(context).requestFocus(_unfocusNode)
                                                                               : FocusScope.of(context).unfocus(),
                                                                           child:
                                                                               ResendEmailComponentWidget(),
@@ -987,7 +1008,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                           ),
                                         ],
                                         controller:
-                                            _model.ownerTabBarController,
+                                            _ownerTabBarController,
                                         onTap: (i) async {
                                           [
                                             () async {},
@@ -1000,7 +1021,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                     Expanded(
                                       child: TabBarView(
                                         controller:
-                                            _model.ownerTabBarController,
+                                            _ownerTabBarController,
                                         children: [
                                           KeepAliveWidgetWrapper(
                                             builder: (context) => Padding(
@@ -1206,9 +1227,10 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                                                             8.0),
                                                                     child: StreamBuilder<
                                                                         UsersRecord>(
+                                                                      // MVP: null-safe author fallback.
                                                                       stream: UsersRecord.getDocument(
-                                                                          columnMealRecipeRecord
-                                                                              .author!),
+                                                                          columnMealRecipeRecord.author ??
+                                                                              currentUserReference!),
                                                                       builder:
                                                                           (context,
                                                                               snapshot) {
@@ -1279,7 +1301,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                                                                       ),
                                                                                     ),
                                                                                     Text(
-                                                                                      dateTimeFormat('Hm', columnMealRecipeRecord.prepTime!),
+                                                                                      dateTimeFormat('Hm', columnMealRecipeRecord.prepTime ?? DateTime(2024)),
                                                                                       style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                             fontFamily: 'Poppins',
                                                                                             color: FlutterFlowTheme.of(context).secondaryBackground,
@@ -1332,7 +1354,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                                                                         backgroundColor: Colors.transparent,
                                                                                         alignment: AlignmentDirectional(0.0, 0.0).resolve(Directionality.of(context)),
                                                                                         child: GestureDetector(
-                                                                                          onTap: () => _model.unfocusNode.canRequestFocus ? FocusScope.of(context).requestFocus(_model.unfocusNode) : FocusScope.of(context).unfocus(),
+                                                                                          onTap: () => _unfocusNode.canRequestFocus ? FocusScope.of(context).requestFocus(_unfocusNode) : FocusScope.of(context).unfocus(),
                                                                                           child: PopupReasonComponentWidget(
                                                                                             reason: columnMealRecipeRecord.reportedReason,
                                                                                           ),
@@ -1706,7 +1728,8 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                                                                 crossAxisAlignment: CrossAxisAlignment.end,
                                                                                 children: [
                                                                                   StreamBuilder<UsersRecord>(
-                                                                                    stream: UsersRecord.getDocument(item1MealRecipeRecord.author!),
+                                                                                    // MVP: null-safe author fallback.
+                                                                                    stream: UsersRecord.getDocument(item1MealRecipeRecord.author ?? currentUserReference!),
                                                                                     builder: (context, snapshot) {
                                                                                       // Customize what your widget looks like when it's loading.
                                                                                       if (!snapshot.hasData) {
@@ -1748,7 +1771,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                                                                         ),
                                                                                       ),
                                                                                       Text(
-                                                                                        dateTimeFormat('Hm', item1MealRecipeRecord.prepTime!),
+                                                                                        dateTimeFormat('Hm', item1MealRecipeRecord.prepTime ?? DateTime(2024)),
                                                                                         style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                               fontFamily: 'Poppins',
                                                                                               color: FlutterFlowTheme.of(context).secondaryBackground,
@@ -2184,7 +2207,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                         text: 'Recipes',
                                       ),
                                     ],
-                                    controller: _model.visitorTabBarController,
+                                    controller: _visitorTabBarController,
                                     onTap: (i) async {
                                       [() async {}][i]();
                                     },
@@ -2192,7 +2215,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                 ),
                                 Expanded(
                                   child: TabBarView(
-                                    controller: _model.visitorTabBarController,
+                                    controller: _visitorTabBarController,
                                     children: [
                                       Padding(
                                         padding: EdgeInsetsDirectional.fromSTEB(
@@ -2445,9 +2468,10 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                                                           8.0),
                                                                   child: StreamBuilder<
                                                                       UsersRecord>(
+                                                                    // MVP: null-safe author fallback.
                                                                     stream: UsersRecord.getDocument(
-                                                                        columnMealRecipeRecord
-                                                                            .author!),
+                                                                        columnMealRecipeRecord.author ??
+                                                                            currentUserReference!),
                                                                     builder:
                                                                         (context,
                                                                             snapshot) {
@@ -2537,7 +2561,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                                                                     ),
                                                                                   ),
                                                                                   Text(
-                                                                                    dateTimeFormat('Hm', columnMealRecipeRecord.prepTime!),
+                                                                                    dateTimeFormat('Hm', columnMealRecipeRecord.prepTime ?? DateTime(2024)),
                                                                                     style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                                                           fontFamily: 'Poppins',
                                                                                           color: FlutterFlowTheme.of(context).secondaryBackground,

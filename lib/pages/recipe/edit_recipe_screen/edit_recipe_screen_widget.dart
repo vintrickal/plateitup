@@ -1,6 +1,21 @@
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_debounce/easy_debounce.dart';
+import 'package:expandable/expandable.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/backend/schema/structs/index.dart';
+import '/cubits/app/app_cubit.dart';
+import '/cubits/app/app_state.dart' as app;
+import '/custom_code/actions/index.dart' as actions;
+import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/flutter_flow_button_tabbar.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -13,23 +28,15 @@ import '/pages/components/modal_video_link_template/modal_video_link_template_wi
 import '/pages/components/publish_decision_component/publish_decision_component_widget.dart';
 import '/pages/components/time_spinner_component/time_spinner_component_widget.dart';
 import '/pages/components/upload_image_modal/upload_image_modal_widget.dart';
-import '/backend/schema/structs/index.dart';
-import '/custom_code/actions/index.dart' as actions;
-import '/flutter_flow/custom_functions.dart' as functions;
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:easy_debounce/easy_debounce.dart';
-import 'package:expandable/expandable.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'edit_recipe_screen_model.dart';
-export 'edit_recipe_screen_model.dart';
+import 'edit_recipe_cubit.dart';
+import 'edit_recipe_state.dart';
 
-class EditRecipeScreenWidget extends StatefulWidget {
+/// Edit-recipe screen — Cubit conversion.
+///
+/// Same shape as add-recipe: the cubit owns the two top-level toggles, the
+/// widget owns the text/scroll/focus controllers and per-field Firestore
+/// writes.
+class EditRecipeScreenWidget extends StatelessWidget {
   const EditRecipeScreenWidget({
     super.key,
     required this.mealRef,
@@ -44,73 +51,128 @@ class EditRecipeScreenWidget extends StatefulWidget {
   final List<String>? recipeCategoryList;
 
   @override
-  State<EditRecipeScreenWidget> createState() => _EditRecipeScreenWidgetState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => EditRecipeCubit(),
+      child: _EditRecipeView(
+        mealRef: mealRef,
+        ingredientList: ingredientList,
+        procedureList: procedureList,
+        recipeCategoryList: recipeCategoryList,
+      ),
+    );
+  }
 }
 
-class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
-    with TickerProviderStateMixin {
-  late EditRecipeScreenModel _model;
+class _EditRecipeView extends StatefulWidget {
+  const _EditRecipeView({
+    required this.mealRef,
+    required this.ingredientList,
+    required this.procedureList,
+    required this.recipeCategoryList,
+  });
 
+  final DocumentReference? mealRef;
+  final List<IngredientStruct>? ingredientList;
+  final List<ProcedureStruct>? procedureList;
+  final List<String>? recipeCategoryList;
+
+  @override
+  State<_EditRecipeView> createState() => _EditRecipeViewState();
+}
+
+class _EditRecipeViewState extends State<_EditRecipeView>
+    with TickerProviderStateMixin {
   final scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final _unfocusNode = FocusNode();
+  final _titleController = TextEditingController();
+  final _titleFocus = FocusNode();
+  final _attributionController = TextEditingController();
+  final _attributionFocus = FocusNode();
+  final _ingredientNameController = TextEditingController();
+  late final FocusNode _ingredientNameFocus;
+  final _quantityController = TextEditingController();
+  late final FocusNode _quantityFocus;
+  final _stepsController = TextEditingController();
+  late final FocusNode _stepsFocus;
+
+  final _editRecipeColumn = ScrollController();
+  final _ingredientParentColumn = ScrollController();
+  final _listviewIngredient = ScrollController();
+  final _stepsParentColumn = ScrollController();
+  final _listViewController = ScrollController();
+  final _columnController = ScrollController();
+
+  late final ExpandableController _expandableController;
+  late final TabController _tabBarController;
+
+  String? _measurementDropdownValue;
+  FormFieldController<String>? _measurementDropdownController;
+  List<String>? _recipeCategoryDropdownValue;
+  FormFieldController<List<String>>? _recipeCategoryDropdownController;
 
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => EditRecipeScreenModel());
+    _ingredientNameFocus = FocusNode()..addListener(() => setState(() {}));
+    _quantityFocus = FocusNode()..addListener(() => setState(() {}));
+    _stepsFocus = FocusNode()..addListener(() => setState(() {}));
+    _expandableController = ExpandableController(initialExpanded: false);
+    _tabBarController = TabController(vsync: this, length: 2, initialIndex: 0)
+      ..addListener(() => setState(() {}));
 
-    // On page load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      setState(() {
-        FFAppState().isBannerUploaded = true;
-      });
-      setState(() {
-        FFAppState().ingredientNewList = [];
-        FFAppState().procedureList = [];
-      });
-      setState(() {
-        FFAppState().ingredientNewList =
-            widget.ingredientList!.toList().cast<IngredientStruct>();
-        FFAppState().procedureList =
-            widget.procedureList!.toList().cast<ProcedureStruct>();
-        FFAppState().chosenRecipeCategory =
-            widget.recipeCategoryList!.toList().cast<String>();
-      });
+    // Seed AppCubit with the params we were navigated in with — the
+    // ingredient/procedure builder UIs read directly from those lists.
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final app = AppCubit.instance;
+      app.setIsBannerUploaded(true);
+      app.setIngredientNewList(
+          (widget.ingredientList ?? const <IngredientStruct>[]).toList());
+      app.setProcedureList(
+          (widget.procedureList ?? const <ProcedureStruct>[]).toList());
+      app.setChosenRecipeCategory(
+          (widget.recipeCategoryList ?? const <String>[]).toList());
     });
-
-    _model.titleTextfieldFocusNode ??= FocusNode();
-
-    _model.attributionTextfieldFocusNode ??= FocusNode();
-
-    _model.expandableExpandableController =
-        ExpandableController(initialExpanded: false);
-    _model.tabBarController = TabController(
-      vsync: this,
-      length: 2,
-      initialIndex: 0,
-    )..addListener(() => setState(() {}));
-    _model.ingredientNameTextController ??= TextEditingController();
-    _model.ingredientNameFocusNode ??= FocusNode();
-    _model.ingredientNameFocusNode!.addListener(() => setState(() {}));
-    _model.quantityTextTextController ??= TextEditingController();
-    _model.quantityTextFocusNode ??= FocusNode();
-    _model.quantityTextFocusNode!.addListener(() => setState(() {}));
-    _model.stepsTextfieldTextController ??= TextEditingController();
-    _model.stepsTextfieldFocusNode ??= FocusNode();
-    _model.stepsTextfieldFocusNode!.addListener(() => setState(() {}));
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
   }
 
   @override
   void dispose() {
-    _model.dispose();
-
+    _unfocusNode.dispose();
+    _titleController.dispose();
+    _titleFocus.dispose();
+    _attributionController.dispose();
+    _attributionFocus.dispose();
+    _ingredientNameController.dispose();
+    _ingredientNameFocus.dispose();
+    _quantityController.dispose();
+    _quantityFocus.dispose();
+    _stepsController.dispose();
+    _stepsFocus.dispose();
+    _editRecipeColumn.dispose();
+    _ingredientParentColumn.dispose();
+    _listviewIngredient.dispose();
+    _stepsParentColumn.dispose();
+    _listViewController.dispose();
+    _columnController.dispose();
+    _expandableController.dispose();
+    _tabBarController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
+    return BlocBuilder<AppCubit, app.AppState>(
+      builder: (context, _) =>
+          BlocBuilder<EditRecipeCubit, EditRecipeState>(
+              builder: (context, recipeState) {
+        return _buildBody(context, recipeState);
+      }),
+    );
+  }
 
+  Widget _buildBody(BuildContext context, EditRecipeState recipeState) {
     return StreamBuilder<MealRecipeRecord>(
       stream: MealRecipeRecord.getDocument(widget.mealRef!),
       builder: (context, snapshot) {
@@ -133,8 +195,8 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
         }
         final editRecipeScreenMealRecipeRecord = snapshot.data!;
         return GestureDetector(
-          onTap: () => _model.unfocusNode.canRequestFocus
-              ? FocusScope.of(context).requestFocus(_model.unfocusNode)
+          onTap: () => _unfocusNode.canRequestFocus
+              ? FocusScope.of(context).requestFocus(_unfocusNode)
               : FocusScope.of(context).unfocus(),
           child: Scaffold(
             key: scaffoldKey,
@@ -154,9 +216,9 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                     size: 24.0,
                   ),
                   onPressed: () async {
-                    if (_model.switchStatusValue == true) {
-                      if (FFAppState().isBannerUploaded == true) {
-                        if (_model.titleTextfieldTextController.text == '') {
+                    if (recipeState.publishToPublic == true) {
+                      if (AppCubit.instance.state.isBannerUploaded == true) {
+                        if (_titleController.text == '') {
                           await showDialog(
                             context: context,
                             builder: (alertDialogContext) {
@@ -175,7 +237,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                             },
                           );
                         } else {
-                          if (_model.attributionTextfieldTextController.text ==
+                          if (_attributionController.text ==
                               '') {
                             await showDialog(
                               context: context,
@@ -195,7 +257,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                               },
                             );
                           } else {
-                            if (FFAppState().chosenRecipeCategory.length == 0) {
+                            if (AppCubit.instance.state.chosenRecipeCategory.length == 0) {
                               await showDialog(
                                 context: context,
                                 builder: (alertDialogContext) {
@@ -214,9 +276,9 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                 },
                               );
                             } else {
-                              if ((FFAppState().chosenRecipeCategory.length ==
+                              if ((AppCubit.instance.state.chosenRecipeCategory.length ==
                                       1) &&
-                                  (FFAppState().chosenRecipeCategory[0] ==
+                                  (AppCubit.instance.state.chosenRecipeCategory[0] ==
                                       ' ')) {
                                 await showDialog(
                                   context: context,
@@ -237,7 +299,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                 );
                               } else {
                                 if (dateTimeFormat('Hm',
-                                        FFAppState().estimatedTimeSpinner) ==
+                                        AppCubit.instance.state.estimatedTimeSpinner) ==
                                     '00:00') {
                                   await showDialog(
                                     context: context,
@@ -315,11 +377,11 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                 .resolve(
                                                     Directionality.of(context)),
                                             child: GestureDetector(
-                                              onTap: () => _model.unfocusNode
+                                              onTap: () => _unfocusNode
                                                       .canRequestFocus
                                                   ? FocusScope.of(context)
                                                       .requestFocus(
-                                                          _model.unfocusNode)
+                                                          _unfocusNode)
                                                   : FocusScope.of(context)
                                                       .unfocus(),
                                               child:
@@ -380,24 +442,22 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                         isReady: true,
                       ));
                       setState(() {
-                        FFAppState().isBannerUploaded = false;
+                        AppCubit.instance.setIsBannerUploaded(false);
                       });
-                      FFAppState().update(() {
-                        FFAppState().addIsBasicRecipeInfoAdded = false;
+                      AppCubit.instance.setAddIsBasicRecipeInfoAdded(false);;
+                      setState(() {
+                        _titleController?.clear();
+                        _attributionController?.clear();
+                        _ingredientNameController?.clear();
+                        _quantityController?.clear();
+                        _stepsController?.clear();
                       });
                       setState(() {
-                        _model.titleTextfieldTextController?.clear();
-                        _model.attributionTextfieldTextController?.clear();
-                        _model.ingredientNameTextController?.clear();
-                        _model.quantityTextTextController?.clear();
-                        _model.stepsTextfieldTextController?.clear();
+                        AppCubit.instance.setIngredientList([]);
+                        AppCubit.instance.setStepsList([]);
                       });
                       setState(() {
-                        FFAppState().ingredientList = [];
-                        FFAppState().stepsList = [];
-                      });
-                      setState(() {
-                        FFAppState().addVideoLink = '';
+                        AppCubit.instance.setAddVideoLink('');
                       });
 
                       context.goNamed(
@@ -416,14 +476,15 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
               ),
               title: Align(
                 alignment: AlignmentDirectional(0.0, 0.0),
+                // Match Add Recipe — proper title typography.
                 child: Text(
                   'Edit Recipe',
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  style: FlutterFlowTheme.of(context).headlineSmall.override(
                         fontFamily: 'Poppins',
                         color: FlutterFlowTheme.of(context).primaryText,
-                        fontSize: 18.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 20.0,
+                        letterSpacing: -0.2,
+                        fontWeight: FontWeight.w700,
                       ),
                 ),
               ),
@@ -446,9 +507,9 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                             alignment: AlignmentDirectional(0.0, 0.0)
                                 .resolve(Directionality.of(context)),
                             child: GestureDetector(
-                              onTap: () => _model.unfocusNode.canRequestFocus
+                              onTap: () => _unfocusNode.canRequestFocus
                                   ? FocusScope.of(context)
-                                      .requestFocus(_model.unfocusNode)
+                                      .requestFocus(_unfocusNode)
                                   : FocusScope.of(context).unfocus(),
                               child: Container(
                                 height: 250.0,
@@ -467,41 +528,37 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                         },
                       ).then((value) => setState(() {}));
 
-                      if (FFAppState().isEditRecipeContentDeleted == true) {
+                      if (AppCubit.instance.state.isEditRecipeContentDeleted == true) {
                         setState(() {
-                          FFAppState().isBannerUploaded = false;
-                          FFAppState().addIsBasicRecipeInfoAdded = false;
+                          AppCubit.instance.setIsBannerUploaded(false);
+                          AppCubit.instance.setAddIsBasicRecipeInfoAdded(false);
                         });
                         setState(() {
-                          _model.titleTextfieldTextController?.clear();
-                          _model.attributionTextfieldTextController?.clear();
-                          _model.quantityTextTextController?.clear();
-                          _model.ingredientNameTextController?.clear();
-                          _model.stepsTextfieldTextController?.clear();
+                          _titleController?.clear();
+                          _attributionController?.clear();
+                          _quantityController?.clear();
+                          _ingredientNameController?.clear();
+                          _stepsController?.clear();
                         });
-                        FFAppState().update(() {
-                          FFAppState().procedureList = [];
-                          FFAppState().procedureJson =
-                              ProcedureStruct.fromSerializableMap(
-                                  jsonDecode('{\"steps\":\"\"}'));
-                          FFAppState().counterBtnClicked = 0;
-                          FFAppState().stepsList = [];
-                          FFAppState().ingredientNewList = [];
-                          FFAppState().addVideoLink = '';
-                          FFAppState().isEditRecipeContentDeleted = false;
-                        });
+                        AppCubit.instance.setProcedureList([]);
+                          AppCubit.instance.setProcedureJson(ProcedureStruct.fromSerializableMap(
+                                  jsonDecode('{\"steps\":\"\"}')));
+                          AppCubit.instance.setCounterBtnClicked(0);
+                          AppCubit.instance.setStepsList([]);
+                          AppCubit.instance.setIngredientNewList([]);
+                          AppCubit.instance.setAddVideoLink('');
+                          AppCubit.instance.setIsEditRecipeContentDeleted(false);;
                         // Reverts back to 0
                         setState(() {
-                          FFAppState().counterBtnClicked = 0;
-                          FFAppState().isProcedureItemEdited = false;
-                          FFAppState().procedureJson =
-                              ProcedureStruct.fromSerializableMap(
-                                  jsonDecode('{\"steps\":\"\"}'));
-                          FFAppState().procedureList = [];
-                          FFAppState().wasProcedureListReordered = false;
-                          FFAppState().chosenRecipeCategory = [];
-                          FFAppState().attributionTemp = '';
-                          FFAppState().recipeCategoryFromFirebase = [];
+                          AppCubit.instance.setCounterBtnClicked(0);
+                          AppCubit.instance.setIsProcedureItemEdited(false);
+                          AppCubit.instance.setProcedureJson(ProcedureStruct.fromSerializableMap(
+                                  jsonDecode('{\"steps\":\"\"}')));
+                          AppCubit.instance.setProcedureList([]);
+                          AppCubit.instance.setWasProcedureListReordered(false);
+                          AppCubit.instance.setChosenRecipeCategory([]);
+                          AppCubit.instance.setAttributionTemp('');
+                          AppCubit.instance.setRecipeCategoryFromFirebase([]);
                         });
                       }
                     },
@@ -509,7 +566,10 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                 ),
               ],
               centerTitle: false,
-              elevation: 0.0,
+              // Match Add Recipe — subtle drop-shadow on scroll.
+              elevation: 1.0,
+              shadowColor: Colors.black.withOpacity(0.04),
+              surfaceTintColor: FlutterFlowTheme.of(context).secondaryBackground,
             ),
             body: SafeArea(
               top: true,
@@ -523,82 +583,132 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                   padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
                   child: SingleChildScrollView(
                     primary: false,
-                    controller: _model.editRecipeColumn,
+                    controller: _editRecipeColumn,
                     child: Column(
                       mainAxisSize: MainAxisSize.max,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.max,
-                              children: [
-                                Switch.adaptive(
-                                  value: _model.switchStatusValue ??=
-                                      editRecipeScreenMealRecipeRecord.isPublic,
-                                  onChanged: (newValue) async {
-                                    setState(() =>
-                                        _model.switchStatusValue = newValue!);
-                                    if (newValue!) {
-                                      await editRecipeScreenMealRecipeRecord
-                                          .reference
-                                          .update(createMealRecipeRecordData(
-                                        isPublic: true,
-                                      ));
-                                    } else {
-                                      await editRecipeScreenMealRecipeRecord
-                                          .reference
-                                          .update(createMealRecipeRecordData(
-                                        isPublic: false,
-                                      ));
-                                    }
-                                  },
-                                  activeColor:
-                                      FlutterFlowTheme.of(context).success,
-                                  activeTrackColor:
-                                      FlutterFlowTheme.of(context).success,
-                                  inactiveTrackColor:
-                                      FlutterFlowTheme.of(context).alternate,
-                                  inactiveThumbColor:
-                                      FlutterFlowTheme.of(context)
-                                          .secondaryText,
-                                ),
-                                Text(
-                                  editRecipeScreenMealRecipeRecord.isPublic ==
-                                          true
-                                      ? 'Public'
-                                      : 'Private',
-                                  style: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .override(
-                                        fontFamily: 'Poppins',
-                                        color: FlutterFlowTheme.of(context)
+                        // Visibility + autosave-status card — same layout
+                        // as Add Recipe so the two screens read as one
+                        // flow. Reads `isPublic` straight from the doc here
+                        // (Edit Recipe uses the Firestore value as truth)
+                        // rather than the cubit state.
+                        Container(
+                          margin: const EdgeInsetsDirectional.fromSTEB(
+                              0.0, 12.0, 0.0, 4.0),
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                              12.0, 6.0, 14.0, 6.0),
+                          decoration: BoxDecoration(
+                            color: FlutterFlowTheme.of(context)
+                                .primaryBackground,
+                            borderRadius: BorderRadius.circular(12.0),
+                            border: Border.all(
+                              color: FlutterFlowTheme.of(context).alternate,
+                              width: 1.0,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Switch.adaptive(
+                                    value: recipeState.publishToPublic,
+                                    onChanged: (newValue) async {
+                                      context
+                                          .read<EditRecipeCubit>()
+                                          .setPublishToPublic(newValue!);
+                                      if (newValue!) {
+                                        await editRecipeScreenMealRecipeRecord
+                                            .reference
+                                            .update(createMealRecipeRecordData(
+                                          isPublic: true,
+                                        ));
+                                      } else {
+                                        await editRecipeScreenMealRecipeRecord
+                                            .reference
+                                            .update(createMealRecipeRecordData(
+                                          isPublic: false,
+                                        ));
+                                      }
+                                    },
+                                    activeColor:
+                                        FlutterFlowTheme.of(context).success,
+                                    activeTrackColor:
+                                        FlutterFlowTheme.of(context).success,
+                                    inactiveTrackColor:
+                                        FlutterFlowTheme.of(context).alternate,
+                                    inactiveThumbColor:
+                                        FlutterFlowTheme.of(context)
                                             .secondaryText,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                ),
-                              ],
-                            ),
-                            Align(
-                              alignment: AlignmentDirectional(1.0, -1.0),
-                              child: Text(
-                                'All changes are auto-saved',
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      fontFamily: 'Poppins',
-                                      color: FlutterFlowTheme.of(context)
-                                          .secondaryText,
-                                      fontSize: 12.0,
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.w500,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsetsDirectional
+                                        .fromSTEB(4.0, 0.0, 4.0, 0.0),
+                                    child: Icon(
+                                      editRecipeScreenMealRecipeRecord
+                                                  .isPublic ==
+                                              true
+                                          ? Icons.public_rounded
+                                          : Icons.lock_outline_rounded,
+                                      size: 16.0,
+                                      color: editRecipeScreenMealRecipeRecord
+                                                  .isPublic ==
+                                              true
+                                          ? FlutterFlowTheme.of(context)
+                                              .success
+                                          : FlutterFlowTheme.of(context)
+                                              .secondaryText,
                                     ),
+                                  ),
+                                  Text(
+                                    editRecipeScreenMealRecipeRecord
+                                                .isPublic ==
+                                            true
+                                        ? 'Public'
+                                        : 'Private',
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .override(
+                                          fontFamily: 'Poppins',
+                                          color: FlutterFlowTheme.of(context)
+                                              .primaryText,
+                                          fontSize: 13.0,
+                                          letterSpacing: 0.0,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.cloud_done_outlined,
+                                    size: 14.0,
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryText,
+                                  ),
+                                  const SizedBox(width: 4.0),
+                                  Text(
+                                    'Auto-saved',
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .override(
+                                          fontFamily: 'Poppins',
+                                          color: FlutterFlowTheme.of(context)
+                                              .secondaryText,
+                                          fontSize: 12.0,
+                                          letterSpacing: 0.0,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                         Stack(
                           alignment: AlignmentDirectional(1.0, 1.0),
@@ -632,11 +742,8 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                     context: context,
                                     builder: (context) {
                                       return GestureDetector(
-                                        onTap: () => _model
-                                                .unfocusNode.canRequestFocus
-                                            ? FocusScope.of(context)
-                                                .requestFocus(
-                                                    _model.unfocusNode)
+                                        onTap: () => _unfocusNode.canRequestFocus
+                                            ? FocusScope.of(context).requestFocus(_unfocusNode)
                                             : FocusScope.of(context).unfocus(),
                                         child: Padding(
                                           padding:
@@ -670,42 +777,43 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                 ),
                               ),
                             ),
-                            Opacity(
-                              opacity: 0.5,
-                              child: Container(
-                                width: double.infinity,
-                                height: 30.0,
-                                decoration: BoxDecoration(
-                                  color:
-                                      FlutterFlowTheme.of(context).primaryText,
-                                  borderRadius: BorderRadius.only(
-                                    bottomLeft: Radius.circular(10.0),
-                                    bottomRight: Radius.circular(10.0),
-                                    topLeft: Radius.circular(0.0),
-                                    topRight: Radius.circular(0.0),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            // "Change photo" pill — same affordance as
+                            // Add Recipe so the two screens match.
                             Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 8.0, 0.0),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        8.0, 0.0, 0.0, 4.0),
-                                    child: Icon(
-                                      Icons.file_upload_outlined,
-                                      color: FlutterFlowTheme.of(context)
-                                          .secondaryBackground,
-                                      size: 24.0,
+                              padding:
+                                  const EdgeInsetsDirectional.fromSTEB(
+                                      0.0, 0.0, 12.0, 12.0),
+                              child: Container(
+                                padding: const EdgeInsetsDirectional.fromSTEB(
+                                    10.0, 6.0, 12.0, 6.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.55),
+                                  borderRadius:
+                                      BorderRadius.circular(999.0),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.edit_outlined,
+                                      color: Colors.white,
+                                      size: 14.0,
                                     ),
-                                  ),
-                                ].divide(SizedBox(width: 10.0)),
+                                    const SizedBox(width: 6.0),
+                                    Text(
+                                      'Change photo',
+                                      style: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .override(
+                                            fontFamily: 'Poppins',
+                                            color: Colors.white,
+                                            fontSize: 12.0,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.0,
+                                          ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -719,77 +827,83 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Expanded(
-                                child: Container(
-                                  width: 185.0,
-                                  height: 30.0,
-                                  decoration: BoxDecoration(),
-                                  child: TextFormField(
-                                    controller:
-                                        _model.titleTextfieldTextController ??=
-                                            TextEditingController(
-                                      text: editRecipeScreenMealRecipeRecord
-                                          .title,
-                                    ),
-                                    focusNode: _model.titleTextfieldFocusNode,
-                                    onChanged: (_) => EasyDebounce.debounce(
-                                      '_model.titleTextfieldTextController',
-                                      Duration(milliseconds: 2000),
-                                      () async {
-                                        await widget.mealRef!
-                                            .update(createMealRecipeRecordData(
-                                          title: _model
-                                              .titleTextfieldTextController
-                                              .text,
-                                        ));
-                                      },
-                                    ),
-                                    autofocus: true,
-                                    obscureText: false,
-                                    decoration: InputDecoration(
-                                      labelStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            fontFamily: 'Poppins',
-                                            fontSize: 13.0,
-                                            letterSpacing: 0.0,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                      hintText: '[Recipe name]',
-                                      hintStyle: FlutterFlowTheme.of(context)
-                                          .labelMedium
-                                          .override(
-                                            fontFamily: 'Poppins',
-                                            color: FlutterFlowTheme.of(context)
-                                                .secondaryText,
-                                            fontSize: 14.0,
-                                            letterSpacing: 0.0,
-                                            fontWeight: FontWeight.w600,
-                                            fontStyle: FontStyle.italic,
-                                          ),
-                                      enabledBorder: InputBorder.none,
-                                      focusedBorder: InputBorder.none,
-                                      errorBorder: InputBorder.none,
-                                      focusedErrorBorder: InputBorder.none,
-                                    ),
-                                    style: FlutterFlowTheme.of(context)
+                                // Hero-style title input — matches Add Recipe.
+                                child: TextFormField(
+                                  controller: () {
+                                    if (_titleController.text.isEmpty) {
+                                      _titleController.text =
+                                          editRecipeScreenMealRecipeRecord
+                                                  .title ??
+                                              '';
+                                    }
+                                    return _titleController;
+                                  }(),
+                                  focusNode: _titleFocus,
+                                  onChanged: (_) => EasyDebounce.debounce(
+                                    '_titleController',
+                                    Duration(milliseconds: 2000),
+                                    () async {
+                                      await widget.mealRef!
+                                          .update(createMealRecipeRecordData(
+                                        title: _titleController.text,
+                                      ));
+                                    },
+                                  ),
+                                  autofocus: true,
+                                  textCapitalization:
+                                      TextCapitalization.words,
+                                  obscureText: false,
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    contentPadding:
+                                        const EdgeInsetsDirectional.fromSTEB(
+                                            0.0, 4.0, 0.0, 8.0),
+                                    hintText: 'Recipe name',
+                                    hintStyle: FlutterFlowTheme.of(context)
                                         .bodyMedium
                                         .override(
                                           fontFamily: 'Poppins',
-                                          letterSpacing: 0.0,
-                                          fontWeight: FontWeight.w600,
+                                          color: FlutterFlowTheme.of(context)
+                                              .secondaryText,
+                                          fontSize: 18.0,
+                                          letterSpacing: -0.2,
+                                          fontWeight: FontWeight.w700,
                                         ),
-                                    maxLength: 20,
-                                    maxLengthEnforcement:
-                                        MaxLengthEnforcement.enforced,
-                                    buildCounter: (context,
-                                            {required currentLength,
-                                            required isFocused,
-                                            maxLength}) =>
-                                        null,
-                                    validator: _model
-                                        .titleTextfieldTextControllerValidator
-                                        .asValidator(context),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: FlutterFlowTheme.of(context)
+                                            .alternate,
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: FlutterFlowTheme.of(context)
+                                            .success,
+                                        width: 1.8,
+                                      ),
+                                    ),
+                                    errorBorder: InputBorder.none,
+                                    focusedErrorBorder: InputBorder.none,
                                   ),
+                                  style: FlutterFlowTheme.of(context)
+                                      .headlineSmall
+                                      .override(
+                                        fontFamily: 'Poppins',
+                                        color: FlutterFlowTheme.of(context)
+                                            .primaryText,
+                                        fontSize: 18.0,
+                                        letterSpacing: -0.2,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                  maxLength: 20,
+                                  maxLengthEnforcement:
+                                      MaxLengthEnforcement.enforced,
+                                  buildCounter: (context,
+                                          {required currentLength,
+                                          required isFocused,
+                                          maxLength}) =>
+                                      null,
                                 ),
                               ),
                               InkWell(
@@ -805,11 +919,8 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                     context: context,
                                     builder: (context) {
                                       return GestureDetector(
-                                        onTap: () => _model
-                                                .unfocusNode.canRequestFocus
-                                            ? FocusScope.of(context)
-                                                .requestFocus(
-                                                    _model.unfocusNode)
+                                        onTap: () => _unfocusNode.canRequestFocus
+                                            ? FocusScope.of(context).requestFocus(_unfocusNode)
                                             : FocusScope.of(context).unfocus(),
                                         child: Padding(
                                           padding:
@@ -844,8 +955,8 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                         editRecipeScreenMealRecipeRecord
                                                     .videolink ==
                                                 ''
-                                            ? '[ Insert Link ]'
-                                            : 'Contains URL',
+                                            ? 'Add video'
+                                            : 'Video added',
                                         style: FlutterFlowTheme.of(context)
                                             .bodyMedium
                                             .override(
@@ -860,8 +971,9 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                       : FlutterFlowTheme.of(
                                                               context)
                                                           .success,
+                                              fontSize: 13.0,
                                               letterSpacing: 0.0,
-                                              fontStyle: FontStyle.italic,
+                                              fontWeight: FontWeight.w600,
                                             ),
                                       ),
                                     ),
@@ -879,88 +991,100 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
-                                child: Container(
-                                  height: 30.0,
-                                  decoration: BoxDecoration(
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryBackground,
+                                // Byline-style attribution input — matches
+                                // Add Recipe.
+                                child: TextFormField(
+                                  controller: () {
+                                    if (_attributionController.text.isEmpty) {
+                                      _attributionController.text =
+                                          editRecipeScreenMealRecipeRecord
+                                                  .attribution ??
+                                              '';
+                                    }
+                                    return _attributionController;
+                                  }(),
+                                  focusNode: _attributionFocus,
+                                  onChanged: (_) => EasyDebounce.debounce(
+                                    '_attributionController',
+                                    Duration(milliseconds: 2000),
+                                    () async {
+                                      await widget.mealRef!
+                                          .update(createMealRecipeRecordData(
+                                        attribution:
+                                            _attributionController.text,
+                                      ));
+                                      context
+                                          .read<EditRecipeCubit>()
+                                          .setIsOriginalRecipe(
+                                              _attributionController.text ==
+                                                  currentUserDisplayName);
+                                    },
                                   ),
-                                  child: TextFormField(
-                                    controller: _model
-                                            .attributionTextfieldTextController ??=
-                                        TextEditingController(
-                                      text: editRecipeScreenMealRecipeRecord
-                                          .attribution,
+                                  autofocus: true,
+                                  obscureText: false,
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    contentPadding:
+                                        const EdgeInsetsDirectional.fromSTEB(
+                                            0.0, 4.0, 0.0, 6.0),
+                                    prefixIcon: Padding(
+                                      padding: const EdgeInsetsDirectional
+                                          .fromSTEB(0.0, 0.0, 4.0, 0.0),
+                                      child: Icon(
+                                        Icons.person_outline_rounded,
+                                        size: 16.0,
+                                        color: FlutterFlowTheme.of(context)
+                                            .secondaryText,
+                                      ),
                                     ),
-                                    focusNode:
-                                        _model.attributionTextfieldFocusNode,
-                                    onChanged: (_) => EasyDebounce.debounce(
-                                      '_model.attributionTextfieldTextController',
-                                      Duration(milliseconds: 2000),
-                                      () async {
-                                        await widget.mealRef!
-                                            .update(createMealRecipeRecordData(
-                                          attribution: _model
-                                              .attributionTextfieldTextController
-                                              .text,
-                                        ));
-                                        if (_model
-                                                .attributionTextfieldTextController
-                                                .text ==
-                                            currentUserDisplayName) {
-                                          setState(() {
-                                            _model.originalRecipeChkboxValue =
-                                                true;
-                                          });
-                                        } else {
-                                          setState(() {
-                                            _model.originalRecipeChkboxValue =
-                                                false;
-                                          });
-                                        }
-                                      },
-                                    ),
-                                    autofocus: true,
-                                    obscureText: false,
-                                    decoration: InputDecoration(
-                                      labelStyle: FlutterFlowTheme.of(context)
-                                          .labelMedium
-                                          .override(
-                                            fontFamily: 'Poppins',
-                                            letterSpacing: 0.0,
-                                          ),
-                                      hintText: '[Attribution]',
-                                      hintStyle: FlutterFlowTheme.of(context)
-                                          .labelMedium
-                                          .override(
-                                            fontFamily: 'Poppins',
-                                            letterSpacing: 0.0,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                      enabledBorder: InputBorder.none,
-                                      focusedBorder: InputBorder.none,
-                                      errorBorder: InputBorder.none,
-                                      focusedErrorBorder: InputBorder.none,
-                                    ),
-                                    style: FlutterFlowTheme.of(context)
+                                    prefixIconConstraints:
+                                        const BoxConstraints(minWidth: 22.0),
+                                    hintText: 'Recipe by…',
+                                    hintStyle: FlutterFlowTheme.of(context)
                                         .bodyMedium
                                         .override(
                                           fontFamily: 'Poppins',
+                                          color: FlutterFlowTheme.of(context)
+                                              .secondaryText,
+                                          fontSize: 13.0,
                                           letterSpacing: 0.0,
-                                          fontWeight: FontWeight.w600,
+                                          fontWeight: FontWeight.w500,
                                         ),
-                                    maxLength: 20,
-                                    maxLengthEnforcement:
-                                        MaxLengthEnforcement.enforced,
-                                    buildCounter: (context,
-                                            {required currentLength,
-                                            required isFocused,
-                                            maxLength}) =>
-                                        null,
-                                    validator: _model
-                                        .attributionTextfieldTextControllerValidator
-                                        .asValidator(context),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: FlutterFlowTheme.of(context)
+                                            .alternate,
+                                        width: 1.0,
+                                      ),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: FlutterFlowTheme.of(context)
+                                            .success,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    errorBorder: InputBorder.none,
+                                    focusedErrorBorder: InputBorder.none,
                                   ),
+                                  style: FlutterFlowTheme.of(context)
+                                      .bodyMedium
+                                      .override(
+                                        fontFamily: 'Poppins',
+                                        color: FlutterFlowTheme.of(context)
+                                            .primaryText,
+                                        fontSize: 13.0,
+                                        letterSpacing: 0.0,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                  maxLength: 20,
+                                  maxLengthEnforcement:
+                                      MaxLengthEnforcement.enforced,
+                                  buildCounter: (context,
+                                          {required currentLength,
+                                          required isFocused,
+                                          maxLength}) =>
+                                      null,
                                 ),
                               ),
                               Row(
@@ -984,55 +1108,34 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                       ),
                                       child: Checkbox(
                                         value:
-                                            _model.originalRecipeChkboxValue ??=
-                                                editRecipeScreenMealRecipeRecord
-                                                        .attribution ==
-                                                    currentUserDisplayName,
+                                            recipeState.isOriginalRecipe,
                                         onChanged: (newValue) async {
-                                          setState(() =>
-                                              _model.originalRecipeChkboxValue =
-                                                  newValue!);
-                                          if (newValue!) {
-                                            if (_model
-                                                    .attributionTextfieldTextController
-                                                    .text ==
-                                                '') {
-                                              setState(() {
-                                                FFAppState().attributionTemp =
-                                                    '';
-                                              });
-                                            } else {
-                                              setState(() {
-                                                FFAppState().attributionTemp =
-                                                    _model
-                                                        .attributionTextfieldTextController
-                                                        .text;
-                                              });
-                                            }
+                                          context
+                                              .read<EditRecipeCubit>()
+                                              .setIsOriginalRecipe(newValue!);
+                                          if (newValue) {
+                                            AppCubit.instance.setAttributionTemp(_attributionController.text);
 
                                             setState(() {
-                                              _model
-                                                  .attributionTextfieldTextController
+                                              _attributionController
                                                   ?.text = currentUserDisplayName;
                                             });
 
                                             await widget.mealRef!.update(
                                                 createMealRecipeRecordData(
-                                              attribution: _model
-                                                  .attributionTextfieldTextController
+                                              attribution: _attributionController
                                                   .text,
                                             ));
                                           } else {
                                             setState(() {
-                                              _model.attributionTextfieldTextController
+                                              _attributionController
                                                       ?.text =
-                                                  FFAppState().attributionTemp;
+                                                  AppCubit.instance.state.attributionTemp;
                                             });
 
                                             await widget.mealRef!.update(
                                                 createMealRecipeRecordData(
-                                              attribution: _model
-                                                  .attributionTextfieldTextController
+                                              attribution: _attributionController
                                                   .text,
                                             ));
                                           }
@@ -1057,7 +1160,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                         .override(
                                           fontFamily: 'Poppins',
                                           color:
-                                              _model.originalRecipeChkboxValue !=
+                                              recipeState.isOriginalRecipe !=
                                                       true
                                                   ? FlutterFlowTheme.of(context)
                                                       .secondaryText
@@ -1108,11 +1211,11 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                 .resolve(
                                                     Directionality.of(context)),
                                             child: GestureDetector(
-                                              onTap: () => _model.unfocusNode
+                                              onTap: () => _unfocusNode
                                                       .canRequestFocus
                                                   ? FocusScope.of(context)
                                                       .requestFocus(
-                                                          _model.unfocusNode)
+                                                          _unfocusNode)
                                                   : FocusScope.of(context)
                                                       .unfocus(),
                                               child:
@@ -1125,14 +1228,15 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                       await widget.mealRef!
                                           .update(createMealRecipeRecordData(
                                         prepTime:
-                                            FFAppState().estimatedTimeSpinner,
+                                            AppCubit.instance.state.estimatedTimeSpinner,
                                       ));
                                     },
                                     child: Text(
                                       dateTimeFormat(
                                           'Hm',
                                           editRecipeScreenMealRecipeRecord
-                                              .prepTime!),
+                                                  .prepTime ??
+                                              DateTime(2024)),
                                       style: FlutterFlowTheme.of(context)
                                           .bodyMedium
                                           .override(
@@ -1162,21 +1266,20 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                 color: Colors.white,
                                 child: ExpandableNotifier(
                                   controller:
-                                      _model.expandableExpandableController,
+                                      _expandableController,
                                   child: ExpandablePanel(
                                     header: Container(
                                       width: double.infinity,
                                       decoration: BoxDecoration(),
                                       child: FlutterFlowDropDown<String>(
-                                        multiSelectController: _model
-                                                .recipeCategoryDropdownValueController ??=
-                                            FormFieldController<
-                                                List<String>>(_model
-                                                    .recipeCategoryDropdownValue ??=
-                                                List<String>.from(
-                                          widget.recipeCategoryList ?? [],
+                                        multiSelectController:
+                                            _recipeCategoryDropdownController ??=
+                                                FormFieldController<List<String>>(
+                                                    _recipeCategoryDropdownValue ??=
+                                                        List<String>.from(
+                                          widget.recipeCategoryList ?? const <String>[],
                                         )),
-                                        options: FFAppState().recipeCategories,
+                                        options: AppCubit.instance.state.recipeCategories,
                                         width: 300.0,
                                         maxHeight: 200.0,
                                         searchHintTextStyle:
@@ -1223,22 +1326,15 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                         isSearchable: true,
                                         isMultiSelect: true,
                                         onMultiSelectChanged: (val) async {
-                                          setState(() => _model
-                                                  .recipeCategoryDropdownValue =
-                                              val);
                                           setState(() {
-                                            FFAppState().chosenRecipeCategory =
-                                                _model
-                                                    .recipeCategoryDropdownValue!
-                                                    .toList()
-                                                    .cast<String>();
+                                            _recipeCategoryDropdownValue = val;
                                           });
+                                          AppCubit.instance.setChosenRecipeCategory((val ?? const <String>[]).toList());
 
                                           await widget.mealRef!.update({
                                             ...mapToFirestore(
                                               {
-                                                'category': FFAppState()
-                                                    .chosenRecipeCategory,
+                                                'category': AppCubit.instance.state.chosenRecipeCategory,
                                               },
                                             ),
                                           });
@@ -1261,8 +1357,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                             child: Builder(
                                               builder: (context) {
                                                 final choosenRecipeCategoryListView =
-                                                    FFAppState()
-                                                        .chosenRecipeCategory
+                                                    AppCubit.instance.state.chosenRecipeCategory
                                                         .toList();
                                                 return Wrap(
                                                   spacing: 0.0,
@@ -1384,53 +1479,53 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                 0.0, 16.0, 0.0, 0.0),
                             child: Column(
                               children: [
+                                // Pill-style segmented control — matches
+                                // Add Recipe.
                                 Align(
-                                  alignment: Alignment(0.0, 0),
+                                  alignment: const Alignment(0.0, 0),
                                   child: FlutterFlowButtonTabBar(
                                     useToggleButtonStyle: false,
                                     labelStyle: FlutterFlowTheme.of(context)
                                         .titleMedium
                                         .override(
                                           fontFamily: 'Poppins',
-                                          fontSize: 11.0,
+                                          fontSize: 13.0,
                                           letterSpacing: 0.0,
-                                          fontWeight: FontWeight.w600,
-                                          lineHeight: 1.5,
+                                          fontWeight: FontWeight.w700,
+                                          lineHeight: 1.4,
                                         ),
                                     unselectedLabelStyle:
                                         FlutterFlowTheme.of(context)
                                             .titleMedium
                                             .override(
                                               fontFamily: 'Poppins',
-                                              fontSize: 11.0,
+                                              fontSize: 13.0,
                                               letterSpacing: 0.0,
                                               fontWeight: FontWeight.w600,
-                                              lineHeight: 1.5,
+                                              lineHeight: 1.4,
                                             ),
                                     labelColor: FlutterFlowTheme.of(context)
                                         .secondaryBackground,
-                                    unselectedLabelColor: Color(0xFF129575),
-                                    backgroundColor: Color(0xFF129575),
+                                    unselectedLabelColor:
+                                        const Color(0xFF129575),
+                                    backgroundColor: const Color(0xFF129575),
                                     unselectedBackgroundColor:
-                                        FlutterFlowTheme.of(context).alternate,
-                                    unselectedBorderColor:
-                                        FlutterFlowTheme.of(context).alternate,
+                                        const Color(0xFF129575)
+                                            .withOpacity(0.10),
+                                    unselectedBorderColor: Colors.transparent,
                                     borderWidth: 0.0,
-                                    borderRadius: 8.0,
+                                    borderRadius: 999.0,
                                     elevation: 0.0,
                                     buttonMargin:
-                                        EdgeInsetsDirectional.fromSTEB(
-                                            2.0, 0.0, 4.0, 0.0),
-                                    padding: EdgeInsets.all(4.0),
-                                    tabs: [
-                                      Tab(
-                                        text: 'Ingredient',
-                                      ),
-                                      Tab(
-                                        text: 'Procedure',
-                                      ),
+                                        const EdgeInsetsDirectional.fromSTEB(
+                                            4.0, 0.0, 4.0, 0.0),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14.0, vertical: 8.0),
+                                    tabs: const [
+                                      Tab(text: 'Ingredients'),
+                                      Tab(text: 'Procedure'),
                                     ],
-                                    controller: _model.tabBarController,
+                                    controller: _tabBarController,
                                     onTap: (i) async {
                                       [() async {}, () async {}][i]();
                                     },
@@ -1438,7 +1533,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                 ),
                                 Expanded(
                                   child: TabBarView(
-                                    controller: _model.tabBarController,
+                                    controller: _tabBarController,
                                     children: [
                                       Padding(
                                         padding: EdgeInsetsDirectional.fromSTEB(
@@ -1446,15 +1541,14 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                         child: SingleChildScrollView(
                                           primary: false,
                                           controller:
-                                              _model.ingredientParentColumn,
+                                              _ingredientParentColumn,
                                           child: Column(
                                             mainAxisSize: MainAxisSize.max,
                                             children: [
                                               Builder(
                                                 builder: (context) {
                                                   final ingredientLocalList =
-                                                      FFAppState()
-                                                          .ingredientNewList
+                                                      AppCubit.instance.state.ingredientNewList
                                                           .toList();
                                                   return ReorderableListView
                                                       .builder(
@@ -1622,11 +1716,11 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                       1.0,
                                                                       -1.0),
                                                               child: Container(
-                                                                width: (FFAppState().isIngredientInfoToBeEdited ==
+                                                                width: (AppCubit.instance.state.isIngredientInfoToBeEdited ==
                                                                             false) &&
-                                                                        (((_model.ingredientNameFocusNode?.hasFocus ?? false) ==
+                                                                        (((_ingredientNameFocus?.hasFocus ?? false) ==
                                                                                 false) &&
-                                                                            ((_model.quantityTextFocusNode?.hasFocus ?? false) ==
+                                                                            ((_quantityFocus?.hasFocus ?? false) ==
                                                                                 false))
                                                                     ? 60.0
                                                                     : 30.0,
@@ -1663,11 +1757,11 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                       CrossAxisAlignment
                                                                           .start,
                                                                   children: [
-                                                                    if ((FFAppState().isIngredientInfoToBeEdited ==
+                                                                    if ((AppCubit.instance.state.isIngredientInfoToBeEdited ==
                                                                             false) &&
-                                                                        (((_model.ingredientNameFocusNode?.hasFocus ?? false) ==
+                                                                        (((_ingredientNameFocus?.hasFocus ?? false) ==
                                                                                 false) &&
-                                                                            ((_model.quantityTextFocusNode?.hasFocus ?? false) ==
+                                                                            ((_quantityFocus?.hasFocus ?? false) ==
                                                                                 false)))
                                                                       Padding(
                                                                         padding: EdgeInsetsDirectional.fromSTEB(
@@ -1687,38 +1781,38 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                               Colors.transparent,
                                                                           onTap:
                                                                               () async {
-                                                                            if ((_model.ingredientNameTextController.text == '') &&
-                                                                                (_model.quantityTextTextController.text == '')) {
-                                                                              await _model.ingredientParentColumn?.animateTo(
-                                                                                _model.ingredientParentColumn!.position.maxScrollExtent,
+                                                                            if ((_ingredientNameController.text == '') &&
+                                                                                (_quantityController.text == '')) {
+                                                                              await _ingredientParentColumn?.animateTo(
+                                                                                _ingredientParentColumn!.position.maxScrollExtent,
                                                                                 duration: Duration(milliseconds: 100),
                                                                                 curve: Curves.ease,
                                                                               );
                                                                               setState(() {
-                                                                                FFAppState().removeAtIndexFromIngredientNewList(ingredientLocalListIndex);
-                                                                                FFAppState().isIngredientInfoToBeEdited = true;
+                                                                                AppCubit.instance.removeAtIndexFromIngredientNewList(ingredientLocalListIndex);
+                                                                                AppCubit.instance.setIsIngredientInfoToBeEdited(true);
                                                                               });
 
                                                                               await editRecipeScreenMealRecipeRecord.reference.update({
                                                                                 ...mapToFirestore(
                                                                                   {
                                                                                     'ingredient': getIngredientListFirestoreData(
-                                                                                      FFAppState().ingredientNewList,
+                                                                                      AppCubit.instance.state.ingredientNewList,
                                                                                     ),
                                                                                   },
                                                                                 ),
                                                                               });
                                                                               setState(() {
-                                                                                _model.ingredientNameTextController?.text = ingredientLocalListItem.ingrName;
+                                                                                _ingredientNameController?.text = ingredientLocalListItem.ingrName;
                                                                               });
                                                                               setState(() {
-                                                                                _model.quantityTextTextController?.text = ingredientLocalListItem.ingrQuantity;
+                                                                                _quantityController?.text = ingredientLocalListItem.ingrQuantity;
                                                                               });
                                                                               setState(() {
-                                                                                _model.measurementDropdownValueController?.value = ingredientLocalListItem.ingrUnit;
+                                                                                _measurementDropdownController?.value = ingredientLocalListItem.ingrUnit;
                                                                               });
                                                                             } else {
-                                                                              if ((_model.ingredientNameTextController.text != '') && (_model.quantityTextTextController.text == '')) {
+                                                                              if ((_ingredientNameController.text != '') && (_quantityController.text == '')) {
                                                                                 await showDialog(
                                                                                   context: context,
                                                                                   builder: (alertDialogContext) {
@@ -1735,7 +1829,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                                   },
                                                                                 );
                                                                               } else {
-                                                                                if ((_model.quantityTextTextController.text != '') && (_model.ingredientNameTextController.text == '')) {
+                                                                                if ((_quantityController.text != '') && (_ingredientNameController.text == '')) {
                                                                                   await showDialog(
                                                                                     context: context,
                                                                                     builder: (alertDialogContext) {
@@ -1752,7 +1846,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                                     },
                                                                                   );
                                                                                 } else {
-                                                                                  if ((_model.ingredientNameTextController.text != '') && (_model.quantityTextTextController.text != '')) {
+                                                                                  if ((_ingredientNameController.text != '') && (_quantityController.text != '')) {
                                                                                     await showDialog(
                                                                                       context: context,
                                                                                       builder: (alertDialogContext) {
@@ -1783,11 +1877,11 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                           ),
                                                                         ),
                                                                       ),
-                                                                    if ((FFAppState().isIngredientInfoToBeEdited ==
+                                                                    if ((AppCubit.instance.state.isIngredientInfoToBeEdited ==
                                                                             false) &&
-                                                                        (((_model.ingredientNameFocusNode?.hasFocus ?? false) ==
+                                                                        (((_ingredientNameFocus?.hasFocus ?? false) ==
                                                                                 false) &&
-                                                                            ((_model.quantityTextFocusNode?.hasFocus ?? false) ==
+                                                                            ((_quantityFocus?.hasFocus ?? false) ==
                                                                                 false)))
                                                                       Align(
                                                                         alignment: AlignmentDirectional(
@@ -1806,14 +1900,14 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                           onTap:
                                                                               () async {
                                                                             setState(() {
-                                                                              FFAppState().removeAtIndexFromIngredientNewList(ingredientLocalListIndex);
+                                                                              AppCubit.instance.removeAtIndexFromIngredientNewList(ingredientLocalListIndex);
                                                                             });
 
                                                                             await editRecipeScreenMealRecipeRecord.reference.update({
                                                                               ...mapToFirestore(
                                                                                 {
                                                                                   'ingredient': getIngredientListFirestoreData(
-                                                                                    FFAppState().ingredientNewList,
+                                                                                    AppCubit.instance.state.ingredientNewList,
                                                                                   ),
                                                                                 },
                                                                               ),
@@ -1837,46 +1931,25 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                         ),
                                                       );
                                                     },
-                                                    scrollController: _model
-                                                        .listviewIngredient,
-                                                    onReorder: (int
-                                                            reorderableOldIndex,
-                                                        int reorderableNewIndex) async {
-                                                      _model.newIngredientOrder =
-                                                          await actions
-                                                              .onReorderIngredient(
-                                                        reorderableOldIndex,
-                                                        reorderableNewIndex,
-                                                        ingredientLocalList
-                                                            .toList(),
+                                                    scrollController: _listviewIngredient,
+                                                    onReorder: (oldIdx, newIdx) async {
+                                                      final reordered = await actions
+                                                          .onReorderIngredient(
+                                                        oldIdx,
+                                                        newIdx,
+                                                        ingredientLocalList.toList(),
                                                       );
-
-                                                      await widget.mealRef!
-                                                          .update({
-                                                        ...mapToFirestore(
-                                                          {
-                                                            'ingredient':
-                                                                getIngredientListFirestoreData(
-                                                              _model
-                                                                  .newIngredientOrder,
-                                                            ),
-                                                          },
-                                                        ),
+                                                      await widget.mealRef!.update({
+                                                        ...mapToFirestore({
+                                                          'ingredient':
+                                                              getIngredientListFirestoreData(reordered),
+                                                        }),
                                                       });
+                                                      if (!mounted) return;
                                                       setState(() {
-                                                        FFAppState()
-                                                                .ingredientNewList =
-                                                            _model
-                                                                .newIngredientOrder!
-                                                                .toList()
-                                                                .cast<
-                                                                    IngredientStruct>();
-                                                        FFAppState()
-                                                                .wasIngredientListReordered =
-                                                            true;
+                                                        AppCubit.instance.setIngredientNewList((reordered ?? const <IngredientStruct>[]).toList());
+                                                        AppCubit.instance.setWasIngredientListReordered(true);
                                                       });
-
-                                                      setState(() {});
                                                     },
                                                   );
                                                 },
@@ -1965,10 +2038,8 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                             0.0),
                                                                 child:
                                                                     TextFormField(
-                                                                  controller: _model
-                                                                      .ingredientNameTextController,
-                                                                  focusNode: _model
-                                                                      .ingredientNameFocusNode,
+                                                                  controller: _ingredientNameController,
+                                                                  focusNode: _ingredientNameFocus,
                                                                   autofocus:
                                                                       true,
                                                                   textCapitalization:
@@ -2050,10 +2121,6 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                           required isFocused,
                                                                           maxLength}) =>
                                                                       null,
-                                                                  validator: _model
-                                                                      .ingredientNameTextControllerValidator
-                                                                      .asValidator(
-                                                                          context),
                                                                 ),
                                                               ),
                                                             ),
@@ -2069,10 +2136,8 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                   BoxDecoration(),
                                                               child:
                                                                   TextFormField(
-                                                                controller: _model
-                                                                    .quantityTextTextController,
-                                                                focusNode: _model
-                                                                    .quantityTextFocusNode,
+                                                                controller: _quantityController,
+                                                                focusNode: _quantityFocus,
                                                                 autofocus: true,
                                                                 obscureText:
                                                                     false,
@@ -2148,10 +2213,6 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                 keyboardType:
                                                                     TextInputType
                                                                         .number,
-                                                                validator: _model
-                                                                    .quantityTextTextControllerValidator
-                                                                    .asValidator(
-                                                                        context),
                                                               ),
                                                             ),
                                                             Container(
@@ -2173,24 +2234,18 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                 child:
                                                                     FlutterFlowDropDown<
                                                                         String>(
-                                                                  controller: _model
-                                                                          .measurementDropdownValueController ??=
-                                                                      FormFieldController<
-                                                                          String>(
-                                                                    _model
-                                                                        .measurementDropdownValue ??= FFAppState().isIngredientInfoToBeEdited ==
+                                                                  controller: _measurementDropdownController ??=
+                                                                      FormFieldController<String>(
+                                                                    _measurementDropdownValue ??= AppCubit.instance.state.isIngredientInfoToBeEdited ==
                                                                             true
-                                                                        ? FFAppState()
-                                                                            .ingredientInfoEdited
-                                                                            .ingrUnit
+                                                                        ? (AppCubit.instance.state.ingredientInfoEdited?.ingrUnit ?? '')
                                                                         : 'pc/s',
                                                                   ),
                                                                   options:
-                                                                      FFAppState()
-                                                                          .metricAndImperial,
+                                                                      AppCubit.instance.state.metricAndImperial,
                                                                   onChanged: (val) =>
                                                                       setState(() =>
-                                                                          _model.measurementDropdownValue =
+                                                                          _measurementDropdownValue =
                                                                               val),
                                                                   width: 60.0,
                                                                   textStyle: FlutterFlowTheme.of(
@@ -2204,12 +2259,9 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                         fontWeight:
                                                                             FontWeight.w600,
                                                                       ),
-                                                                  hintText: FFAppState()
-                                                                              .isIngredientInfoToBeEdited ==
+                                                                  hintText: AppCubit.instance.state.isIngredientInfoToBeEdited ==
                                                                           true
-                                                                      ? FFAppState()
-                                                                          .ingredientInfoEdited
-                                                                          .ingrUnit
+                                                                      ? (AppCubit.instance.state.ingredientInfoEdited?.ingrUnit ?? '')
                                                                       : 'pc/s',
                                                                   icon: Icon(
                                                                     Icons
@@ -2252,8 +2304,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                   ),
                                                 ),
                                               ),
-                                              if (FFAppState()
-                                                      .isIngredientInfoToBeEdited ==
+                                              if (AppCubit.instance.state.isIngredientInfoToBeEdited ==
                                                   false)
                                                 Padding(
                                                   padding: EdgeInsetsDirectional
@@ -2261,14 +2312,10 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                           0.0, 8.0, 0.0, 64.0),
                                                   child: FFButtonWidget(
                                                     onPressed: () {
-                                                      if (_model
-                                                              .ingredientNameTextController
-                                                              .text ==
+                                                      if (_ingredientNameController.text ==
                                                           '') {
                                                         return true;
-                                                      } else if (_model
-                                                              .quantityTextTextController
-                                                              .text ==
+                                                      } else if (_quantityController.text ==
                                                           '') {
                                                         return true;
                                                       } else {
@@ -2277,29 +2324,22 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                     }()
                                                         ? null
                                                         : () async {
-                                                            if ((_model.ingredientNameTextController
+                                                            if ((_ingredientNameController
                                                                         .text !=
                                                                     '') &&
-                                                                (_model.quantityTextTextController
+                                                                (_quantityController
                                                                         .text !=
                                                                     '')) {
                                                               setState(() {
-                                                                FFAppState()
-                                                                        .ingredientJson =
-                                                                    <String,
+                                                                AppCubit.instance.setIngredientJson(<String,
                                                                         dynamic>{
                                                                   'ingr_name':
-                                                                      _model
-                                                                          .ingredientNameTextController
-                                                                          .text,
+                                                                      _ingredientNameController.text,
                                                                   'ingr_quantity':
-                                                                      _model
-                                                                          .quantityTextTextController
-                                                                          .text,
+                                                                      _quantityController.text,
                                                                   'ingr_unit':
-                                                                      _model
-                                                                          .measurementDropdownValue,
-                                                                };
+                                                                      _measurementDropdownValue,
+                                                                });
                                                               });
 
                                                               await editRecipeScreenMealRecipeRecord
@@ -2313,7 +2353,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                       getIngredientFirestoreData(
                                                                         updateIngredientStruct(
                                                                           IngredientStruct.maybeFromMap(
-                                                                              FFAppState().ingredientJson),
+                                                                              AppCubit.instance.state.ingredientJson),
                                                                           clearUnsetFields:
                                                                               false,
                                                                         ),
@@ -2324,29 +2364,21 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                 ),
                                                               });
                                                               setState(() {
-                                                                FFAppState().addToIngredientNewList(
+                                                                AppCubit.instance.addToIngredientNewList(
                                                                     IngredientStruct.maybeFromMap(
-                                                                        FFAppState()
-                                                                            .ingredientJson)!);
+                                                                        AppCubit.instance.state.ingredientJson)!);
                                                               });
                                                               setState(() {
-                                                                _model.measurementDropdownValueController
+                                                                _measurementDropdownController
                                                                         ?.value =
                                                                     'pc/s';
                                                               });
                                                               setState(() {
-                                                                _model
-                                                                    .quantityTextTextController
-                                                                    ?.clear();
-                                                                _model
-                                                                    .ingredientNameTextController
-                                                                    ?.clear();
+                                                                _quantityController.clear();
+                                                                _ingredientNameController.clear();
                                                               });
                                                             } else {
-                                                              if (_model
-                                                                      .ingredientNameTextController
-                                                                      .text ==
-                                                                  '') {
+                                                              if (_ingredientNameController.text == '') {
                                                                 ScaffoldMessenger.of(
                                                                         context)
                                                                     .showSnackBar(
@@ -2371,10 +2403,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                   ),
                                                                 );
                                                               } else {
-                                                                if (_model
-                                                                        .quantityTextTextController
-                                                                        .text ==
-                                                                    '') {
+                                                                if (_quantityController.text == '') {
                                                                   ScaffoldMessenger.of(
                                                                           context)
                                                                       .showSnackBar(
@@ -2402,23 +2431,13 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                               }
                                                             }
 
-                                                            await _model
-                                                                .ingredientParentColumn
-                                                                ?.animateTo(
-                                                              _model
-                                                                  .ingredientParentColumn!
-                                                                  .position
-                                                                  .maxScrollExtent,
-                                                              duration: Duration(
-                                                                  milliseconds:
-                                                                      100),
-                                                              curve:
-                                                                  Curves.ease,
+                                                            await _ingredientParentColumn.animateTo(
+                                                              _ingredientParentColumn.position.maxScrollExtent,
+                                                              duration: const Duration(milliseconds: 100),
+                                                              curve: Curves.ease,
                                                             );
                                                             setState(() {
-                                                              FFAppState()
-                                                                      .tempHideWidget =
-                                                                  true;
+                                                              AppCubit.instance.setTempHideWidget(true);
                                                             });
                                                           },
                                                     text: 'Add Ingredient',
@@ -2439,10 +2458,10 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                   0.0,
                                                                   0.0,
                                                                   0.0),
-                                                      color: (_model.ingredientNameTextController
+                                                      color: (_ingredientNameController
                                                                       .text !=
                                                                   '') &&
-                                                              (_model.quantityTextTextController
+                                                              (_quantityController
                                                                       .text !=
                                                                   '')
                                                           ? FlutterFlowTheme.of(
@@ -2475,8 +2494,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                     ),
                                                   ),
                                                 ),
-                                              if (FFAppState()
-                                                      .isIngredientInfoToBeEdited ==
+                                              if (AppCubit.instance.state.isIngredientInfoToBeEdited ==
                                                   true)
                                                 Padding(
                                                   padding: EdgeInsetsDirectional
@@ -2485,43 +2503,27 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                   child: FFButtonWidget(
                                                     onPressed: () async {
                                                       // Check if there's any changes with the ingredient name value
-                                                      if (_model
-                                                              .ingredientNameTextController
-                                                              .text ==
+                                                      if (_ingredientNameController.text ==
                                                           '') {
                                                         // Check if there's any changes with the quantity text value
-                                                        if (_model
-                                                                .quantityTextTextController
-                                                                .text ==
-                                                            '') {
+                                                        if (_quantityController.text == '') {
                                                           // Check if the dropdown value is equal to the stored value of the choosen data to be edited.
-                                                          if (_model
-                                                                  .measurementDropdownValue ==
-                                                              FFAppState()
-                                                                  .ingredientInfoEdited
-                                                                  .ingrUnit) {
+                                                          if (_measurementDropdownValue ==
+                                                              (AppCubit.instance.state.ingredientInfoEdited?.ingrUnit ?? '')) {
                                                             // Do the action chain if there were no changes on the following fields:
                                                             // - Ingredient Name
                                                             // - Quantity
                                                             // - Unit
                                                             setState(() {
-                                                              FFAppState()
-                                                                      .ingredientJson =
-                                                                  <String,
+                                                              AppCubit.instance.setIngredientJson(<String,
                                                                       dynamic>{
                                                                 'ingr_name':
-                                                                    FFAppState()
-                                                                        .ingredientInfoEdited
-                                                                        .ingrName,
+                                                                    (AppCubit.instance.state.ingredientInfoEdited?.ingrName ?? ''),
                                                                 'ingr_quantity':
-                                                                    FFAppState()
-                                                                        .ingredientInfoEdited
-                                                                        .ingrQuantity,
+                                                                    (AppCubit.instance.state.ingredientInfoEdited?.ingrQuantity ?? ''),
                                                                 'ingr_unit':
-                                                                    FFAppState()
-                                                                        .ingredientInfoEdited
-                                                                        .ingrUnit,
-                                                              };
+                                                                    (AppCubit.instance.state.ingredientInfoEdited?.ingrUnit ?? ''),
+                                                              });
                                                             });
                                                           } else {
                                                             // Do the action chain if there were no changes on the following fields:
@@ -2529,51 +2531,33 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                             // - Quantity
                                                             // - Unit
                                                             setState(() {
-                                                              FFAppState()
-                                                                      .ingredientJson =
-                                                                  <String,
+                                                              AppCubit.instance.setIngredientJson(<String,
                                                                       dynamic>{
                                                                 'ingr_name':
-                                                                    FFAppState()
-                                                                        .ingredientInfoEdited
-                                                                        .ingrName,
+                                                                    (AppCubit.instance.state.ingredientInfoEdited?.ingrName ?? ''),
                                                                 'ingr_quantity':
-                                                                    FFAppState()
-                                                                        .ingredientInfoEdited
-                                                                        .ingrQuantity,
-                                                                'ingr_unit': _model
-                                                                    .measurementDropdownValue,
-                                                              };
+                                                                    (AppCubit.instance.state.ingredientInfoEdited?.ingrQuantity ?? ''),
+                                                                'ingr_unit': _measurementDropdownValue,
+                                                              });
                                                             });
                                                           }
                                                         } else {
-                                                          if (_model
-                                                                  .measurementDropdownValue ==
-                                                              FFAppState()
-                                                                  .ingredientInfoEdited
-                                                                  .ingrUnit) {
+                                                          if (_measurementDropdownValue ==
+                                                              (AppCubit.instance.state.ingredientInfoEdited?.ingrUnit ?? '')) {
                                                             // Do the action chain if there were no changes on the following fields:
                                                             // - Ingredient Name
                                                             // - Quantity
                                                             // - Unit
                                                             setState(() {
-                                                              FFAppState()
-                                                                      .ingredientJson =
-                                                                  <String,
+                                                              AppCubit.instance.setIngredientJson(<String,
                                                                       dynamic>{
                                                                 'ingr_name':
-                                                                    FFAppState()
-                                                                        .ingredientInfoEdited
-                                                                        .ingrName,
+                                                                    (AppCubit.instance.state.ingredientInfoEdited?.ingrName ?? ''),
                                                                 'ingr_quantity':
-                                                                    _model
-                                                                        .quantityTextTextController
-                                                                        .text,
+                                                                    _quantityController.text,
                                                                 'ingr_unit':
-                                                                    FFAppState()
-                                                                        .ingredientInfoEdited
-                                                                        .ingrUnit,
-                                                              };
+                                                                    (AppCubit.instance.state.ingredientInfoEdited?.ingrUnit ?? ''),
+                                                              });
                                                             });
                                                           } else {
                                                             // Do the action chain if there were no changes on the following fields:
@@ -2581,55 +2565,34 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                             // - Quantity
                                                             // - Unit
                                                             setState(() {
-                                                              FFAppState()
-                                                                      .ingredientJson =
-                                                                  <String,
+                                                              AppCubit.instance.setIngredientJson(<String,
                                                                       dynamic>{
                                                                 'ingr_name':
-                                                                    FFAppState()
-                                                                        .ingredientInfoEdited
-                                                                        .ingrName,
+                                                                    (AppCubit.instance.state.ingredientInfoEdited?.ingrName ?? ''),
                                                                 'ingr_quantity':
-                                                                    _model
-                                                                        .quantityTextTextController
-                                                                        .text,
-                                                                'ingr_unit': _model
-                                                                    .measurementDropdownValue,
-                                                              };
+                                                                    _quantityController.text,
+                                                                'ingr_unit': _measurementDropdownValue,
+                                                              });
                                                             });
                                                           }
                                                         }
                                                       } else {
-                                                        if (_model
-                                                                .quantityTextTextController
-                                                                .text ==
-                                                            '') {
-                                                          if (_model
-                                                                  .measurementDropdownValue ==
-                                                              FFAppState()
-                                                                  .ingredientInfoEdited
-                                                                  .ingrUnit) {
+                                                        if (_quantityController.text == '') {
+                                                          if (_measurementDropdownValue ==
+                                                              (AppCubit.instance.state.ingredientInfoEdited?.ingrUnit ?? '')) {
                                                             // Do the action chain if there were no changes on the following fields:
                                                             // - Ingredient Name
                                                             // - Quantity
                                                             // - Unit
                                                             setState(() {
-                                                              FFAppState()
-                                                                      .ingredientJson =
-                                                                  <String,
+                                                              AppCubit.instance.setIngredientJson(<String,
                                                                       dynamic>{
-                                                                'ingr_name': _model
-                                                                    .ingredientNameTextController
-                                                                    .text,
+                                                                'ingr_name': _ingredientNameController.text,
                                                                 'ingr_quantity':
-                                                                    FFAppState()
-                                                                        .ingredientInfoEdited
-                                                                        .ingrQuantity,
+                                                                    (AppCubit.instance.state.ingredientInfoEdited?.ingrQuantity ?? ''),
                                                                 'ingr_unit':
-                                                                    FFAppState()
-                                                                        .ingredientInfoEdited
-                                                                        .ingrUnit,
-                                                              };
+                                                                    (AppCubit.instance.state.ingredientInfoEdited?.ingrUnit ?? ''),
+                                                              });
                                                             });
                                                           } else {
                                                             // Do the action chain if there were no changes on the following fields:
@@ -2637,49 +2600,31 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                             // - Quantity
                                                             // - Unit
                                                             setState(() {
-                                                              FFAppState()
-                                                                      .ingredientJson =
-                                                                  <String,
+                                                              AppCubit.instance.setIngredientJson(<String,
                                                                       dynamic>{
-                                                                'ingr_name': _model
-                                                                    .ingredientNameTextController
-                                                                    .text,
+                                                                'ingr_name': _ingredientNameController.text,
                                                                 'ingr_quantity':
-                                                                    FFAppState()
-                                                                        .ingredientInfoEdited
-                                                                        .ingrQuantity,
-                                                                'ingr_unit': _model
-                                                                    .measurementDropdownValue,
-                                                              };
+                                                                    (AppCubit.instance.state.ingredientInfoEdited?.ingrQuantity ?? ''),
+                                                                'ingr_unit': _measurementDropdownValue,
+                                                              });
                                                             });
                                                           }
                                                         } else {
-                                                          if (_model
-                                                                  .measurementDropdownValue ==
-                                                              FFAppState()
-                                                                  .ingredientInfoEdited
-                                                                  .ingrUnit) {
+                                                          if (_measurementDropdownValue ==
+                                                              (AppCubit.instance.state.ingredientInfoEdited?.ingrUnit ?? '')) {
                                                             // Do the action chain if there were no changes on the following fields:
                                                             // - Ingredient Name
                                                             // - Quantity
                                                             // - Unit
                                                             setState(() {
-                                                              FFAppState()
-                                                                      .ingredientJson =
-                                                                  <String,
+                                                              AppCubit.instance.setIngredientJson(<String,
                                                                       dynamic>{
-                                                                'ingr_name': _model
-                                                                    .ingredientNameTextController
-                                                                    .text,
+                                                                'ingr_name': _ingredientNameController.text,
                                                                 'ingr_quantity':
-                                                                    _model
-                                                                        .quantityTextTextController
-                                                                        .text,
+                                                                    _quantityController.text,
                                                                 'ingr_unit':
-                                                                    FFAppState()
-                                                                        .ingredientInfoEdited
-                                                                        .ingrUnit,
-                                                              };
+                                                                    (AppCubit.instance.state.ingredientInfoEdited?.ingrUnit ?? ''),
+                                                              });
                                                             });
                                                           } else {
                                                             // Do the action chain if there were no changes on the following fields:
@@ -2687,20 +2632,13 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                             // - Quantity
                                                             // - Unit
                                                             setState(() {
-                                                              FFAppState()
-                                                                      .ingredientJson =
-                                                                  <String,
+                                                              AppCubit.instance.setIngredientJson(<String,
                                                                       dynamic>{
-                                                                'ingr_name': _model
-                                                                    .ingredientNameTextController
-                                                                    .text,
+                                                                'ingr_name': _ingredientNameController.text,
                                                                 'ingr_quantity':
-                                                                    _model
-                                                                        .quantityTextTextController
-                                                                        .text,
-                                                                'ingr_unit': _model
-                                                                    .measurementDropdownValue,
-                                                              };
+                                                                    _quantityController.text,
+                                                                'ingr_unit': _measurementDropdownValue,
+                                                              });
                                                             });
                                                           }
                                                         }
@@ -2718,8 +2656,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                 updateIngredientStruct(
                                                                   IngredientStruct
                                                                       .maybeFromMap(
-                                                                          FFAppState()
-                                                                              .ingredientJson),
+                                                                          AppCubit.instance.state.ingredientJson),
                                                                   clearUnsetFields:
                                                                       false,
                                                                 ),
@@ -2730,39 +2667,25 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                         ),
                                                       });
                                                       setState(() {
-                                                        _model
-                                                            .measurementDropdownValueController
+                                                        _measurementDropdownController
                                                             ?.value = 'pc/s';
                                                       });
                                                       setState(() {
-                                                        FFAppState().addToIngredientNewList(
+                                                        AppCubit.instance.addToIngredientNewList(
                                                             IngredientStruct
                                                                 .maybeFromMap(
-                                                                    FFAppState()
-                                                                        .ingredientJson)!);
+                                                                    AppCubit.instance.state.ingredientJson)!);
                                                       });
                                                       setState(() {
-                                                        FFAppState()
-                                                                .isIngredientInfoToBeEdited =
-                                                            false;
+                                                        AppCubit.instance.setIsIngredientInfoToBeEdited(false);
                                                       });
                                                       setState(() {
-                                                        _model
-                                                            .quantityTextTextController
-                                                            ?.clear();
-                                                        _model
-                                                            .ingredientNameTextController
-                                                            ?.clear();
+                                                        _quantityController.clear();
+                                                        _ingredientNameController.clear();
                                                       });
-                                                      await _model
-                                                          .ingredientParentColumn
-                                                          ?.animateTo(
-                                                        _model
-                                                            .ingredientParentColumn!
-                                                            .position
-                                                            .maxScrollExtent,
-                                                        duration: Duration(
-                                                            milliseconds: 100),
+                                                      await _ingredientParentColumn.animateTo(
+                                                        _ingredientParentColumn.position.maxScrollExtent,
+                                                        duration: const Duration(milliseconds: 100),
                                                         curve: Curves.ease,
                                                       );
                                                     },
@@ -2821,15 +2744,14 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                             0.0, 12.0, 0.0, 0.0),
                                         child: SingleChildScrollView(
                                           primary: false,
-                                          controller: _model.stepsParentColumn,
+                                          controller: _stepsParentColumn,
                                           child: Column(
                                             mainAxisSize: MainAxisSize.max,
                                             children: [
                                               Builder(
                                                 builder: (context) {
                                                   final procedureListview =
-                                                      FFAppState()
-                                                          .procedureList
+                                                      AppCubit.instance.state.procedureList
                                                           .toList();
                                                   return ReorderableListView
                                                       .builder(
@@ -2975,9 +2897,9 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                       1.0,
                                                                       -1.0),
                                                               child: Container(
-                                                                width: (FFAppState().isProcedureItemEdited ==
+                                                                width: (AppCubit.instance.state.isProcedureItemEdited ==
                                                                             false) &&
-                                                                        ((_model.stepsTextfieldFocusNode?.hasFocus ??
+                                                                        ((_stepsFocus?.hasFocus ??
                                                                                 false) ==
                                                                             false)
                                                                     ? 60.0
@@ -3015,9 +2937,9 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                       CrossAxisAlignment
                                                                           .center,
                                                                   children: [
-                                                                    if ((FFAppState().isProcedureItemEdited ==
+                                                                    if ((AppCubit.instance.state.isProcedureItemEdited ==
                                                                             false) &&
-                                                                        ((_model.stepsTextfieldFocusNode?.hasFocus ??
+                                                                        ((_stepsFocus?.hasFocus ??
                                                                                 false) ==
                                                                             false))
                                                                       Align(
@@ -3043,28 +2965,28 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                                 Colors.transparent,
                                                                             onTap:
                                                                                 () async {
-                                                                              if (_model.stepsTextfieldTextController.text == '') {
-                                                                                await _model.stepsParentColumn?.animateTo(
-                                                                                  _model.stepsParentColumn!.position.maxScrollExtent,
+                                                                              if (_stepsController.text == '') {
+                                                                                await _stepsParentColumn?.animateTo(
+                                                                                  _stepsParentColumn!.position.maxScrollExtent,
                                                                                   duration: Duration(milliseconds: 100),
                                                                                   curve: Curves.ease,
                                                                                 );
-                                                                                if (FFAppState().wasProcedureListReordered == true) {
+                                                                                if (AppCubit.instance.state.wasProcedureListReordered == true) {
                                                                                   setState(() {
-                                                                                    FFAppState().procedureJson = _model.newProcedureList![procedureListviewIndex];
-                                                                                    FFAppState().isProcedureItemEdited = true;
+                                                                                    AppCubit.instance.setProcedureJson(AppCubit.instance.state.procedureList[procedureListviewIndex]);
+                                                                                    AppCubit.instance.setIsProcedureItemEdited(true);
                                                                                   });
                                                                                   setState(() {
-                                                                                    FFAppState().removeFromProcedureList(_model.newProcedureList![procedureListviewIndex]);
-                                                                                    FFAppState().wasProcedureListReordered = false;
+                                                                                    AppCubit.instance.removeFromProcedureList(AppCubit.instance.state.procedureList[procedureListviewIndex]);
+                                                                                    AppCubit.instance.setWasProcedureListReordered(false);
                                                                                   });
                                                                                 } else {
                                                                                   setState(() {
-                                                                                    FFAppState().procedureJson = FFAppState().procedureList[procedureListviewIndex];
-                                                                                    FFAppState().isProcedureItemEdited = true;
+                                                                                    AppCubit.instance.setProcedureJson(AppCubit.instance.state.procedureList[procedureListviewIndex]);
+                                                                                    AppCubit.instance.setIsProcedureItemEdited(true);
                                                                                   });
                                                                                   setState(() {
-                                                                                    FFAppState().removeFromProcedureList(FFAppState().procedureList[procedureListviewIndex]);
+                                                                                    AppCubit.instance.removeFromProcedureList(AppCubit.instance.state.procedureList[procedureListviewIndex]);
                                                                                   });
                                                                                 }
 
@@ -3072,13 +2994,13 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                                   ...mapToFirestore(
                                                                                     {
                                                                                       'procedure': getProcedureListFirestoreData(
-                                                                                        FFAppState().procedureList,
+                                                                                        AppCubit.instance.state.procedureList,
                                                                                       ),
                                                                                     },
                                                                                   ),
                                                                                 });
                                                                                 setState(() {
-                                                                                  _model.stepsTextfieldTextController?.text = FFAppState().procedureJson.steps;
+                                                                                  _stepsController?.text = (AppCubit.instance.state.procedureJson?.steps ?? '');
                                                                                 });
                                                                               } else {
                                                                                 await showDialog(
@@ -3107,9 +3029,9 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                           ),
                                                                         ),
                                                                       ),
-                                                                    if ((FFAppState().isProcedureItemEdited ==
+                                                                    if ((AppCubit.instance.state.isProcedureItemEdited ==
                                                                             false) &&
-                                                                        ((_model.stepsTextfieldFocusNode?.hasFocus ??
+                                                                        ((_stepsFocus?.hasFocus ??
                                                                                 false) ==
                                                                             false))
                                                                       Align(
@@ -3128,14 +3050,14 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                               Colors.transparent,
                                                                           onTap:
                                                                               () async {
-                                                                            if (FFAppState().wasProcedureListReordered ==
+                                                                            if (AppCubit.instance.state.wasProcedureListReordered ==
                                                                                 true) {
                                                                               setState(() {
-                                                                                FFAppState().removeFromProcedureList(_model.newProcedureList![procedureListviewIndex]);
+                                                                                AppCubit.instance.removeFromProcedureList(AppCubit.instance.state.procedureList[procedureListviewIndex]);
                                                                               });
                                                                             } else {
                                                                               setState(() {
-                                                                                FFAppState().removeFromProcedureList(FFAppState().procedureList[procedureListviewIndex]);
+                                                                                AppCubit.instance.removeFromProcedureList(AppCubit.instance.state.procedureList[procedureListviewIndex]);
                                                                               });
                                                                             }
 
@@ -3143,7 +3065,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                               ...mapToFirestore(
                                                                                 {
                                                                                   'procedure': getProcedureListFirestoreData(
-                                                                                    FFAppState().procedureList,
+                                                                                    AppCubit.instance.state.procedureList,
                                                                                   ),
                                                                                 },
                                                                               ),
@@ -3167,46 +3089,25 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                         ),
                                                       );
                                                     },
-                                                    scrollController: _model
-                                                        .listViewController,
-                                                    onReorder: (int
-                                                            reorderableOldIndex,
-                                                        int reorderableNewIndex) async {
-                                                      _model.newProcedureList =
-                                                          await actions
-                                                              .onReorderProcedure(
-                                                        reorderableOldIndex,
-                                                        reorderableNewIndex,
-                                                        procedureListview
-                                                            .toList(),
+                                                    scrollController: _listViewController,
+                                                    onReorder: (oldIdx, newIdx) async {
+                                                      final reordered = await actions
+                                                          .onReorderProcedure(
+                                                        oldIdx,
+                                                        newIdx,
+                                                        procedureListview.toList(),
                                                       );
-
-                                                      await widget.mealRef!
-                                                          .update({
-                                                        ...mapToFirestore(
-                                                          {
-                                                            'procedure':
-                                                                getProcedureListFirestoreData(
-                                                              _model
-                                                                  .newProcedureList,
-                                                            ),
-                                                          },
-                                                        ),
+                                                      await widget.mealRef!.update({
+                                                        ...mapToFirestore({
+                                                          'procedure':
+                                                              getProcedureListFirestoreData(reordered),
+                                                        }),
                                                       });
+                                                      if (!mounted) return;
                                                       setState(() {
-                                                        FFAppState()
-                                                                .procedureList =
-                                                            _model
-                                                                .newProcedureList!
-                                                                .toList()
-                                                                .cast<
-                                                                    ProcedureStruct>();
-                                                        FFAppState()
-                                                                .wasProcedureListReordered =
-                                                            true;
+                                                        AppCubit.instance.setProcedureList((reordered ?? const <ProcedureStruct>[]).toList());
+                                                        AppCubit.instance.setWasProcedureListReordered(true);
                                                       });
-
-                                                      setState(() {});
                                                     },
                                                   );
                                                 },
@@ -3227,7 +3128,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                   ),
                                                   child: SingleChildScrollView(
                                                     controller:
-                                                        _model.columnController,
+                                                        _columnController,
                                                     child: Column(
                                                       mainAxisSize:
                                                           MainAxisSize.max,
@@ -3247,21 +3148,15 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                       8.0,
                                                                       0.0),
                                                           child: TextFormField(
-                                                            controller: _model
-                                                                .stepsTextfieldTextController,
-                                                            focusNode: _model
-                                                                .stepsTextfieldFocusNode,
+                                                            controller: _stepsController,
+                                                            focusNode: _stepsFocus,
                                                             autofocus: true,
                                                             obscureText: false,
                                                             decoration:
                                                                 InputDecoration(
-                                                              labelText: (_model
-                                                                              .stepsTextfieldFocusNode
-                                                                              ?.hasFocus ??
-                                                                          false) !=
-                                                                      true
-                                                                  ? 'What are the steps to make this meal?'
-                                                                  : 'Step ${functions.incrementSteps(FFAppState().procedureList.length).toString()}',
+                                                              labelText: _stepsFocus.hasFocus
+                                                                  ? 'Step ${functions.incrementSteps(AppCubit.instance.state.procedureList.length).toString()}'
+                                                                  : 'What are the steps to make this meal?',
                                                               labelStyle:
                                                                   FlutterFlowTheme.of(
                                                                           context)
@@ -3311,10 +3206,6 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                             maxLengthEnforcement:
                                                                 MaxLengthEnforcement
                                                                     .enforced,
-                                                            validator: _model
-                                                                .stepsTextfieldTextControllerValidator
-                                                                .asValidator(
-                                                                    context),
                                                           ),
                                                         ),
                                                         Padding(
@@ -3328,25 +3219,17 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                           child: FFButtonWidget(
                                                             onPressed:
                                                                 () async {
-                                                              if (_model
-                                                                      .stepsTextfieldTextController
-                                                                      .text !=
-                                                                  '') {
+                                                              if (_stepsController.text != '') {
                                                                 setState(() {
-                                                                  FFAppState()
-                                                                          .stepsJson =
-                                                                      <String,
+                                                                  AppCubit.instance.setStepsJson(<String,
                                                                           dynamic>{
-                                                                    'steps': _model
-                                                                        .stepsTextfieldTextController
-                                                                        .text,
-                                                                  };
+                                                                    'steps': _stepsController.text,
+                                                                  });
                                                                 });
                                                                 setState(() {
-                                                                  FFAppState().addToProcedureList(
+                                                                  AppCubit.instance.addToProcedureList(
                                                                       ProcedureStruct.maybeFromMap(
-                                                                          FFAppState()
-                                                                              .stepsJson)!);
+                                                                          AppCubit.instance.state.stepsJson)!);
                                                                 });
 
                                                                 await editRecipeScreenMealRecipeRecord
@@ -3359,7 +3242,7 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                               .arrayUnion([
                                                                         getProcedureFirestoreData(
                                                                           updateProcedureStruct(
-                                                                            ProcedureStruct.maybeFromMap(FFAppState().stepsJson),
+                                                                            ProcedureStruct.maybeFromMap(AppCubit.instance.state.stepsJson),
                                                                             clearUnsetFields:
                                                                                 false,
                                                                           ),
@@ -3370,14 +3253,10 @@ class _EditRecipeScreenWidgetState extends State<EditRecipeScreenWidget>
                                                                   ),
                                                                 });
                                                                 setState(() {
-                                                                  _model
-                                                                      .stepsTextfieldTextController
-                                                                      ?.clear();
+                                                                  _stepsController.clear();
                                                                 });
                                                                 setState(() {
-                                                                  FFAppState()
-                                                                          .isProcedureItemEdited =
-                                                                      false;
+                                                                  AppCubit.instance.setIsProcedureItemEdited(false);
                                                                 });
                                                               } else {
                                                                 ScaffoldMessenger.of(

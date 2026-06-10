@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 
 import '/backend/schema/util/firestore_util.dart';
 import '/backend/schema/util/schema_util.dart';
+import '/mock/mock_firestore.dart';
 
 import 'index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -44,7 +45,7 @@ class DeleteAccountRequestRecord extends FirestoreRecord {
   }
 
   static CollectionReference get collection =>
-      FirebaseFirestore.instance.collection('delete_account_request');
+      mockFirestore.collection('delete_account_request');
 
   static Stream<DeleteAccountRequestRecord> getDocument(
           DocumentReference ref) =>

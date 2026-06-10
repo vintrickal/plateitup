@@ -1,19 +1,22 @@
-import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/backend/firebase_storage/storage.dart';
-import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/upload_data.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'upload_image_modal_model.dart';
-export 'upload_image_modal_model.dart';
+import '/cubits/app/app_cubit.dart';
 
+/// Modal that lets the user either upload an image file or paste an image
+/// URL, then writes it back to the right Firestore field based on
+/// `requestId` (recipe banner, ingredient banner, profile photo, cover
+/// photo). Holds the in-flight upload state locally.
+///
+/// Redesigned for clarity: a single tappable "Choose from device" tile at
+/// the top, an "or" separator, then a URL input + Save button. Sizes to
+/// content (`MainAxisSize.min`) so it no longer overflows on shorter
+/// screens — the previous fixed 350px box used to clip on tall keyboards.
 class UploadImageModalWidget extends StatefulWidget {
   const UploadImageModalWidget({
     super.key,
@@ -31,379 +34,415 @@ class UploadImageModalWidget extends StatefulWidget {
 }
 
 class _UploadImageModalWidgetState extends State<UploadImageModalWidget> {
-  late UploadImageModalModel _model;
+  final TextEditingController _urlController = TextEditingController();
+  final FocusNode _urlFocus = FocusNode();
 
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => UploadImageModalModel());
-
-    _model.modalUrlTextFieldTextController ??= TextEditingController();
-    _model.modalUrlTextFieldFocusNode ??= FocusNode();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
+  bool _isDataUploading = false;
+  // ignore: unused_field
+  FFUploadedFile _uploadedLocalFile =
+      FFUploadedFile(bytes: Uint8List.fromList([]));
+  String _uploadedFileUrl = '';
 
   @override
   void dispose() {
-    _model.maybeDispose();
-
+    _urlController.dispose();
+    _urlFocus.dispose();
     super.dispose();
+  }
+
+  /// Writes the given URL to the right Firestore field based on `requestId`.
+  /// Centralised so both the "pick from device" path and the "paste URL +
+  /// Save" path go through the same code.
+  Future<void> _persistUrl(String url) async {
+    switch (widget.requestId) {
+      case 'recipeBanner':
+        await widget.docRef!.update(createMealRecipeRecordData(banner: url));
+        AppCubit.instance.setIsBannerUploaded(true);
+        break;
+      case 'ingredientBanner':
+        AppCubit.instance.setIngredientBanner(url);
+        AppCubit.instance.setIsIngredientBannerUploaded(true);
+        break;
+      case 'profileBanner':
+        await widget.docRefUser!
+            .update(createUsersRecordData(photoUrl: url));
+        break;
+      case 'coverPhotoBanner':
+        await widget.docRefUser!
+            .update(createUsersRecordData(coverPhotoUrl: url));
+        break;
+    }
+  }
+
+  Future<void> _pickFromDevice() async {
+    final selectedMedia = await selectMediaWithSourceBottomSheet(
+      context: context,
+      allowPhoto: true,
+    );
+    if (selectedMedia == null ||
+        !selectedMedia
+            .every((m) => validateFileFormat(m.storagePath, context))) {
+      return;
+    }
+
+    setState(() => _isDataUploading = true);
+    var selectedUploadedFiles = <FFUploadedFile>[];
+    var downloadUrls = <String>[];
+    try {
+      showUploadMessage(context, 'Uploading…', showLoading: true);
+      selectedUploadedFiles = selectedMedia
+          .map((m) => FFUploadedFile(
+                name: m.storagePath.split('/').last,
+                bytes: m.bytes,
+                height: m.dimensions?.height,
+                width: m.dimensions?.width,
+                blurHash: m.blurHash,
+              ))
+          .toList();
+
+      downloadUrls = (await Future.wait(
+        selectedMedia.map(
+          (m) async => await uploadData(m.storagePath, m.bytes),
+        ),
+      ))
+          .where((u) => u != null)
+          .map((u) => u!)
+          .toList();
+    } finally {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      _isDataUploading = false;
+    }
+
+    if (selectedUploadedFiles.length == selectedMedia.length &&
+        downloadUrls.length == selectedMedia.length) {
+      setState(() {
+        _uploadedLocalFile = selectedUploadedFiles.first;
+        _uploadedFileUrl = downloadUrls.first;
+        _urlController.text = _uploadedFileUrl;
+      });
+      await _persistUrl(_uploadedFileUrl);
+      showUploadMessage(context, 'Uploaded.');
+      if (mounted) Navigator.pop(context);
+    } else {
+      setState(() {});
+      showUploadMessage(context, 'Failed to upload data');
+    }
+  }
+
+  Future<void> _saveUrl() async {
+    if (!functions.httpChecker(_urlController.text)!) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Invalid URL link',
+            style: TextStyle(
+              color: FlutterFlowTheme.of(context).primaryText,
+            ),
+          ),
+          duration: const Duration(milliseconds: 4000),
+          backgroundColor: FlutterFlowTheme.of(context).secondary,
+        ),
+      );
+      return;
+    }
+    await _persistUrl(_urlController.text);
+    if (!mounted) return;
+    Navigator.pop(context);
+    _urlController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
     return Align(
-      alignment: AlignmentDirectional(0.0, 0.0),
+      alignment: const AlignmentDirectional(0.0, 0.0),
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 16.0),
+        padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 16.0),
         child: Container(
           width: double.infinity,
-          height: 350.0,
-          constraints: BoxConstraints(
-            maxWidth: 570.0,
-          ),
+          constraints: const BoxConstraints(maxWidth: 480.0),
           decoration: BoxDecoration(
-            color: FlutterFlowTheme.of(context).secondaryBackground,
-            borderRadius: BorderRadius.circular(12.0),
-            border: Border.all(
-              color: Color(0xFFE0E3E7),
-            ),
+            color: theme.secondaryBackground,
+            borderRadius: BorderRadius.circular(20.0),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 24.0,
+                color: Colors.black.withOpacity(0.10),
+                offset: const Offset(0.0, 8.0),
+              ),
+            ],
           ),
           child: Padding(
-            padding: EdgeInsets.all(24.0),
+            padding: const EdgeInsets.fromLTRB(20.0, 18.0, 20.0, 20.0),
             child: Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Header.
                 Row(
-                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 12.0, 0.0),
-                        child: Text(
-                          'Image Upload',
-                          style: FlutterFlowTheme.of(context)
-                              .headlineMedium
-                              .override(
-                                fontFamily: 'Roboto',
-                                letterSpacing: 0.0,
-                              ),
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Add image',
+                            style: theme.headlineSmall.override(
+                              fontFamily: 'Poppins',
+                              color: theme.primaryText,
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 2.0),
+                          Text(
+                            'Pick a photo from your device or paste a URL.',
+                            style: theme.bodyMedium.override(
+                              fontFamily: 'Poppins',
+                              color: theme.secondaryText,
+                              fontSize: 13.0,
+                              letterSpacing: 0.0,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    FlutterFlowIconButton(
-                      borderColor:
-                          FlutterFlowTheme.of(context).primaryBackground,
-                      borderRadius: 30.0,
-                      borderWidth: 2.0,
-                      buttonSize: 44.0,
-                      icon: Icon(
-                        Icons.close_rounded,
-                        color: FlutterFlowTheme.of(context).secondaryText,
-                        size: 24.0,
+                    // Material InkWell close button — keeps the tap target
+                    // generous (40×40) without the heavy outlined look of
+                    // FlutterFlowIconButton.
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20.0),
+                        onTap: () {
+                          _urlController.clear();
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          width: 36.0,
+                          height: 36.0,
+                          decoration: BoxDecoration(
+                            color: theme.primaryBackground,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: theme.secondaryText,
+                            size: 20.0,
+                          ),
+                        ),
                       ),
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        setState(() {
-                          _model.modalUrlTextFieldTextController?.clear();
-                        });
-                      },
                     ),
                   ],
                 ),
-                Divider(
-                  height: 24.0,
-                  thickness: 2.0,
-                  color: FlutterFlowTheme.of(context).primaryBackground,
-                ),
-                TextFormField(
-                  controller: _model.modalUrlTextFieldTextController,
-                  focusNode: _model.modalUrlTextFieldFocusNode,
-                  autofocus: true,
-                  obscureText: false,
-                  decoration: InputDecoration(
-                    labelStyle:
-                        FlutterFlowTheme.of(context).labelMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.w500,
-                            ),
-                    hintText: 'Insert Link',
-                    hintStyle:
-                        FlutterFlowTheme.of(context).labelMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.w500,
-                            ),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: FlutterFlowTheme.of(context).alternate,
-                        width: 2.0,
-                      ),
-                      borderRadius: BorderRadius.circular(0.0),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: FlutterFlowTheme.of(context).primary,
-                        width: 2.0,
-                      ),
-                      borderRadius: BorderRadius.circular(0.0),
-                    ),
-                    errorBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: FlutterFlowTheme.of(context).error,
-                        width: 2.0,
-                      ),
-                      borderRadius: BorderRadius.circular(0.0),
-                    ),
-                    focusedErrorBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: FlutterFlowTheme.of(context).error,
-                        width: 2.0,
-                      ),
-                      borderRadius: BorderRadius.circular(0.0),
-                    ),
-                  ),
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        fontFamily: 'Poppins',
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w500,
-                      ),
-                  validator: _model.modalUrlTextFieldTextControllerValidator
-                      .asValidator(context),
-                ),
-                Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      FFButtonWidget(
-                        onPressed: () async {
-                          final selectedMedia =
-                              await selectMediaWithSourceBottomSheet(
-                            context: context,
-                            allowPhoto: true,
-                          );
-                          if (selectedMedia != null &&
-                              selectedMedia.every((m) =>
-                                  validateFileFormat(m.storagePath, context))) {
-                            setState(() => _model.isDataUploading = true);
-                            var selectedUploadedFiles = <FFUploadedFile>[];
-
-                            var downloadUrls = <String>[];
-                            try {
-                              showUploadMessage(
-                                context,
-                                'Uploading file...',
-                                showLoading: true,
-                              );
-                              selectedUploadedFiles = selectedMedia
-                                  .map((m) => FFUploadedFile(
-                                        name: m.storagePath.split('/').last,
-                                        bytes: m.bytes,
-                                        height: m.dimensions?.height,
-                                        width: m.dimensions?.width,
-                                        blurHash: m.blurHash,
-                                      ))
-                                  .toList();
-
-                              downloadUrls = (await Future.wait(
-                                selectedMedia.map(
-                                  (m) async =>
-                                      await uploadData(m.storagePath, m.bytes),
-                                ),
-                              ))
-                                  .where((u) => u != null)
-                                  .map((u) => u!)
-                                  .toList();
-                            } finally {
-                              ScaffoldMessenger.of(context)
-                                  .hideCurrentSnackBar();
-                              _model.isDataUploading = false;
-                            }
-                            if (selectedUploadedFiles.length ==
-                                    selectedMedia.length &&
-                                downloadUrls.length == selectedMedia.length) {
-                              setState(() {
-                                _model.uploadedLocalFile =
-                                    selectedUploadedFiles.first;
-                                _model.uploadedFileUrl = downloadUrls.first;
-                              });
-                              showUploadMessage(context, 'Success!');
-                            } else {
-                              setState(() {});
-                              showUploadMessage(
-                                  context, 'Failed to upload data');
-                              return;
-                            }
-                          }
-
-                          if (_model.uploadedFileUrl != '') {
-                            if (widget.requestId == 'recipeBanner') {
-                              await widget.docRef!
-                                  .update(createMealRecipeRecordData(
-                                banner: _model.uploadedFileUrl,
-                              ));
-                            } else {
-                              if (widget.requestId == 'ingredientBanner') {
-                                setState(() {
-                                  FFAppState().ingredientBanner =
-                                      _model.uploadedFileUrl;
-                                });
-                              } else {
-                                if (widget.requestId == 'profileBanner') {
-                                  await widget.docRefUser!
-                                      .update(createUsersRecordData(
-                                    photoUrl: _model.uploadedFileUrl,
-                                  ));
-                                }
-                              }
-                            }
-
-                            setState(() {
-                              _model.modalUrlTextFieldTextController?.text =
-                                  _model.uploadedFileUrl;
-                            });
-                          }
-                        },
-                        text: 'Upload',
-                        options: FFButtonOptions(
-                          width: 130.0,
-                          height: 40.0,
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 0.0, 0.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 0.0, 0.0),
-                          color: FlutterFlowTheme.of(context).primary,
-                          textStyle:
-                              FlutterFlowTheme.of(context).titleSmall.override(
-                                    fontFamily: 'Poppins',
-                                    color: Colors.white,
-                                    letterSpacing: 0.0,
-                                  ),
-                          elevation: 3.0,
-                          borderSide: BorderSide(
-                            color: Colors.transparent,
-                            width: 1.0,
-                          ),
-                          borderRadius: BorderRadius.circular(8.0),
-                          hoverColor: Color(0xFF2B16ED),
-                          hoverTextColor: Colors.white,
+                const SizedBox(height: 18.0),
+                // Big "Choose from device" tile — primary action.
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14.0),
+                    onTap: _isDataUploading ? null : _pickFromDevice,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 18.0),
+                      decoration: BoxDecoration(
+                        color: theme.success.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(14.0),
+                        border: Border.all(
+                          color: theme.success.withOpacity(0.35),
+                          width: 1.2,
                         ),
                       ),
-                    ],
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44.0,
+                            height: 44.0,
+                            decoration: BoxDecoration(
+                              color: theme.success,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.photo_library_outlined,
+                              color: Colors.white,
+                              size: 22.0,
+                            ),
+                          ),
+                          const SizedBox(width: 14.0),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Choose from device',
+                                  style: theme.bodyMedium.override(
+                                    fontFamily: 'Poppins',
+                                    color: theme.primaryText,
+                                    fontSize: 15.0,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 2.0),
+                                Text(
+                                  'JPG or PNG, up to 5 MB',
+                                  style: theme.bodyMedium.override(
+                                    fontFamily: 'Poppins',
+                                    color: theme.secondaryText,
+                                    fontSize: 12.0,
+                                    letterSpacing: 0.0,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            color: theme.secondaryText,
+                            size: 14.0,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(),
-                ),
-                Align(
-                  alignment: AlignmentDirectional(1.0, 1.0),
-                  child: FFButtonWidget(
-                    onPressed: () async {
-                      if (functions.httpChecker(
-                          _model.modalUrlTextFieldTextController.text)!) {
-                        if (widget.requestId == 'recipeBanner') {
-                          await widget.docRef!
-                              .update(createMealRecipeRecordData(
-                            banner: _model.modalUrlTextFieldTextController.text,
-                          ));
-                          Navigator.pop(context);
-                          setState(() {
-                            _model.modalUrlTextFieldTextController?.clear();
-                          });
-                          setState(() {
-                            FFAppState().isBannerUploaded = true;
-                          });
-                        } else {
-                          if (widget.requestId == 'ingredientBanner') {
-                            _model.updatePage(() {
-                              FFAppState().ingredientBanner =
-                                  _model.modalUrlTextFieldTextController.text;
-                            });
-                            Navigator.pop(context);
-                            setState(() {
-                              _model.modalUrlTextFieldTextController?.clear();
-                            });
-                            setState(() {
-                              FFAppState().isIngredientBannerUploaded = true;
-                            });
-                          } else {
-                            if (widget.requestId == 'profileBanner') {
-                              await widget.docRefUser!
-                                  .update(createUsersRecordData(
-                                photoUrl:
-                                    _model.modalUrlTextFieldTextController.text,
-                              ));
-                              Navigator.pop(context);
-                              setState(() {
-                                _model.modalUrlTextFieldTextController?.clear();
-                              });
-                            } else {
-                              if (widget.requestId == 'coverPhotoBanner') {
-                                await widget.docRefUser!
-                                    .update(createUsersRecordData(
-                                  coverPhotoUrl: _model
-                                      .modalUrlTextFieldTextController.text,
-                                ));
-                                Navigator.pop(context);
-                                setState(() {
-                                  _model.modalUrlTextFieldTextController
-                                      ?.clear();
-                                });
-                              }
-                            }
-                          }
-                        }
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Invalid URL link',
-                              style: TextStyle(
-                                color: FlutterFlowTheme.of(context).primaryText,
-                              ),
-                            ),
-                            duration: Duration(milliseconds: 4000),
-                            backgroundColor:
-                                FlutterFlowTheme.of(context).secondary,
-                          ),
-                        );
-                        Navigator.pop(context);
-                      }
-                    },
-                    text: 'Save',
-                    options: FFButtonOptions(
-                      height: 40.0,
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(24.0, 0.0, 24.0, 0.0),
-                      iconPadding:
-                          EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                      color: FlutterFlowTheme.of(context).success,
-                      textStyle:
-                          FlutterFlowTheme.of(context).titleSmall.override(
-                                fontFamily: 'Poppins',
-                                color: Colors.white,
-                                letterSpacing: 0.0,
-                              ),
-                      elevation: 3.0,
-                      borderSide: BorderSide(
-                        color: Colors.transparent,
-                        width: 1.0,
+                const SizedBox(height: 18.0),
+                // "or" divider.
+                Row(
+                  children: [
+                    Expanded(
+                      child: Divider(
+                        color: theme.alternate,
+                        thickness: 1.0,
+                        height: 1.0,
                       ),
-                      borderRadius: BorderRadius.circular(8.0),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Text(
+                        'or',
+                        style: theme.bodyMedium.override(
+                          fontFamily: 'Poppins',
+                          color: theme.secondaryText,
+                          fontSize: 12.0,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Divider(
+                        color: theme.alternate,
+                        thickness: 1.0,
+                        height: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16.0),
+                // URL field.
+                Text(
+                  'Image URL',
+                  style: theme.bodyMedium.override(
+                    fontFamily: 'Poppins',
+                    color: theme.primaryText,
+                    fontSize: 13.0,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.0,
+                  ),
+                ),
+                const SizedBox(height: 6.0),
+                TextFormField(
+                  controller: _urlController,
+                  focusNode: _urlFocus,
+                  autofocus: false,
+                  keyboardType: TextInputType.url,
+                  textInputAction: TextInputAction.done,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    hintText: 'https://example.com/photo.jpg',
+                    hintStyle: theme.labelMedium.override(
+                      fontFamily: 'Poppins',
+                      color: theme.secondaryText,
+                      fontSize: 13.0,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.link_rounded,
+                      color: theme.secondaryText,
+                      size: 20.0,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: theme.alternate,
+                        width: 1.5,
+                      ),
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: theme.success,
+                        width: 1.8,
+                      ),
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: theme.error,
+                        width: 1.5,
+                      ),
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: theme.error,
+                        width: 1.8,
+                      ),
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 4.0, vertical: 14.0),
+                  ),
+                  style: theme.bodyMedium.override(
+                    fontFamily: 'Poppins',
+                    color: theme.primaryText,
+                    fontSize: 14.0,
+                    letterSpacing: 0.0,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 18.0),
+                // Save button.
+                FFButtonWidget(
+                  onPressed: _saveUrl,
+                  text: 'Save',
+                  options: FFButtonOptions(
+                    width: double.infinity,
+                    height: 46.0,
+                    padding: EdgeInsets.zero,
+                    iconPadding: EdgeInsets.zero,
+                    color: theme.success,
+                    textStyle: theme.titleSmall.override(
+                      fontFamily: 'Poppins',
+                      color: Colors.white,
+                      fontSize: 15.0,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    elevation: 0.0,
+                    borderSide: const BorderSide(
+                      color: Colors.transparent,
+                      width: 1.0,
+                    ),
+                    borderRadius: BorderRadius.circular(12.0),
                   ),
                 ),
               ],

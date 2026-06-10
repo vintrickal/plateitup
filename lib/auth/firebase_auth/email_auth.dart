@@ -1,17 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// MVP mode: email sign-in is a no-op. Callers in AuthCubit.signInWithEmail /
+// createAccountWithEmail get a non-null sentinel back so the UI flow proceeds
+// as if sign-in succeeded.
 
-Future<UserCredential?> emailSignInFunc(
-  String email,
-  String password,
-) =>
-    FirebaseAuth.instance
-        .signInWithEmailAndPassword(email: email.trim(), password: password);
+Future<Object?> emailSignInFunc(String email, String password) async =>
+    const Object();
 
-Future<UserCredential?> emailCreateAccountFunc(
-  String email,
-  String password,
-) =>
-    FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: email.trim(),
-      password: password,
-    );
+Future<Object?> emailCreateAccountFunc(String email, String password) async =>
+    const Object();

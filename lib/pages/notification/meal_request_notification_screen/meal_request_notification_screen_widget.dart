@@ -1,5 +1,10 @@
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
+import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -7,16 +12,10 @@ import '/pages/components/meal_recipe_deleted/meal_recipe_deleted_widget.dart';
 import '/pages/components/no_request_order_screen/no_request_order_screen_widget.dart';
 import '/pages/components/no_sent_activity/no_sent_activity_widget.dart';
 import '/pages/components/partner_rating_bottomsheet_component/partner_rating_bottomsheet_component_widget.dart';
-import '/flutter_flow/custom_functions.dart' as functions;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'meal_request_notification_screen_model.dart';
-export 'meal_request_notification_screen_model.dart';
 
+/// Two-tab notification list for meal requests between paired users: "To"
+/// shows requests this user sent to their partner, "From" shows incoming
+/// requests this user can accept, reject, or mark done.
 class MealRequestNotificationScreenWidget extends StatefulWidget {
   const MealRequestNotificationScreenWidget({
     super.key,
@@ -33,46 +32,51 @@ class MealRequestNotificationScreenWidget extends StatefulWidget {
 class _MealRequestNotificationScreenWidgetState
     extends State<MealRequestNotificationScreenWidget>
     with TickerProviderStateMixin {
-  late MealRequestNotificationScreenModel _model;
-
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  final FocusNode _unfocusNode = FocusNode();
+  late final TabController _tabBarController = TabController(
+    length: 2,
+    vsync: this,
+    initialIndex: 1,
+  )..addListener(() => setState(() {}));
+
+  PairedUserRecord? _sENTPairedUserDetails;
+  // ignore: unused_field
+  int? _sENTTabCountChecker;
 
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => MealRequestNotificationScreenModel());
-
-    // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.sENTPairedUserDetails = await queryPairedUserRecordOnce(
+      final pairedUserDetails = await queryPairedUserRecordOnce(
         queryBuilder: (pairedUserRecord) => pairedUserRecord.where(
           'sender',
           isEqualTo: currentUserReference,
         ),
         singleRecord: true,
       ).then((s) => s.firstOrNull);
-      _model.sENTTabCountChecker =
-          await queryMealRequestedNotificationRecordCount(
+      if (!mounted) return;
+      setState(() {
+        _sENTPairedUserDetails = pairedUserDetails;
+      });
+      final tabCount = await queryMealRequestedNotificationRecordCount(
         queryBuilder: (mealRequestedNotificationRecord) =>
             mealRequestedNotificationRecord.where(
           'paired_user_id',
-          isEqualTo: _model.sENTPairedUserDetails?.reference,
+          isEqualTo: pairedUserDetails?.reference,
         ),
       );
+      if (!mounted) return;
+      setState(() {
+        _sENTTabCountChecker = tabCount;
+      });
     });
-
-    _model.tabBarController = TabController(
-      vsync: this,
-      length: 2,
-      initialIndex: 1,
-    )..addListener(() => setState(() {}));
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
   }
 
   @override
   void dispose() {
-    _model.dispose();
-
+    _unfocusNode.dispose();
+    _tabBarController.dispose();
     super.dispose();
   }
 
@@ -100,8 +104,8 @@ class _MealRequestNotificationScreenWidgetState
         }
         final mealRequestNotificationScreenPairedUserRecord = snapshot.data!;
         return GestureDetector(
-          onTap: () => _model.unfocusNode.canRequestFocus
-              ? FocusScope.of(context).requestFocus(_model.unfocusNode)
+          onTap: () => _unfocusNode.canRequestFocus
+              ? FocusScope.of(context).requestFocus(_unfocusNode)
               : FocusScope.of(context).unfocus(),
           child: Scaffold(
             key: scaffoldKey,
@@ -161,7 +165,7 @@ class _MealRequestNotificationScreenWidgetState
                         text: 'From',
                       ),
                     ],
-                    controller: _model.tabBarController,
+                    controller: _tabBarController,
                     onTap: (i) async {
                       [() async {}, () async {}][i]();
                     },
@@ -169,7 +173,7 @@ class _MealRequestNotificationScreenWidgetState
                 ),
                 Expanded(
                   child: TabBarView(
-                    controller: _model.tabBarController,
+                    controller: _tabBarController,
                     children: [
                       KeepAliveWidgetWrapper(
                         builder: (context) => StreamBuilder<
@@ -179,8 +183,8 @@ class _MealRequestNotificationScreenWidgetState
                                 mealRequestedNotificationRecord
                                     .where(
                                       'paired_user_id',
-                                      isEqualTo: _model
-                                          .sENTPairedUserDetails?.reference,
+                                      isEqualTo: _sENTPairedUserDetails
+                                          ?.reference,
                                     )
                                     .where(
                                       'reviewed',
@@ -635,7 +639,7 @@ class _MealRequestNotificationScreenWidgetState
                                                                               Padding(
                                                                                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 4.0, 0.0, 0.0),
                                                                                 child: Text(
-                                                                                  dateTimeFormat('Hm', rowMealRecipeRecord.prepTime!),
+                                                                                  dateTimeFormat('Hm', rowMealRecipeRecord.prepTime ?? DateTime(2024)),
                                                                                   style: FlutterFlowTheme.of(context).labelSmall.override(
                                                                                         fontFamily: 'Poppins',
                                                                                         letterSpacing: 0.0,
@@ -729,7 +733,7 @@ class _MealRequestNotificationScreenWidgetState
                                                                               backgroundColor: Colors.transparent,
                                                                               alignment: AlignmentDirectional(0.0, 1.0).resolve(Directionality.of(context)),
                                                                               child: GestureDetector(
-                                                                                onTap: () => _model.unfocusNode.canRequestFocus ? FocusScope.of(context).requestFocus(_model.unfocusNode) : FocusScope.of(context).unfocus(),
+                                                                                onTap: () => _unfocusNode.canRequestFocus ? FocusScope.of(context).requestFocus(_unfocusNode) : FocusScope.of(context).unfocus(),
                                                                                 child: PartnerRatingBottomsheetComponentWidget(
                                                                                   pairedUserRef: columnMealRequestedNotificationRecord.pairedUserId!,
                                                                                   mealRecipeRef: columnMealRequestedNotificationRecord.requestedMealId!,
@@ -802,7 +806,7 @@ class _MealRequestNotificationScreenWidgetState
                                                                         dateActionTaken:
                                                                             columnMealRequestedNotificationRecord.dateActionTaken,
                                                                       ));
-                                                                      _model.receiverNotificationItem =
+                                                                      final receiverNotificationItem =
                                                                           await queryReceiverNotificationRecordOnce(
                                                                         queryBuilder: (receiverNotificationRecord) => receiverNotificationRecord
                                                                             .where(
@@ -818,8 +822,7 @@ class _MealRequestNotificationScreenWidgetState
                                                                       ).then((s) =>
                                                                               s.firstOrNull);
 
-                                                                      await _model
-                                                                          .receiverNotificationItem!
+                                                                      await receiverNotificationItem!
                                                                           .reference
                                                                           .update(
                                                                               createReceiverNotificationRecordData(
@@ -1283,7 +1286,7 @@ class _MealRequestNotificationScreenWidgetState
                                                                               Padding(
                                                                                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 4.0, 0.0, 0.0),
                                                                                 child: Text(
-                                                                                  dateTimeFormat('Hm', rowMealRecipeRecord.prepTime!),
+                                                                                  dateTimeFormat('Hm', rowMealRecipeRecord.prepTime ?? DateTime(2024)),
                                                                                   style: FlutterFlowTheme.of(context).labelSmall.override(
                                                                                         fontFamily: 'Poppins',
                                                                                         letterSpacing: 0.0,
@@ -1371,7 +1374,7 @@ class _MealRequestNotificationScreenWidgetState
                                                                             },
                                                                           ),
                                                                         });
-                                                                        _model.senderNotificationItem =
+                                                                        final senderNotificationItem =
                                                                             await querySenderNotificationRecordOnce(
                                                                           queryBuilder: (senderNotificationRecord) => senderNotificationRecord
                                                                               .where(
@@ -1387,8 +1390,7 @@ class _MealRequestNotificationScreenWidgetState
                                                                         ).then((s) =>
                                                                                 s.firstOrNull);
 
-                                                                        await _model
-                                                                            .senderNotificationItem!
+                                                                        await senderNotificationItem!
                                                                             .reference
                                                                             .update(createSenderNotificationRecordData(
                                                                           isShownToUser:
@@ -1458,7 +1460,7 @@ class _MealRequestNotificationScreenWidgetState
                                                                             },
                                                                           ),
                                                                         });
-                                                                        _model.senderNotificationRejectedItem =
+                                                                        final senderNotificationRejectedItem =
                                                                             await querySenderNotificationRecordOnce(
                                                                           queryBuilder: (senderNotificationRecord) => senderNotificationRecord
                                                                               .where(
@@ -1474,8 +1476,7 @@ class _MealRequestNotificationScreenWidgetState
                                                                         ).then((s) =>
                                                                                 s.firstOrNull);
 
-                                                                        await _model
-                                                                            .senderNotificationRejectedItem!
+                                                                        await senderNotificationRejectedItem!
                                                                             .reference
                                                                             .update(createSenderNotificationRecordData(
                                                                           isShownToUser:
@@ -1545,7 +1546,7 @@ class _MealRequestNotificationScreenWidgetState
                                                                             },
                                                                           ),
                                                                         });
-                                                                        _model.senderNotificationDoneItem =
+                                                                        final senderNotificationDoneItem =
                                                                             await querySenderNotificationRecordOnce(
                                                                           queryBuilder: (senderNotificationRecord) => senderNotificationRecord
                                                                               .where(
@@ -1561,8 +1562,7 @@ class _MealRequestNotificationScreenWidgetState
                                                                         ).then((s) =>
                                                                                 s.firstOrNull);
 
-                                                                        await _model
-                                                                            .senderNotificationDoneItem!
+                                                                        await senderNotificationDoneItem!
                                                                             .reference
                                                                             .update(createSenderNotificationRecordData(
                                                                           isShownToUser:

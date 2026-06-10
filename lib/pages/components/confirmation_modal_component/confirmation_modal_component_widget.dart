@@ -3,14 +3,13 @@ import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'confirmation_modal_component_model.dart';
-export 'confirmation_modal_component_model.dart';
+import '/cubits/app/app_cubit.dart';
 
-class ConfirmationModalComponentWidget extends StatefulWidget {
+/// Confirm-delete modal for recipes (add / edit / details flows). Looks up the
+/// current user's saved-recipes doc so it can also remove the recipe id from
+/// the saved list when the user confirms deletion.
+class ConfirmationModalComponentWidget extends StatelessWidget {
   const ConfirmationModalComponentWidget({
     super.key,
     required this.deleteBtnText,
@@ -27,43 +26,11 @@ class ConfirmationModalComponentWidget extends StatefulWidget {
   final DocumentReference? recipeID;
 
   @override
-  State<ConfirmationModalComponentWidget> createState() =>
-      _ConfirmationModalComponentWidgetState();
-}
-
-class _ConfirmationModalComponentWidgetState
-    extends State<ConfirmationModalComponentWidget> {
-  late ConfirmationModalComponentModel _model;
-
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => ConfirmationModalComponentModel());
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _model.maybeDispose();
-
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
     return Align(
-      alignment: AlignmentDirectional(0.0, 0.0),
+      alignment: const AlignmentDirectional(0.0, 0.0),
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 16.0),
+        padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 16.0),
         child: StreamBuilder<List<SavedRecipeRecord>>(
           stream: querySavedRecipeRecord(
             queryBuilder: (savedRecipeRecord) => savedRecipeRecord.where(
@@ -99,35 +66,33 @@ class _ConfirmationModalComponentWidgetState
                     : null;
             return Container(
               height: 200.0,
-              constraints: BoxConstraints(
+              constraints: const BoxConstraints(
                 maxWidth: 570.0,
               ),
               decoration: BoxDecoration(
                 color: FlutterFlowTheme.of(context).secondaryBackground,
                 borderRadius: BorderRadius.circular(12.0),
                 border: Border.all(
-                  color: Color(0xFFE0E3E7),
+                  color: const Color(0xFFE0E3E7),
                 ),
               ),
               child: Padding(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  mainAxisSize: MainAxisSize.max,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          0.0, 16.0, 0.0, 0.0),
                       child: Row(
-                        mainAxisSize: MainAxisSize.max,
                         children: [
                           Expanded(
                             child: Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
+                              padding: const EdgeInsetsDirectional.fromSTEB(
                                   0.0, 0.0, 12.0, 0.0),
                               child: Text(
                                 valueOrDefault<String>(
-                                  widget.title,
+                                  title,
                                   'title',
                                 ),
                                 style: FlutterFlowTheme.of(context)
@@ -149,30 +114,21 @@ class _ConfirmationModalComponentWidgetState
                       color: FlutterFlowTheme.of(context).primaryBackground,
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          0.0, 16.0, 0.0, 0.0),
                       child: Column(
-                        mainAxisSize: MainAxisSize.max,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           FFButtonWidget(
                             onPressed: () async {
-                              setState(() {
-                                FFAppState().yesDeleteAction = true;
-                              });
-                              if (widget.keyword == 'DELETE-RECIPE-ADD') {
-                                await widget.recipeID!.delete();
-                                setState(() {
-                                  FFAppState().isAddRecipeContentDeleted = true;
-                                });
-                                if (FFAppState()
-                                        .savedRecipeList
-                                        .contains(widget.recipeID) ==
+                              AppCubit.instance.setYesDeleteAction(true);
+                              if (keyword == 'DELETE-RECIPE-ADD') {
+                                await recipeID!.delete();
+                                AppCubit.instance.setIsAddRecipeContentDeleted(true);
+                                if (AppCubit.instance.state.savedRecipeList
+                                        .contains(recipeID) ==
                                     true) {
-                                  setState(() {
-                                    FFAppState().removeFromSavedRecipeList(
-                                        widget.recipeID!);
-                                  });
+                                  AppCubit.instance.removeFromSavedRecipeList(recipeID!);
 
                                   await cardModalBasicSavedRecipeRecord!
                                       .reference
@@ -180,34 +136,28 @@ class _ConfirmationModalComponentWidgetState
                                     ...mapToFirestore(
                                       {
                                         'saved_meal_recipe_id':
-                                            FieldValue.arrayRemove(
-                                                [widget.recipeID]),
+                                            FieldValue.arrayRemove([recipeID]),
                                       },
                                     ),
                                   });
+                                  if (!context.mounted) return;
                                   Navigator.pop(context);
 
                                   context.goNamed('home');
                                 } else {
+                                  if (!context.mounted) return;
                                   Navigator.pop(context);
 
                                   context.goNamed('home');
                                 }
                               } else {
-                                if (widget.keyword == 'DELETE-RECIPE-EDIT') {
-                                  await widget.recipeID!.delete();
-                                  setState(() {
-                                    FFAppState().isEditRecipeContentDeleted =
-                                        true;
-                                  });
-                                  if (FFAppState()
-                                          .savedRecipeList
-                                          .contains(widget.recipeID) ==
+                                if (keyword == 'DELETE-RECIPE-EDIT') {
+                                  await recipeID!.delete();
+                                  AppCubit.instance.setIsEditRecipeContentDeleted(true);
+                                  if (AppCubit.instance.state.savedRecipeList
+                                          .contains(recipeID) ==
                                       true) {
-                                    setState(() {
-                                      FFAppState().removeFromSavedRecipeList(
-                                          widget.recipeID!);
-                                    });
+                                    AppCubit.instance.removeFromSavedRecipeList(recipeID!);
 
                                     await cardModalBasicSavedRecipeRecord!
                                         .reference
@@ -216,30 +166,27 @@ class _ConfirmationModalComponentWidgetState
                                         {
                                           'saved_meal_recipe_id':
                                               FieldValue.arrayRemove(
-                                                  [widget.recipeID]),
+                                                  [recipeID]),
                                         },
                                       ),
                                     });
+                                    if (!context.mounted) return;
                                     Navigator.pop(context);
 
                                     context.goNamed('home');
                                   } else {
+                                    if (!context.mounted) return;
                                     Navigator.pop(context);
 
                                     context.goNamed('home');
                                   }
                                 } else {
-                                  if (widget.keyword ==
-                                      'DELETE-RECIPE-DETAILS') {
-                                    await widget.recipeID!.delete();
-                                    if (FFAppState()
-                                            .savedRecipeList
-                                            .contains(widget.recipeID) ==
+                                  if (keyword == 'DELETE-RECIPE-DETAILS') {
+                                    await recipeID!.delete();
+                                    if (AppCubit.instance.state.savedRecipeList
+                                            .contains(recipeID) ==
                                         true) {
-                                      setState(() {
-                                        FFAppState().removeFromSavedRecipeList(
-                                            widget.recipeID!);
-                                      });
+                                      AppCubit.instance.removeFromSavedRecipeList(recipeID!);
 
                                       await cardModalBasicSavedRecipeRecord!
                                           .reference
@@ -248,14 +195,16 @@ class _ConfirmationModalComponentWidgetState
                                           {
                                             'saved_meal_recipe_id':
                                                 FieldValue.arrayRemove(
-                                                    [widget.recipeID]),
+                                                    [recipeID]),
                                           },
                                         ),
                                       });
+                                      if (!context.mounted) return;
                                       Navigator.pop(context);
 
                                       context.goNamed('home');
                                     } else {
+                                      if (!context.mounted) return;
                                       Navigator.pop(context);
 
                                       context.goNamed('home');
@@ -264,12 +213,12 @@ class _ConfirmationModalComponentWidgetState
                                 }
                               }
                             },
-                            text: widget.deleteBtnText!,
+                            text: deleteBtnText!,
                             options: FFButtonOptions(
                               height: 40.0,
-                              padding: EdgeInsetsDirectional.fromSTEB(
+                              padding: const EdgeInsetsDirectional.fromSTEB(
                                   24.0, 0.0, 24.0, 0.0),
-                              iconPadding: EdgeInsetsDirectional.fromSTEB(
+                              iconPadding: const EdgeInsetsDirectional.fromSTEB(
                                   0.0, 0.0, 0.0, 0.0),
                               color: FlutterFlowTheme.of(context)
                                   .secondaryBackground,
@@ -283,7 +232,7 @@ class _ConfirmationModalComponentWidgetState
                                     fontWeight: FontWeight.w600,
                                   ),
                               elevation: 0.0,
-                              borderRadius: BorderRadius.only(
+                              borderRadius: const BorderRadius.only(
                                 bottomLeft: Radius.circular(0.0),
                                 bottomRight: Radius.circular(0.0),
                                 topLeft: Radius.circular(0.0),
@@ -297,20 +246,13 @@ class _ConfirmationModalComponentWidgetState
                           ),
                           FFButtonWidget(
                             onPressed: () async {
-                              if (widget.keyword == 'DELETE-RECIPE-ADD') {
-                                setState(() {
-                                  FFAppState().isAddRecipeContentDeleted =
-                                      false;
-                                });
+                              if (keyword == 'DELETE-RECIPE-ADD') {
+                                AppCubit.instance.setIsAddRecipeContentDeleted(false);
                               } else {
-                                if (widget.keyword == 'DELETE-RECIPE-EDIT') {
-                                  setState(() {
-                                    FFAppState().isEditRecipeContentDeleted =
-                                        false;
-                                  });
+                                if (keyword == 'DELETE-RECIPE-EDIT') {
+                                  AppCubit.instance.setIsEditRecipeContentDeleted(false);
                                 } else {
-                                  if (widget.keyword ==
-                                      '\'DELETE-RECIPE-DETAILS') {
+                                  if (keyword == '\'DELETE-RECIPE-DETAILS') {
                                     Navigator.pop(context);
                                   }
                                 }
@@ -318,12 +260,12 @@ class _ConfirmationModalComponentWidgetState
 
                               Navigator.pop(context);
                             },
-                            text: widget.cancelBtnText!,
+                            text: cancelBtnText!,
                             options: FFButtonOptions(
                               height: 40.0,
-                              padding: EdgeInsetsDirectional.fromSTEB(
+                              padding: const EdgeInsetsDirectional.fromSTEB(
                                   24.0, 0.0, 24.0, 0.0),
-                              iconPadding: EdgeInsetsDirectional.fromSTEB(
+                              iconPadding: const EdgeInsetsDirectional.fromSTEB(
                                   0.0, 0.0, 0.0, 0.0),
                               color: FlutterFlowTheme.of(context)
                                   .secondaryBackground,
@@ -345,7 +287,7 @@ class _ConfirmationModalComponentWidgetState
                                   FlutterFlowTheme.of(context).primaryText,
                             ),
                           ),
-                        ].divide(SizedBox(height: 8.0)),
+                        ].divide(const SizedBox(height: 8.0)),
                       ),
                     ),
                   ],

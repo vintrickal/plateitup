@@ -1,17 +1,8 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
+// MVP mode: no real Firebase. `initFirebase()` now seeds the in-memory
+// `mockFirestore` instead of calling `Firebase.initializeApp()`. Every
+// `XRecord.collection` getter in `lib/backend/schema/*_record.dart` reads
+// from that mock instance. See `lib/mock/mock_firestore.dart` for the seed.
 
-Future initFirebase() async {
-  if (kIsWeb) {
-    await Firebase.initializeApp(
-        options: FirebaseOptions(
-            apiKey: "AIzaSyAAHfDVgIxu0nxjeF3KvvTQg7UChWSO8zk",
-            authDomain: "plateitup-89054.firebaseapp.com",
-            projectId: "plateitup-89054",
-            storageBucket: "plateitup-89054.appspot.com",
-            messagingSenderId: "962369962598",
-            appId: "1:962369962598:web:3517e23e6cf251418ae3a7"));
-  } else {
-    await Firebase.initializeApp();
-  }
-}
+import '../../mock/mock_firestore.dart';
+
+Future<void> initFirebase() => seedMockData();

@@ -1,70 +1,60 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:rxdart/rxdart.dart';
+// MVP mode: no Firebase Auth. The "user" is a hardcoded `_DemoAuthUser` whose
+// `loggedIn` is always true and whose `uid` matches the demo user seeded in
+// `lib/mock/mock_firestore.dart`. Everything downstream (`AppStateNotifier`,
+// `AuthCubit`, `currentUserReference`) sees a normal `BaseAuthUser`.
+
+import 'dart:async';
 
 import '../base_auth_user_provider.dart';
+import '/mock/sample_data.dart';
 
 export '../base_auth_user_provider.dart';
 
 class PlateitupFirebaseUser extends BaseAuthUser {
-  PlateitupFirebaseUser(this.user);
-  User? user;
-  bool get loggedIn => user != null;
+  PlateitupFirebaseUser([dynamic _]);
 
   @override
-  AuthUserInfo get authUserInfo => AuthUserInfo(
-        uid: user?.uid,
-        email: user?.email,
-        displayName: user?.displayName,
-        photoUrl: user?.photoURL,
-        phoneNumber: user?.phoneNumber,
+  bool get loggedIn => true;
+
+  @override
+  AuthUserInfo get authUserInfo => const AuthUserInfo(
+        uid: demoUserUid,
+        email: 'demo@plateitup.app',
+        displayName: 'Demo User',
+        photoUrl:
+            'https://res.cloudinary.com/hz3gmuqw6/image/upload/c_fill,q_auto,w_512/f_auto/plating-food-phpsUAQLM',
+        phoneNumber: '',
       );
 
   @override
-  Future? delete() => user?.delete();
+  Future? delete() async {/* no-op in MVP */}
 
   @override
-  Future? updateEmail(String email) async {
-    try {
-      await user?.updateEmail(email);
-    } catch (_) {
-      await user?.verifyBeforeUpdateEmail(email);
-    }
-  }
+  Future? updateEmail(String email) async {/* no-op in MVP */}
 
   @override
-  Future? sendEmailVerification() => user?.sendEmailVerification();
+  Future? sendEmailVerification() async {/* no-op in MVP */}
 
   @override
-  bool get emailVerified {
-    // Reloads the user when checking in order to get the most up to date
-    // email verified status.
-    if (loggedIn && !user!.emailVerified) {
-      refreshUser();
-    }
-    return user?.emailVerified ?? false;
-  }
+  bool get emailVerified => true;
 
   @override
-  Future refreshUser() async {
-    await FirebaseAuth.instance.currentUser
-        ?.reload()
-        .then((_) => user = FirebaseAuth.instance.currentUser);
-  }
+  Future refreshUser() async {/* no-op in MVP */}
 
-  static BaseAuthUser fromUserCredential(UserCredential userCredential) =>
-      fromFirebaseUser(userCredential.user);
-  static BaseAuthUser fromFirebaseUser(User? user) =>
-      PlateitupFirebaseUser(user);
+  // Kept for source-compatibility with call sites in AuthCubit that used
+  // `PlateitupFirebaseUser.fromUserCredential(cred)`.
+  static BaseAuthUser fromUserCredential(dynamic _) =>
+      PlateitupFirebaseUser();
+
+  static BaseAuthUser fromFirebaseUser(dynamic _) =>
+      PlateitupFirebaseUser();
 }
 
-Stream<BaseAuthUser> plateitupFirebaseUserStream() => FirebaseAuth.instance
-        .authStateChanges()
-        .debounce((user) => user == null && !loggedIn
-            ? TimerStream(true, const Duration(seconds: 1))
-            : Stream.value(user))
-        .map<BaseAuthUser>(
-      (user) {
-        currentUser = PlateitupFirebaseUser(user);
-        return currentUser!;
-      },
-    );
+/// Stream that emits a logged-in demo user immediately, then never again.
+/// Replaces the Firebase auth-state stream that used to drive the splash
+/// and the redirect machinery.
+Stream<BaseAuthUser> plateitupFirebaseUserStream() {
+  final user = PlateitupFirebaseUser();
+  currentUser = user;
+  return Stream.value(user);
+}

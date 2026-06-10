@@ -1,19 +1,18 @@
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'pairing_screen_model.dart';
-export 'pairing_screen_model.dart';
+import '/cubits/app/app_cubit.dart';
 
+/// Partner-pairing flow: shows the user's invite code and accepts a partner's
+/// code to create reciprocal [PairedUserRecord] documents on both sides.
 class PairingScreenWidget extends StatefulWidget {
   const PairingScreenWidget({
     super.key,
@@ -27,55 +26,41 @@ class PairingScreenWidget extends StatefulWidget {
 }
 
 class _PairingScreenWidgetState extends State<PairingScreenWidget> {
-  late PairingScreenModel _model;
-
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  final FocusNode _unfocusNode = FocusNode();
+  final TextEditingController _partnerCodeTextfieldTextController =
+      TextEditingController();
+  final FocusNode _partnerCodeTextfieldFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => PairingScreenModel());
-
-    // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.partnerStatusQuery = await queryPairedUserRecordOnce(
+      final partnerStatusQuery = await queryPairedUserRecordOnce(
         queryBuilder: (pairedUserRecord) => pairedUserRecord.where(
           'recipient',
           isEqualTo: currentUserReference,
         ),
         singleRecord: true,
       ).then((s) => s.firstOrNull);
-      if ((_model.partnerStatusQuery != null) == true) {
-        setState(() {
-          FFAppState().hasPartner = true;
-        });
-      } else {
-        setState(() {
-          FFAppState().hasPartner = false;
-        });
-      }
+      if (!mounted) return;
+      AppCubit.instance.setHasPartner(partnerStatusQuery != null);
     });
-
-    _model.partnerCodeTextfieldTextController ??= TextEditingController();
-    _model.partnerCodeTextfieldFocusNode ??= FocusNode();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
   }
 
   @override
   void dispose() {
-    _model.dispose();
-
+    _unfocusNode.dispose();
+    _partnerCodeTextfieldFocusNode.dispose();
+    _partnerCodeTextfieldTextController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
     return GestureDetector(
-      onTap: () => _model.unfocusNode.canRequestFocus
-          ? FocusScope.of(context).requestFocus(_model.unfocusNode)
+      onTap: () => _unfocusNode.canRequestFocus
+          ? FocusScope.of(context).requestFocus(_unfocusNode)
           : FocusScope.of(context).unfocus(),
       child: Scaffold(
         key: scaffoldKey,
@@ -83,7 +68,8 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
         body: SafeArea(
           top: true,
           child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
+            padding:
+                const EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
             child: Container(
               width: double.infinity,
               height: double.infinity,
@@ -92,12 +78,11 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
               ),
               child: SingleChildScrollView(
                 child: Column(
-                  mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Align(
-                      alignment: AlignmentDirectional(1.0, -1.0),
+                      alignment: const AlignmentDirectional(1.0, -1.0),
                       child: FlutterFlowIconButton(
                         borderRadius: 20.0,
                         borderWidth: 1.0,
@@ -110,9 +95,9 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                         ),
                         onPressed: () async {
                           setState(() {
-                            _model.partnerCodeTextfieldTextController?.clear();
+                            _partnerCodeTextfieldTextController.clear();
                           });
-                          _model.establishedPartner =
+                          final establishedPartner =
                               await queryPairedUserRecordOnce(
                             queryBuilder: (pairedUserRecord) =>
                                 pairedUserRecord.where(
@@ -121,7 +106,8 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                             ),
                             singleRecord: true,
                           ).then((s) => s.firstOrNull);
-                          if ((_model.establishedPartner != null) == true) {
+                          if (!context.mounted) return;
+                          if (establishedPartner != null) {
                             context.goNamed(
                               'profile_screen',
                               queryParameters: {
@@ -130,7 +116,7 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                   ParamType.DocumentReference,
                                 ),
                                 'partnerRef': serializeParam(
-                                  _model.establishedPartner?.sender,
+                                  establishedPartner.sender,
                                   ParamType.DocumentReference,
                                 ),
                               }.withoutNulls,
@@ -138,8 +124,6 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                           } else {
                             context.safePop();
                           }
-
-                          setState(() {});
                         },
                       ),
                     ),
@@ -165,10 +149,10 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                           ),
                     ),
                     Align(
-                      alignment: AlignmentDirectional(0.0, 0.0),
+                      alignment: const AlignmentDirectional(0.0, 0.0),
                       child: Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 32.0, 0.0, 0.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 32.0, 0.0, 0.0),
                         child: Stack(
                           children: [
                             Stack(
@@ -189,9 +173,8 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                           .alternate,
                                     ),
                                     child: Padding(
-                                      padding: EdgeInsets.all(12.0),
+                                      padding: const EdgeInsets.all(12.0),
                                       child: Column(
-                                        mainAxisSize: MainAxisSize.max,
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
@@ -210,11 +193,11 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                 ),
                                           ),
                                           Row(
-                                            mainAxisSize: MainAxisSize.max,
                                             children: [
                                               Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         0.0, 0.0, 8.0, 0.0),
                                                 child: Text(
                                                   'My code: ',
@@ -223,8 +206,8 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                       .bodyMedium
                                                       .override(
                                                         fontFamily: 'Poppins',
-                                                        color:
-                                                            Color(0xFF55555C),
+                                                        color: const Color(
+                                                            0xFF55555C),
                                                         fontSize: 14.0,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
@@ -237,23 +220,25 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                   widget.uniqueCode,
                                                   'unique-code',
                                                 ),
-                                                style:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          fontFamily: 'Poppins',
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMedium
+                                                    .override(
+                                                      fontFamily: 'Poppins',
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
                                                               .success,
-                                                          fontSize: 14.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
+                                                      fontSize: 14.0,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
                                               ),
                                               Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         8.0, 0.0, 0.0, 0.0),
                                                 child: InkWell(
                                                   splashColor:
@@ -280,8 +265,10 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                             fontSize: 16.0,
                                                           ),
                                                         ),
-                                                        duration: Duration(
-                                                            milliseconds: 4000),
+                                                        duration:
+                                                            const Duration(
+                                                                milliseconds:
+                                                                    4000),
                                                         backgroundColor:
                                                             FlutterFlowTheme.of(
                                                                     context)
@@ -295,9 +282,10 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                   },
                                                   child: Icon(
                                                     Icons.content_copy,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .success,
+                                                    color:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .success,
                                                     size: 24.0,
                                                   ),
                                                 ),
@@ -305,26 +293,32 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                             ],
                                           ),
                                         ]
-                                            .divide(SizedBox(height: 8.0))
-                                            .addToStart(SizedBox(height: 8.0)),
+                                            .divide(
+                                                const SizedBox(height: 8.0))
+                                            .addToStart(
+                                                const SizedBox(height: 8.0)),
                                       ),
                                     ),
                                   ),
                                 ),
                                 Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0.0, 135.0, 0.0, 0.0),
+                                  padding:
+                                      const EdgeInsetsDirectional.fromSTEB(
+                                          0.0, 135.0, 0.0, 0.0),
                                   child: Card(
-                                    clipBehavior: Clip.antiAliasWithSaveLayer,
+                                    clipBehavior:
+                                        Clip.antiAliasWithSaveLayer,
                                     color: FlutterFlowTheme.of(context)
                                         .secondaryBackground,
                                     elevation: 0.0,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
+                                      borderRadius:
+                                          BorderRadius.circular(8.0),
                                     ),
                                     child: Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          0.0, 0.0, 0.0, 8.0),
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                              0.0, 0.0, 0.0, 8.0),
                                       child: Container(
                                         width: double.infinity,
                                         height: 180.0,
@@ -335,151 +329,140 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                               BorderRadius.circular(8.0),
                                         ),
                                         child: Padding(
-                                          padding: EdgeInsets.all(12.0),
+                                          padding: const EdgeInsets.all(12.0),
                                           child: Column(
-                                            mainAxisSize: MainAxisSize.max,
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Container(
-                                                decoration: BoxDecoration(),
-                                                child: Text(
-                                                  'I have my partner\'s code',
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        fontFamily: 'Poppins',
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                        fontSize: 16.0,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                ),
+                                              Text(
+                                                'I have my partner\'s code',
+                                                style:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          fontFamily: 'Poppins',
+                                                          color:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .primaryText,
+                                                          fontSize: 16.0,
+                                                          letterSpacing: 0.0,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
                                               ),
                                               Container(
                                                 height: 50.0,
                                                 decoration: BoxDecoration(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .accent4,
+                                                  color:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .accent4,
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           8.0),
                                                 ),
                                                 child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.max,
                                                   children: [
                                                     Expanded(
-                                                      child: Container(
-                                                        decoration:
-                                                            BoxDecoration(),
-                                                        child: Padding(
-                                                          padding:
-                                                              EdgeInsetsDirectional
-                                                                  .fromSTEB(
-                                                                      8.0,
-                                                                      0.0,
-                                                                      0.0,
-                                                                      0.0),
-                                                          child: TextFormField(
-                                                            controller: _model
-                                                                .partnerCodeTextfieldTextController,
-                                                            focusNode: _model
-                                                                .partnerCodeTextfieldFocusNode,
-                                                            autofocus: true,
-                                                            obscureText: false,
-                                                            decoration:
-                                                                InputDecoration(
-                                                              labelStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .labelMedium
-                                                                      .override(
-                                                                        fontFamily:
-                                                                            'Poppins',
-                                                                        letterSpacing:
-                                                                            0.0,
-                                                                      ),
-                                                              hintText:
-                                                                  'Enter Code',
-                                                              hintStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .labelMedium
-                                                                      .override(
-                                                                        fontFamily:
-                                                                            'Poppins',
-                                                                        letterSpacing:
-                                                                            0.0,
-                                                                        fontWeight:
-                                                                            FontWeight.w500,
-                                                                      ),
-                                                              enabledBorder:
-                                                                  InputBorder
-                                                                      .none,
-                                                              focusedBorder:
-                                                                  InputBorder
-                                                                      .none,
-                                                              errorBorder:
-                                                                  InputBorder
-                                                                      .none,
-                                                              focusedErrorBorder:
-                                                                  InputBorder
-                                                                      .none,
-                                                            ),
-                                                            style: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  fontFamily:
-                                                                      'Poppins',
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w500,
-                                                                ),
-                                                            validator: _model
-                                                                .partnerCodeTextfieldTextControllerValidator
-                                                                .asValidator(
-                                                                    context),
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsetsDirectional
+                                                                .fromSTEB(
+                                                                8.0,
+                                                                0.0,
+                                                                0.0,
+                                                                0.0),
+                                                        child: TextFormField(
+                                                          controller:
+                                                              _partnerCodeTextfieldTextController,
+                                                          focusNode:
+                                                              _partnerCodeTextfieldFocusNode,
+                                                          autofocus: true,
+                                                          obscureText: false,
+                                                          decoration:
+                                                              InputDecoration(
+                                                            labelStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelMedium
+                                                                    .override(
+                                                                      fontFamily:
+                                                                          'Poppins',
+                                                                      letterSpacing:
+                                                                          0.0,
+                                                                    ),
+                                                            hintText:
+                                                                'Enter Code',
+                                                            hintStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .labelMedium
+                                                                    .override(
+                                                                      fontFamily:
+                                                                          'Poppins',
+                                                                      letterSpacing:
+                                                                          0.0,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w500,
+                                                                    ),
+                                                            enabledBorder:
+                                                                InputBorder
+                                                                    .none,
+                                                            focusedBorder:
+                                                                InputBorder
+                                                                    .none,
+                                                            errorBorder:
+                                                                InputBorder
+                                                                    .none,
+                                                            focusedErrorBorder:
+                                                                InputBorder
+                                                                    .none,
                                                           ),
+                                                          style:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .override(
+                                                                    fontFamily:
+                                                                        'Poppins',
+                                                                    letterSpacing:
+                                                                        0.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w500,
+                                                                  ),
                                                         ),
                                                       ),
                                                     ),
                                                     FFButtonWidget(
                                                       onPressed: () async {
-                                                        if (_model
-                                                                .partnerCodeTextfieldTextController
+                                                        if (_partnerCodeTextfieldTextController
                                                                 .text !=
                                                             '') {
-                                                          _model.partnerDetails =
+                                                          final partnerDetails =
                                                               await queryUsersRecordOnce(
                                                             queryBuilder:
                                                                 (usersRecord) =>
                                                                     usersRecord
                                                                         .where(
                                                               'unique_code',
-                                                              isEqualTo: _model
-                                                                  .partnerCodeTextfieldTextController
-                                                                  .text,
+                                                              isEqualTo:
+                                                                  _partnerCodeTextfieldTextController
+                                                                      .text,
                                                             ),
                                                             singleRecord: true,
-                                                          ).then((s) => s
-                                                                  .firstOrNull);
-                                                          if ((_model.partnerDetails !=
-                                                                  null) ==
-                                                              true) {
+                                                          ).then((s) =>
+                                                                  s.firstOrNull);
+                                                          if (!context.mounted) {
+                                                            return;
+                                                          }
+                                                          if (partnerDetails !=
+                                                              null) {
                                                             if (widget
                                                                     .uniqueCode ==
-                                                                _model
-                                                                    .partnerCodeTextfieldTextController
+                                                                _partnerCodeTextfieldTextController
                                                                     .text) {
                                                               ScaffoldMessenger
                                                                       .of(context)
@@ -499,7 +482,7 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                                           14.0,
                                                                     ),
                                                                   ),
-                                                                  duration: Duration(
+                                                                  duration: const Duration(
                                                                       milliseconds:
                                                                           4000),
                                                                   backgroundColor:
@@ -509,24 +492,27 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                                 ),
                                                               );
                                                             } else {
-                                                              _model.partnerHasExistingPaired =
+                                                              final partnerHasExistingPaired =
                                                                   await queryPairedUserRecordOnce(
                                                                 queryBuilder:
                                                                     (pairedUserRecord) =>
                                                                         pairedUserRecord
                                                                             .where(
                                                                   'sender',
-                                                                  isEqualTo: _model
-                                                                      .partnerDetails
-                                                                      ?.reference,
+                                                                  isEqualTo:
+                                                                      partnerDetails
+                                                                          .reference,
                                                                 ),
                                                                 singleRecord:
                                                                     true,
                                                               ).then((s) => s
                                                                       .firstOrNull);
-                                                              if ((_model.partnerHasExistingPaired !=
-                                                                      null) ==
-                                                                  true) {
+                                                              if (!context
+                                                                  .mounted) {
+                                                                return;
+                                                              }
+                                                              if (partnerHasExistingPaired !=
+                                                                  null) {
                                                                 ScaffoldMessenger.of(
                                                                         context)
                                                                     .showSnackBar(
@@ -544,7 +530,7 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                                             14.0,
                                                                       ),
                                                                     ),
-                                                                    duration: Duration(
+                                                                    duration: const Duration(
                                                                         milliseconds:
                                                                             4000),
                                                                     backgroundColor:
@@ -553,7 +539,7 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                                   ),
                                                                 );
                                                               } else {
-                                                                var pairedUserRecordReference1 =
+                                                                final pairedUserRecordReference1 =
                                                                     PairedUserRecord
                                                                         .collection
                                                                         .doc();
@@ -562,85 +548,70 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                                         createPairedUserRecordData(
                                                                   recipient:
                                                                       currentUserReference,
-                                                                  sender: _model
-                                                                      .partnerDetails
-                                                                      ?.reference,
+                                                                  sender:
+                                                                      partnerDetails
+                                                                          .reference,
                                                                   recipientName:
                                                                       currentUserDisplayName,
-                                                                  senderName: _model
-                                                                      .partnerDetails
-                                                                      ?.displayName,
+                                                                  senderName:
+                                                                      partnerDetails
+                                                                          .displayName,
                                                                   recipientPhotoUrl:
                                                                       currentUserPhoto,
-                                                                  senderPhotoUrl: _model
-                                                                      .partnerDetails
-                                                                      ?.photoUrl,
+                                                                  senderPhotoUrl:
+                                                                      partnerDetails
+                                                                          .photoUrl,
                                                                 ));
-                                                                _model.pairedUserDetails =
+                                                                final pairedUserDetails =
                                                                     PairedUserRecord
                                                                         .getDocumentFromData(
                                                                             createPairedUserRecordData(
                                                                               recipient: currentUserReference,
-                                                                              sender: _model.partnerDetails?.reference,
+                                                                              sender: partnerDetails.reference,
                                                                               recipientName: currentUserDisplayName,
-                                                                              senderName: _model.partnerDetails?.displayName,
+                                                                              senderName: partnerDetails.displayName,
                                                                               recipientPhotoUrl: currentUserPhoto,
-                                                                              senderPhotoUrl: _model.partnerDetails?.photoUrl,
+                                                                              senderPhotoUrl: partnerDetails.photoUrl,
                                                                             ),
                                                                             pairedUserRecordReference1);
 
-                                                                var pairedUserRecordReference2 =
+                                                                final pairedUserRecordReference2 =
                                                                     PairedUserRecord
                                                                         .collection
                                                                         .doc();
                                                                 await pairedUserRecordReference2
                                                                     .set(
                                                                         createPairedUserRecordData(
-                                                                  recipient: _model
-                                                                      .partnerDetails
-                                                                      ?.reference,
+                                                                  recipient:
+                                                                      partnerDetails
+                                                                          .reference,
                                                                   sender:
                                                                       currentUserReference,
-                                                                  recipientName: _model
-                                                                      .partnerDetails
-                                                                      ?.displayName,
+                                                                  recipientName:
+                                                                      partnerDetails
+                                                                          .displayName,
                                                                   senderName:
                                                                       currentUserDisplayName,
-                                                                  recipientPhotoUrl: _model
-                                                                      .partnerDetails
-                                                                      ?.photoUrl,
+                                                                  recipientPhotoUrl:
+                                                                      partnerDetails
+                                                                          .photoUrl,
                                                                   senderPhotoUrl:
                                                                       currentUserPhoto,
                                                                 ));
-                                                                _model.pairedUserDetailsPartnerside =
-                                                                    PairedUserRecord
-                                                                        .getDocumentFromData(
-                                                                            createPairedUserRecordData(
-                                                                              recipient: _model.partnerDetails?.reference,
-                                                                              sender: currentUserReference,
-                                                                              recipientName: _model.partnerDetails?.displayName,
-                                                                              senderName: currentUserDisplayName,
-                                                                              recipientPhotoUrl: _model.partnerDetails?.photoUrl,
-                                                                              senderPhotoUrl: currentUserPhoto,
-                                                                            ),
-                                                                            pairedUserRecordReference2);
-                                                                setState(() {
-                                                                  FFAppState()
-                                                                          .hasPartner =
-                                                                      true;
-                                                                  FFAppState()
-                                                                          .pairedUserCollection =
-                                                                      _model
-                                                                          .pairedUserDetails
-                                                                          ?.reference;
-                                                                });
+                                                                if (!context
+                                                                    .mounted) {
+                                                                  return;
+                                                                }
+                                                                AppCubit.instance.setHasPartner(true);
+                                                                AppCubit.instance.setPairedUserCollection(pairedUserDetails
+                                                                        .reference);
                                                                 ScaffoldMessenger.of(
                                                                         context)
                                                                     .showSnackBar(
                                                                   SnackBar(
                                                                     content:
                                                                         Text(
-                                                                      'You have successfully paired with ${_model.partnerDetails?.displayName}',
+                                                                      'You have successfully paired with ${partnerDetails.displayName}',
                                                                       style:
                                                                           TextStyle(
                                                                         color: FlutterFlowTheme.of(context)
@@ -651,7 +622,7 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                                             14.0,
                                                                       ),
                                                                     ),
-                                                                    duration: Duration(
+                                                                    duration: const Duration(
                                                                         milliseconds:
                                                                             4000),
                                                                     backgroundColor:
@@ -672,9 +643,8 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                                     ),
                                                                     'partnerRef':
                                                                         serializeParam(
-                                                                      _model
-                                                                          .partnerDetails
-                                                                          ?.reference,
+                                                                      partnerDetails
+                                                                          .reference,
                                                                       ParamType
                                                                           .DocumentReference,
                                                                     ),
@@ -701,7 +671,7 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                                         13.0,
                                                                   ),
                                                                 ),
-                                                                duration: Duration(
+                                                                duration: const Duration(
                                                                     milliseconds:
                                                                         4000),
                                                                 backgroundColor:
@@ -712,26 +682,24 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                             );
                                                           }
                                                         }
-
-                                                        setState(() {});
                                                       },
                                                       text: 'Connect',
                                                       options: FFButtonOptions(
                                                         height: 50.0,
                                                         padding:
-                                                            EdgeInsetsDirectional
+                                                            const EdgeInsetsDirectional
                                                                 .fromSTEB(
-                                                                    12.0,
-                                                                    0.0,
-                                                                    12.0,
-                                                                    0.0),
+                                                                12.0,
+                                                                0.0,
+                                                                12.0,
+                                                                0.0),
                                                         iconPadding:
-                                                            EdgeInsetsDirectional
+                                                            const EdgeInsetsDirectional
                                                                 .fromSTEB(
-                                                                    0.0,
-                                                                    0.0,
-                                                                    0.0,
-                                                                    0.0),
+                                                                0.0,
+                                                                0.0,
+                                                                0.0,
+                                                                0.0),
                                                         color:
                                                             FlutterFlowTheme.of(
                                                                     context)
@@ -751,13 +719,15 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                                       0.0,
                                                                 ),
                                                         elevation: 3.0,
-                                                        borderSide: BorderSide(
-                                                          color: Colors
-                                                              .transparent,
+                                                        borderSide:
+                                                            const BorderSide(
+                                                          color:
+                                                              Colors.transparent,
                                                           width: 1.0,
                                                         ),
                                                         borderRadius:
-                                                            BorderRadius.only(
+                                                            const BorderRadius
+                                                                .only(
                                                           bottomLeft:
                                                               Radius.circular(
                                                                   0.0),
@@ -777,9 +747,10 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                                 ),
                                               ),
                                             ]
-                                                .divide(SizedBox(height: 32.0))
-                                                .addToStart(
-                                                    SizedBox(height: 16.0)),
+                                                .divide(const SizedBox(
+                                                    height: 32.0))
+                                                .addToStart(const SizedBox(
+                                                    height: 16.0)),
                                           ),
                                         ),
                                       ),
@@ -787,10 +758,12 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                   ),
                                 ),
                                 Align(
-                                  alignment: AlignmentDirectional(0.0, 0.0),
+                                  alignment:
+                                      const AlignmentDirectional(0.0, 0.0),
                                   child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        0.0, 95.0, 0.0, 0.0),
+                                    padding:
+                                        const EdgeInsetsDirectional.fromSTEB(
+                                            0.0, 95.0, 0.0, 0.0),
                                     child: Container(
                                       width: 50.0,
                                       height: 50.0,
@@ -805,8 +778,8 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                                         ),
                                       ),
                                       child: Align(
-                                        alignment:
-                                            AlignmentDirectional(0.0, 0.0),
+                                        alignment: const AlignmentDirectional(
+                                            0.0, 0.0),
                                         child: Text(
                                           'or',
                                           style: FlutterFlowTheme.of(context)
@@ -826,7 +799,7 @@ class _PairingScreenWidgetState extends State<PairingScreenWidget> {
                         ),
                       ),
                     ),
-                  ].divide(SizedBox(height: 16.0)),
+                  ].divide(const SizedBox(height: 16.0)),
                 ),
               ),
             ),

@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 
 import '/backend/schema/util/firestore_util.dart';
 import '/backend/schema/util/schema_util.dart';
+import '/mock/mock_firestore.dart';
 
 import 'index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -48,7 +49,7 @@ class ReviewRecord extends FirestoreRecord {
   static Query<Map<String, dynamic>> collection([DocumentReference? parent]) =>
       parent != null
           ? parent.collection('review')
-          : FirebaseFirestore.instance.collectionGroup('review');
+          : mockFirestore.collectionGroup('review');
 
   static DocumentReference createDoc(DocumentReference parent, {String? id}) =>
       parent.collection('review').doc(id);

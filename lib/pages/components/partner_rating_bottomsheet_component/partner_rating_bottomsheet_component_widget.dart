@@ -1,18 +1,14 @@
-import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
-import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/pages/components/go_to_history_component/go_to_history_component_widget.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'partner_rating_bottomsheet_component_model.dart';
-export 'partner_rating_bottomsheet_component_model.dart';
 
+/// Bottom-sheet that lets a user rate a meal cooked by their partner and
+/// leave feedback, writing a new PartnerReviewRecord and marking the
+/// associated notification as reviewed on submit.
 class PartnerRatingBottomsheetComponentWidget extends StatefulWidget {
   const PartnerRatingBottomsheetComponentWidget({
     super.key,
@@ -32,30 +28,14 @@ class PartnerRatingBottomsheetComponentWidget extends StatefulWidget {
 
 class _PartnerRatingBottomsheetComponentWidgetState
     extends State<PartnerRatingBottomsheetComponentWidget> {
-  late PartnerRatingBottomsheetComponentModel _model;
-
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _model =
-        createModel(context, () => PartnerRatingBottomsheetComponentModel());
-
-    _model.feedbackFormTextController ??= TextEditingController();
-    _model.feedbackFormFocusNode ??= FocusNode();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
+  double? _starValue;
+  final TextEditingController _feedbackController = TextEditingController();
+  final FocusNode _feedbackFocus = FocusNode();
 
   @override
   void dispose() {
-    _model.maybeDispose();
-
+    _feedbackController.dispose();
+    _feedbackFocus.dispose();
     super.dispose();
   }
 
@@ -64,7 +44,7 @@ class _PartnerRatingBottomsheetComponentWidgetState
     return Material(
       color: Colors.transparent,
       elevation: 5.0,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(0.0),
           bottomRight: Radius.circular(0.0),
@@ -77,7 +57,7 @@ class _PartnerRatingBottomsheetComponentWidgetState
         height: 370.0,
         decoration: BoxDecoration(
           color: FlutterFlowTheme.of(context).secondaryBackground,
-          borderRadius: BorderRadius.only(
+          borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(0.0),
             bottomRight: Radius.circular(0.0),
             topLeft: Radius.circular(16.0),
@@ -86,11 +66,11 @@ class _PartnerRatingBottomsheetComponentWidgetState
         ),
         child: SingleChildScrollView(
           child: Column(
-            mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 0.0, 0.0),
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                    16.0, 12.0, 0.0, 0.0),
                 child: Text(
                   'How was your meal?',
                   style: FlutterFlowTheme.of(context).headlineMedium.override(
@@ -101,7 +81,8 @@ class _PartnerRatingBottomsheetComponentWidgetState
                 ),
               ),
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 4.0, 0.0, 0.0),
+                padding:
+                    const EdgeInsetsDirectional.fromSTEB(16.0, 4.0, 0.0, 0.0),
                 child: Text(
                   'Let your partner know what you think',
                   style: FlutterFlowTheme.of(context).labelMedium.override(
@@ -112,19 +93,19 @@ class _PartnerRatingBottomsheetComponentWidgetState
                 ),
               ),
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 0.0),
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                    16.0, 12.0, 16.0, 0.0),
                 child: Row(
-                  mainAxisSize: MainAxisSize.max,
                   children: [
                     RatingBar.builder(
                       onRatingUpdate: (newValue) =>
-                          setState(() => _model.mealRatingStarValue = newValue),
+                          setState(() => _starValue = newValue),
                       itemBuilder: (context, index) => Icon(
                         Icons.star_rounded,
                         color: FlutterFlowTheme.of(context).tertiary,
                       ),
                       direction: Axis.horizontal,
-                      initialRating: _model.mealRatingStarValue ??= 0.0,
+                      initialRating: _starValue ?? 0.0,
                       unratedColor: FlutterFlowTheme.of(context).accent3,
                       itemCount: 5,
                       itemSize: 32.0,
@@ -134,10 +115,11 @@ class _PartnerRatingBottomsheetComponentWidgetState
                 ),
               ),
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                    16.0, 16.0, 16.0, 0.0),
                 child: TextFormField(
-                  controller: _model.feedbackFormTextController,
-                  focusNode: _model.feedbackFormFocusNode,
+                  controller: _feedbackController,
+                  focusNode: _feedbackFocus,
                   obscureText: false,
                   decoration: InputDecoration(
                     hintText: 'Enter your feedback here...',
@@ -174,8 +156,8 @@ class _PartnerRatingBottomsheetComponentWidgetState
                       ),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    contentPadding:
-                        EdgeInsetsDirectional.fromSTEB(20.0, 32.0, 20.0, 12.0),
+                    contentPadding: const EdgeInsetsDirectional.fromSTEB(
+                        20.0, 32.0, 20.0, 12.0),
                   ),
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily: 'Poppins',
@@ -186,53 +168,50 @@ class _PartnerRatingBottomsheetComponentWidgetState
                   maxLength: 200,
                   maxLengthEnforcement: MaxLengthEnforcement.enforced,
                   keyboardType: TextInputType.multiline,
-                  validator: _model.feedbackFormTextControllerValidator
-                      .asValidator(context),
                 ),
               ),
               Row(
-                mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Builder(
                     builder: (context) => Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 44.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          0.0, 24.0, 0.0, 44.0),
                       child: FFButtonWidget(
                         onPressed: () async {
-                          if (_model.mealRatingStarValue == 0.0) {
+                          if (_starValue == null || _starValue == 0.0) {
                             await showDialog(
                               context: context,
                               builder: (alertDialogContext) {
                                 return AlertDialog(
-                                  title: Text('0-Star'),
-                                  content: Text(
+                                  title: const Text('0-Star'),
+                                  content: const Text(
                                       'You forgot to rate it with a star!'),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
                                           Navigator.pop(alertDialogContext),
-                                      child: Text('Ok'),
+                                      child: const Text('Ok'),
                                     ),
                                   ],
                                 );
                               },
                             );
                           } else {
-                            if (_model.feedbackFormTextController.text == '') {
+                            if (_feedbackController.text == '') {
                               await showDialog(
                                 context: context,
                                 builder: (alertDialogContext) {
                                   return AlertDialog(
-                                    title: Text('Empty Feedback Form'),
-                                    content:
-                                        Text('You forgot to leave a feedback!'),
+                                    title: const Text('Empty Feedback Form'),
+                                    content: const Text(
+                                        'You forgot to leave a feedback!'),
                                     actions: [
                                       TextButton(
                                         onPressed: () =>
                                             Navigator.pop(alertDialogContext),
-                                        child: Text('Ok'),
+                                        child: const Text('Ok'),
                                       ),
                                     ],
                                   );
@@ -245,9 +224,8 @@ class _PartnerRatingBottomsheetComponentWidgetState
                               await partnerReviewRecordReference.set({
                                 ...createPartnerReviewRecordData(
                                   pairedUserRef: widget.pairedUserRef,
-                                  star: _model.mealRatingStarValue?.round(),
-                                  description:
-                                      _model.feedbackFormTextController.text,
+                                  star: _starValue?.round(),
+                                  description: _feedbackController.text,
                                   mealRecipeRef: widget.mealRecipeRef,
                                 ),
                                 ...mapToFirestore(
@@ -257,13 +235,16 @@ class _PartnerRatingBottomsheetComponentWidgetState
                                   },
                                 ),
                               });
-                              _model.partnerReviewItemCreated =
+                              // Hydrate the in-memory record so any downstream
+                              // listener sees a populated value before the
+                              // bottomsheet closes.
+                              // ignore: unused_local_variable
+                              final partnerReviewItemCreated =
                                   PartnerReviewRecord.getDocumentFromData({
                                 ...createPartnerReviewRecordData(
                                   pairedUserRef: widget.pairedUserRef,
-                                  star: _model.mealRatingStarValue?.round(),
-                                  description:
-                                      _model.feedbackFormTextController.text,
+                                  star: _starValue?.round(),
+                                  description: _feedbackController.text,
                                   mealRecipeRef: widget.mealRecipeRef,
                                 ),
                                 ...mapToFirestore(
@@ -277,6 +258,7 @@ class _PartnerRatingBottomsheetComponentWidgetState
                                   createMealRequestedNotificationRecordData(
                                 reviewed: true,
                               ));
+                              if (!context.mounted) return;
                               Navigator.pop(context);
                               await showDialog(
                                 context: context,
@@ -285,26 +267,25 @@ class _PartnerRatingBottomsheetComponentWidgetState
                                     elevation: 0,
                                     insetPadding: EdgeInsets.zero,
                                     backgroundColor: Colors.transparent,
-                                    alignment: AlignmentDirectional(0.0, 0.0)
+                                    alignment: const AlignmentDirectional(
+                                            0.0, 0.0)
                                         .resolve(Directionality.of(context)),
                                     child: GoToHistoryComponentWidget(
                                       pairedUserRef: widget.pairedUserRef!,
                                     ),
                                   );
                                 },
-                              ).then((value) => setState(() {}));
+                              );
                             }
                           }
-
-                          setState(() {});
                         },
                         text: 'Submit',
                         options: FFButtonOptions(
                           width: 270.0,
                           height: 50.0,
-                          padding: EdgeInsetsDirectional.fromSTEB(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
                               0.0, 0.0, 0.0, 0.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
+                          iconPadding: const EdgeInsetsDirectional.fromSTEB(
                               0.0, 0.0, 0.0, 0.0),
                           color: FlutterFlowTheme.of(context).success,
                           textStyle:
@@ -315,7 +296,7 @@ class _PartnerRatingBottomsheetComponentWidgetState
                                     letterSpacing: 0.0,
                                   ),
                           elevation: 3.0,
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: Colors.transparent,
                             width: 1.0,
                           ),

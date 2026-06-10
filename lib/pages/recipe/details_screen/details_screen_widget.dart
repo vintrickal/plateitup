@@ -1,6 +1,16 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
-import '/backend/schema/structs/index.dart';
+import '/cubits/app/app_cubit.dart';
+import '/cubits/app/app_state.dart' as app;
+import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_button_tabbar.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -12,22 +22,14 @@ import '/pages/components/meal_rating_bottomsheet_component/meal_rating_bottomsh
 import '/pages/components/option_author_component/option_author_component_widget.dart';
 import '/pages/components/option_not_author_component/option_not_author_component_widget.dart';
 import '/pages/components/reported_reason_container/reported_reason_container_widget.dart';
-import 'dart:math';
-import '/custom_code/actions/index.dart' as actions;
-import '/flutter_flow/custom_functions.dart' as functions;
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'details_screen_model.dart';
-export 'details_screen_model.dart';
+import 'details_cubit.dart';
+import 'details_state.dart';
 
-class DetailsScreenWidget extends StatefulWidget {
+/// Recipe details screen — Cubit conversion.
+///
+/// [DetailsCubit] owns the page-load aggregation; the widget keeps the
+/// `TabController` (it needs the `TickerProvider`) and the focus node.
+class DetailsScreenWidget extends StatelessWidget {
   const DetailsScreenWidget({
     super.key,
     required this.mealRef,
@@ -38,103 +40,54 @@ class DetailsScreenWidget extends StatefulWidget {
   final DocumentReference? savedRecipeDoc;
 
   @override
-  State<DetailsScreenWidget> createState() => _DetailsScreenWidgetState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => DetailsCubit()..onPageLoad(mealRef: mealRef!),
+      child: _DetailsView(
+        mealRef: mealRef,
+        savedRecipeDoc: savedRecipeDoc,
+      ),
+    );
+  }
 }
 
-class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
-    with TickerProviderStateMixin {
-  late DetailsScreenModel _model;
+class _DetailsView extends StatefulWidget {
+  const _DetailsView({required this.mealRef, required this.savedRecipeDoc});
 
-  final scaffoldKey = GlobalKey<ScaffoldState>();
+  final DocumentReference? mealRef;
+  final DocumentReference? savedRecipeDoc;
 
   @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => DetailsScreenModel());
+  State<_DetailsView> createState() => _DetailsViewState();
+}
 
-    // On page load action.
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.pairedUserCollectionDetails = await queryPairedUserRecordOnce(
-        queryBuilder: (pairedUserRecord) => pairedUserRecord.where(
-          'sender',
-          isEqualTo: currentUserReference,
-        ),
-        singleRecord: true,
-      ).then((s) => s.firstOrNull);
-      _model.reviewCount = await queryReviewRecordCount(
-        parent: widget.mealRef,
-      );
-      if (_model.reviewCount == 0) {
-        setState(() {
-          FFAppState().isReviewTabEmpty = true;
-        });
-      } else {
-        setState(() {
-          FFAppState().isReviewTabEmpty = false;
-        });
-        _model.onloadReviewList = await queryReviewRecordOnce(
-          parent: widget.mealRef,
-        );
-        while (FFAppState().onloadCounter != _model.onloadReviewList?.length) {
-          _model.returnedValueAddingStar = await actions.addingStar(
-            FFAppState().accumulatedStar,
-            _model.onloadReviewList![FFAppState().onloadCounter].star,
-          );
-          setState(() {
-            FFAppState().accumulatedStar = _model.returnedValueAddingStar!;
-          });
-          setState(() {
-            FFAppState().onloadCounter = FFAppState().onloadCounter + 1;
-          });
-        }
-        _model.starAverage = await actions.averageRating(
-          FFAppState().accumulatedStar,
-          FFAppState().onloadCounter,
-        );
-        setState(() {
-          FFAppState().onloadCounter = 0;
-          FFAppState().accumulatedStar = 0;
-        });
-      }
-
-      _model.isReviewExist = await queryReviewRecordOnce(
-        parent: widget.mealRef,
-        queryBuilder: (reviewRecord) => reviewRecord.where(
-          'user_ref',
-          isEqualTo: currentUserReference,
-        ),
-        singleRecord: true,
-      ).then((s) => s.firstOrNull);
-      if ((_model.isReviewExist != null) == true) {
-        setState(() {
-          FFAppState().isReviewExist = true;
-        });
-      } else {
-        setState(() {
-          FFAppState().isReviewExist = false;
-        });
-      }
-    });
-
-    _model.tabBarController = TabController(
-      vsync: this,
-      length: 3,
-      initialIndex: 0,
-    )..addListener(() => setState(() {}));
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
+class _DetailsViewState extends State<_DetailsView>
+    with TickerProviderStateMixin {
+  final scaffoldKey = GlobalKey<ScaffoldState>();
+  final _unfocusNode = FocusNode();
+  late final TabController _tabBarController = TabController(
+    vsync: this,
+    length: 3,
+    initialIndex: 0,
+  )..addListener(() => setState(() {}));
 
   @override
   void dispose() {
-    _model.dispose();
-
+    _unfocusNode.dispose();
+    _tabBarController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
+    return BlocBuilder<AppCubit, app.AppState>(
+      builder: (context, _) => BlocBuilder<DetailsCubit, DetailsState>(
+        builder: (context, detailsState) => _buildBody(context, detailsState),
+      ),
+    );
+  }
 
+  Widget _buildBody(BuildContext context, DetailsState detailsState) {
     return StreamBuilder<MealRecipeRecord>(
       stream: MealRecipeRecord.getDocument(widget.mealRef!),
       builder: (context, snapshot) {
@@ -157,15 +110,15 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
         }
         final detailsScreenMealRecipeRecord = snapshot.data!;
         return GestureDetector(
-          onTap: () => _model.unfocusNode.canRequestFocus
-              ? FocusScope.of(context).requestFocus(_model.unfocusNode)
+          onTap: () => _unfocusNode.canRequestFocus
+              ? FocusScope.of(context).requestFocus(_unfocusNode)
               : FocusScope.of(context).unfocus(),
           child: Scaffold(
             key: scaffoldKey,
             backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
             floatingActionButton: Visibility(
-              visible: (FFAppState().isReviewExist == false) &&
-                  (_model.tabBarCurrentIndex == 2) &&
+              visible: (AppCubit.instance.state.isReviewExist == false) &&
+                  (_tabBarController.index == 2) &&
                   (detailsScreenMealRecipeRecord.author !=
                       currentUserReference),
               child: Builder(
@@ -181,9 +134,9 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                           alignment: AlignmentDirectional(0.0, 1.0)
                               .resolve(Directionality.of(context)),
                           child: GestureDetector(
-                            onTap: () => _model.unfocusNode.canRequestFocus
+                            onTap: () => _unfocusNode.canRequestFocus
                                 ? FocusScope.of(context)
-                                    .requestFocus(_model.unfocusNode)
+                                    .requestFocus(_unfocusNode)
                                 : FocusScope.of(context).unfocus(),
                             child: MealRatingBottomsheetComponentWidget(
                               mealRecipeRef: widget.mealRef!,
@@ -347,7 +300,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                           if (detailsScreenMealRecipeRecord
                                                   .author ==
                                               currentUserReference) {
-                                            if (FFAppState().hasPartner ==
+                                            if (AppCubit.instance.state.hasPartner ==
                                                 true) {
                                               await showDialog(
                                                 context: context,
@@ -365,16 +318,10 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                 Directionality.of(
                                                                     context)),
                                                     child: GestureDetector(
-                                                      onTap: () => _model
-                                                              .unfocusNode
+                                                      onTap: () => _unfocusNode
                                                               .canRequestFocus
-                                                          ? FocusScope.of(
-                                                                  context)
-                                                              .requestFocus(_model
-                                                                  .unfocusNode)
-                                                          : FocusScope.of(
-                                                                  context)
-                                                              .unfocus(),
+                                                          ? FocusScope.of(context).requestFocus(_unfocusNode)
+                                                          : FocusScope.of(context).unfocus(),
                                                       child: Container(
                                                         height: 340.0,
                                                         width: 30.0,
@@ -390,9 +337,8 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                           procedureList:
                                                               detailsScreenMealRecipeRecord
                                                                   .procedure,
-                                                          pairedUserRef: _model
-                                                              .pairedUserCollectionDetails
-                                                              ?.reference,
+                                                          pairedUserRef: detailsState
+                                                              .pairedUserSenderRef,
                                                           recipeCategoryList:
                                                               detailsScreenMealRecipeRecord
                                                                   .category,
@@ -420,16 +366,10 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                 Directionality.of(
                                                                     context)),
                                                     child: GestureDetector(
-                                                      onTap: () => _model
-                                                              .unfocusNode
+                                                      onTap: () => _unfocusNode
                                                               .canRequestFocus
-                                                          ? FocusScope.of(
-                                                                  context)
-                                                              .requestFocus(_model
-                                                                  .unfocusNode)
-                                                          : FocusScope.of(
-                                                                  context)
-                                                              .unfocus(),
+                                                          ? FocusScope.of(context).requestFocus(_unfocusNode)
+                                                          : FocusScope.of(context).unfocus(),
                                                       child: Container(
                                                         height: 300.0,
                                                         width: 30.0,
@@ -457,7 +397,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                   (value) => setState(() {}));
                                             }
                                           } else {
-                                            if (FFAppState().hasPartner ==
+                                            if (AppCubit.instance.state.hasPartner ==
                                                 true) {
                                               await showDialog(
                                                 context: context,
@@ -475,16 +415,10 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                 Directionality.of(
                                                                     context)),
                                                     child: GestureDetector(
-                                                      onTap: () => _model
-                                                              .unfocusNode
+                                                      onTap: () => _unfocusNode
                                                               .canRequestFocus
-                                                          ? FocusScope.of(
-                                                                  context)
-                                                              .requestFocus(_model
-                                                                  .unfocusNode)
-                                                          : FocusScope.of(
-                                                                  context)
-                                                              .unfocus(),
+                                                          ? FocusScope.of(context).requestFocus(_unfocusNode)
+                                                          : FocusScope.of(context).unfocus(),
                                                       child: Container(
                                                         height: 230.0,
                                                         width: 30.0,
@@ -495,9 +429,8 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                           mealRef:
                                                               detailsScreenMealRecipeRecord
                                                                   .reference,
-                                                          pairedUserRef: _model
-                                                              .pairedUserCollectionDetails
-                                                              ?.reference,
+                                                          pairedUserRef: detailsState
+                                                              .pairedUserSenderRef,
                                                         ),
                                                       ),
                                                     ),
@@ -522,16 +455,10 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                 Directionality.of(
                                                                     context)),
                                                     child: GestureDetector(
-                                                      onTap: () => _model
-                                                              .unfocusNode
+                                                      onTap: () => _unfocusNode
                                                               .canRequestFocus
-                                                          ? FocusScope.of(
-                                                                  context)
-                                                              .requestFocus(_model
-                                                                  .unfocusNode)
-                                                          : FocusScope.of(
-                                                                  context)
-                                                              .unfocus(),
+                                                          ? FocusScope.of(context).requestFocus(_unfocusNode)
+                                                          : FocusScope.of(context).unfocus(),
                                                       child: Container(
                                                         height: 170.0,
                                                         width: 30.0,
@@ -542,9 +469,8 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                           mealRef:
                                                               detailsScreenMealRecipeRecord
                                                                   .reference,
-                                                          pairedUserRef: _model
-                                                              .pairedUserCollectionDetails
-                                                              ?.reference,
+                                                          pairedUserRef: detailsState
+                                                              .pairedUserSenderRef,
                                                         ),
                                                       ),
                                                     ),
@@ -665,14 +591,10 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                 padding: EdgeInsetsDirectional.fromSTEB(
                                     0.0, 16.0, 0.0, 8.0),
                                 child: StreamBuilder<UsersRecord>(
-                                  stream: _model.userDisplayName(
-                                    uniqueQueryKey: valueOrDefault<String>(
-                                      detailsScreenMealRecipeRecord.author?.id,
-                                      'uid',
-                                    ),
-                                    requestFn: () => UsersRecord.getDocument(
-                                        detailsScreenMealRecipeRecord.author!),
-                                  ),
+                                  // MVP: null-safe author fallback.
+                                  stream: UsersRecord.getDocument(
+                                      detailsScreenMealRecipeRecord.author ??
+                                          currentUserReference!),
                                   builder: (context, snapshot) {
                                     // Customize what your widget looks like when it's loading.
                                     if (!snapshot.hasData) {
@@ -705,27 +627,23 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                             if (detailsScreenMealRecipeRecord
                                                     .author ==
                                                 currentUserReference) {
-                                              _model.doesPairedDataExists =
+                                              // Look up the paired-user record
+                                              // for the current viewer; if
+                                              // one exists, surface the
+                                              // partner uid to AppCubit and
+                                              // open the partner's profile.
+                                              final paired =
                                                   await queryPairedUserRecordOnce(
-                                                queryBuilder:
-                                                    (pairedUserRecord) =>
-                                                        pairedUserRecord.where(
+                                                queryBuilder: (q) => q.where(
                                                   'recipient',
                                                   isEqualTo:
                                                       currentUserReference,
                                                 ),
                                                 singleRecord: true,
                                               ).then((s) => s.firstOrNull);
-                                              if ((_model.doesPairedDataExists !=
-                                                      null) ==
-                                                  true) {
-                                                setState(() {
-                                                  FFAppState().PartnerUID =
-                                                      _model
-                                                          .doesPairedDataExists
-                                                          ?.sender;
-                                                });
-
+                                              if (!context.mounted) return;
+                                              if (paired != null) {
+                                                AppCubit.instance.setPartnerUid(paired.sender);
                                                 context.pushNamed(
                                                   'profile_screen',
                                                   queryParameters: {
@@ -737,16 +655,14 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                     ),
                                                     'partnerRef':
                                                         serializeParam(
-                                                      _model
-                                                          .doesPairedDataExists
-                                                          ?.sender,
+                                                      paired.sender,
                                                       ParamType
                                                           .DocumentReference,
                                                     ),
                                                   }.withoutNulls,
                                                   extra: <String, dynamic>{
                                                     kTransitionInfoKey:
-                                                        TransitionInfo(
+                                                        const TransitionInfo(
                                                       hasTransition: true,
                                                       transitionType:
                                                           PageTransitionType
@@ -969,7 +885,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                   Colors.transparent,
                                               onTap: () async {
                                                 setState(() {
-                                                  _model.tabBarController!
+                                                  _tabBarController!
                                                       .animateTo(
                                                     2,
                                                     duration: Duration(
@@ -997,7 +913,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                   ),
                                                   Text(
                                                     valueOrDefault<String>(
-                                                      _model.starAverage
+                                                      detailsState.starAverage
                                                           ?.toString(),
                                                       '0',
                                                     ),
@@ -1191,16 +1107,10 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                   Directionality.of(
                                                                       context)),
                                                       child: GestureDetector(
-                                                        onTap: () => _model
-                                                                .unfocusNode
+                                                        onTap: () => _unfocusNode
                                                                 .canRequestFocus
-                                                            ? FocusScope.of(
-                                                                    context)
-                                                                .requestFocus(_model
-                                                                    .unfocusNode)
-                                                            : FocusScope.of(
-                                                                    context)
-                                                                .unfocus(),
+                                                            ? FocusScope.of(context).requestFocus(_unfocusNode)
+                                                            : FocusScope.of(context).unfocus(),
                                                         child:
                                                             ReportedReasonContainerWidget(
                                                           mealRef:
@@ -1354,7 +1264,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                 text: 'Reviews',
                                               ),
                                             ],
-                                            controller: _model.tabBarController,
+                                            controller: _tabBarController,
                                             onTap: (i) async {
                                               [
                                                 () async {},
@@ -1366,7 +1276,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                         ),
                                         Expanded(
                                           child: TabBarView(
-                                            controller: _model.tabBarController,
+                                            controller: _tabBarController,
                                             children: [
                                               KeepAliveWidgetWrapper(
                                                 builder: (context) => Padding(
@@ -1710,8 +1620,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                           .secondaryBackground,
                                                     ),
                                                     child: Visibility(
-                                                      visible: FFAppState()
-                                                              .isReviewTabEmpty ==
+                                                      visible: AppCubit.instance.state.isReviewTabEmpty ==
                                                           false,
                                                       child: StreamBuilder<
                                                           List<ReviewRecord>>(
@@ -1910,17 +1819,10 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                                             if ((stackUserReviewLikesRecord != null) == true) {
                                                                                               await stackUserReviewLikesRecord!.reference.delete();
                                                                                             } else {
-                                                                                              var userReviewLikesRecordReference = UserReviewLikesRecord.collection.doc();
-                                                                                              await userReviewLikesRecordReference.set(createUserReviewLikesRecordData(
+                                                                                              await UserReviewLikesRecord.collection.doc().set(createUserReviewLikesRecordData(
                                                                                                 reviewSubcollectionRef: reviewColumnReviewRecord.reference,
                                                                                                 userRef: currentUserReference,
                                                                                               ));
-                                                                                              _model.userReviewLiked = UserReviewLikesRecord.getDocumentFromData(
-                                                                                                  createUserReviewLikesRecordData(
-                                                                                                    reviewSubcollectionRef: reviewColumnReviewRecord.reference,
-                                                                                                    userRef: currentUserReference,
-                                                                                                  ),
-                                                                                                  userReviewLikesRecordReference);
                                                                                             }
 
                                                                                             setState(() {});
@@ -2056,7 +1958,7 @@ class _DetailsScreenWidgetState extends State<DetailsScreenWidget>
                                                                                           backgroundColor: Colors.transparent,
                                                                                           alignment: AlignmentDirectional(0.0, 1.0).resolve(Directionality.of(context)),
                                                                                           child: GestureDetector(
-                                                                                            onTap: () => _model.unfocusNode.canRequestFocus ? FocusScope.of(context).requestFocus(_model.unfocusNode) : FocusScope.of(context).unfocus(),
+                                                                                            onTap: () => _unfocusNode.canRequestFocus ? FocusScope.of(context).requestFocus(_unfocusNode) : FocusScope.of(context).unfocus(),
                                                                                             child: EditMealRatingBottomsheetComponentWidget(
                                                                                               id: reviewColumnReviewRecord.reference,
                                                                                               rating: reviewColumnReviewRecord.star,

@@ -1,18 +1,15 @@
-import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/pages/components/edit_recipe_with_moderator_approval_component/edit_recipe_with_moderator_approval_component_widget.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'publish_decision_component_model.dart';
-export 'publish_decision_component_model.dart';
+import '/cubits/app/app_cubit.dart';
 
-class PublishDecisionComponentWidget extends StatefulWidget {
+/// Prompts the user to publish a finished recipe to the public catalog or
+/// keep it private. Handles the moderator-approval flow when the recipe is
+/// being edited.
+class PublishDecisionComponentWidget extends StatelessWidget {
   const PublishDecisionComponentWidget({
     super.key,
     required this.mealRef,
@@ -22,69 +19,55 @@ class PublishDecisionComponentWidget extends StatefulWidget {
   final DocumentReference? mealRef;
   final String? keyword;
 
-  @override
-  State<PublishDecisionComponentWidget> createState() =>
-      _PublishDecisionComponentWidgetState();
-}
-
-class _PublishDecisionComponentWidgetState
-    extends State<PublishDecisionComponentWidget> {
-  late PublishDecisionComponentModel _model;
-
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => PublishDecisionComponentModel());
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _model.maybeDispose();
-
-    super.dispose();
+  void _resetAddRecipeAppState() {
+    AppCubit.instance.setIsBannerUploaded(false);
+    AppCubit.instance.setAddVideoLink('');
+    AppCubit.instance.setStepsList([]);
+    AppCubit.instance.setAddIsBasicRecipeInfoAdded(false);
+    AppCubit.instance.setProcedureList([]);
+    AppCubit.instance.setCounterBtnClicked(0);
+    AppCubit.instance.setIsProcedureItemEdited(false);
+    AppCubit.instance.setProcedureJson(ProcedureStruct.fromSerializableMap(jsonDecode('{\"steps\":\"\"}')));
+    AppCubit.instance.setWasProcedureListReordered(false);
+    AppCubit.instance.setIngredientNewList([]);
+    AppCubit.instance.setChosenRecipeCategory([]);
+    AppCubit.instance.setRecipeCategoryFromFirebase([]);
+    AppCubit.instance.setAttributionTemp('');
+    AppCubit.instance.setEstimatedTimeSpinner(DateTime.fromMillisecondsSinceEpoch(1714665600000));
   }
 
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: AlignmentDirectional(0.0, 0.0),
+      alignment: const AlignmentDirectional(0.0, 0.0),
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 16.0),
+        padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 16.0),
         child: Container(
           width: 450.0,
           height: 220.0,
-          constraints: BoxConstraints(
+          constraints: const BoxConstraints(
             maxWidth: 570.0,
           ),
           decoration: BoxDecoration(
             color: FlutterFlowTheme.of(context).secondaryBackground,
             borderRadius: BorderRadius.circular(12.0),
             border: Border.all(
-              color: Color(0xFFE0E3E7),
+              color: const Color(0xFFE0E3E7),
             ),
           ),
           child: Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
-              mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                      0.0, 16.0, 0.0, 0.0),
                   child: Row(
-                    mainAxisSize: MainAxisSize.max,
                     children: [
                       Expanded(
                         child: Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
                               0.0, 0.0, 12.0, 0.0),
                           child: Text(
                             'Publish recipe to public?',
@@ -107,14 +90,14 @@ class _PublishDecisionComponentWidgetState
                   color: FlutterFlowTheme.of(context).primaryBackground,
                 ),
                 Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                      0.0, 16.0, 0.0, 0.0),
                   child: Column(
-                    mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Builder(
                         builder: (context) => StreamBuilder<MealRecipeRecord>(
-                          stream: MealRecipeRecord.getDocument(widget.mealRef!),
+                          stream: MealRecipeRecord.getDocument(mealRef!),
                           builder: (context, snapshot) {
                             // Customize what your widget looks like when it's loading.
                             if (!snapshot.hasData) {
@@ -142,109 +125,64 @@ class _PublishDecisionComponentWidgetState
                                         elevation: 0,
                                         insetPadding: EdgeInsets.zero,
                                         backgroundColor: Colors.transparent,
-                                        alignment:
-                                            AlignmentDirectional(0.0, 0.0)
-                                                .resolve(
-                                                    Directionality.of(context)),
+                                        alignment: const AlignmentDirectional(
+                                                0.0, 0.0)
+                                            .resolve(Directionality.of(context)),
                                         child:
-                                            EditRecipeWithModeratorApprovalComponentWidget(),
+                                            const EditRecipeWithModeratorApprovalComponentWidget(),
                                       );
                                     },
-                                  ).then((value) => setState(() {}));
+                                  );
 
-                                  await widget.mealRef!
-                                      .update(createMealRecipeRecordData(
+                                  await mealRef!.update(
+                                      createMealRecipeRecordData(
                                     isReady: true,
                                     isPublic: true,
                                   ));
-                                  setState(() {
-                                    FFAppState().isBannerUploaded = false;
-                                    FFAppState().addVideoLink = '';
-                                    FFAppState().stepsList = [];
-                                    FFAppState().addIsBasicRecipeInfoAdded =
-                                        false;
-                                    FFAppState().procedureList = [];
-                                    FFAppState().counterBtnClicked = 0;
-                                    FFAppState().isProcedureItemEdited = false;
-                                    FFAppState().procedureJson =
-                                        ProcedureStruct.fromSerializableMap(
-                                            jsonDecode('{\"steps\":\"\"}'));
-                                    FFAppState().wasProcedureListReordered =
-                                        false;
-                                    FFAppState().ingredientNewList = [];
-                                    FFAppState().chosenRecipeCategory = [];
-                                    FFAppState().recipeCategoryFromFirebase =
-                                        [];
-                                    FFAppState().attributionTemp = '';
-                                    FFAppState().estimatedTimeSpinner =
-                                        DateTime.fromMillisecondsSinceEpoch(
-                                            1714665600000);
-                                    FFAppState().yesPublishToPublic = false;
-                                  });
-
+                                  _resetAddRecipeAppState();
+                                  AppCubit.instance.setYesPublishToPublic(false);
+                                  if (!context.mounted) return;
                                   context.goNamed('home');
                                 } else {
-                                  setState(() {
-                                    FFAppState().yesPublishToPublic = true;
-                                  });
+                                  AppCubit.instance.setYesPublishToPublic(true);
 
-                                  await widget.mealRef!
-                                      .update(createMealRecipeRecordData(
+                                  await mealRef!.update(
+                                      createMealRecipeRecordData(
                                     isReady: true,
                                     isPublic: true,
                                   ));
+                                  if (!context.mounted) return;
                                   await showDialog(
                                     context: context,
                                     builder: (alertDialogContext) {
                                       return AlertDialog(
-                                        title: Text('Information:'),
-                                        content: Text(
+                                        title: const Text('Information:'),
+                                        content: const Text(
                                             'Your recipe has been published.'),
                                         actions: [
                                           TextButton(
                                             onPressed: () => Navigator.pop(
                                                 alertDialogContext),
-                                            child: Text('Ok'),
+                                            child: const Text('Ok'),
                                           ),
                                         ],
                                       );
                                     },
                                   );
-                                  setState(() {
-                                    FFAppState().isBannerUploaded = false;
-                                    FFAppState().addVideoLink = '';
-                                    FFAppState().stepsList = [];
-                                    FFAppState().addIsBasicRecipeInfoAdded =
-                                        false;
-                                    FFAppState().procedureList = [];
-                                    FFAppState().counterBtnClicked = 0;
-                                    FFAppState().isProcedureItemEdited = false;
-                                    FFAppState().procedureJson =
-                                        ProcedureStruct.fromSerializableMap(
-                                            jsonDecode('{\"steps\":\"\"}'));
-                                    FFAppState().wasProcedureListReordered =
-                                        false;
-                                    FFAppState().ingredientNewList = [];
-                                    FFAppState().chosenRecipeCategory = [];
-                                    FFAppState().recipeCategoryFromFirebase =
-                                        [];
-                                    FFAppState().attributionTemp = '';
-                                    FFAppState().estimatedTimeSpinner =
-                                        DateTime.fromMillisecondsSinceEpoch(
-                                            1714665600000);
-                                    FFAppState().yesPublishToPublic = false;
-                                  });
-
+                                  _resetAddRecipeAppState();
+                                  AppCubit.instance.setYesPublishToPublic(false);
+                                  if (!context.mounted) return;
                                   context.goNamed('home');
                                 }
                               },
                               text: 'YES',
                               options: FFButtonOptions(
                                 height: 40.0,
-                                padding: EdgeInsetsDirectional.fromSTEB(
+                                padding: const EdgeInsetsDirectional.fromSTEB(
                                     24.0, 0.0, 24.0, 0.0),
-                                iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
+                                iconPadding:
+                                    const EdgeInsetsDirectional.fromSTEB(
+                                        0.0, 0.0, 0.0, 0.0),
                                 color: FlutterFlowTheme.of(context)
                                     .secondaryBackground,
                                 textStyle: FlutterFlowTheme.of(context)
@@ -258,7 +196,7 @@ class _PublishDecisionComponentWidgetState
                                       fontWeight: FontWeight.w600,
                                     ),
                                 elevation: 0.0,
-                                borderRadius: BorderRadius.only(
+                                borderRadius: const BorderRadius.only(
                                   bottomLeft: Radius.circular(0.0),
                                   bottomRight: Radius.circular(0.0),
                                   topLeft: Radius.circular(0.0),
@@ -279,50 +217,30 @@ class _PublishDecisionComponentWidgetState
                             context: context,
                             builder: (alertDialogContext) {
                               return AlertDialog(
-                                title: Text('Information:'),
-                                content: Text(
+                                title: const Text('Information:'),
+                                content: const Text(
                                     'Your recipe has been saved as private. You can still find it in \"My Recipes\"'),
                                 actions: [
                                   TextButton(
                                     onPressed: () =>
                                         Navigator.pop(alertDialogContext),
-                                    child: Text('Ok'),
+                                    child: const Text('Ok'),
                                   ),
                                 ],
                               );
                             },
                           );
 
-                          await widget.mealRef!
-                              .update(createMealRecipeRecordData(
+                          await mealRef!.update(createMealRecipeRecordData(
                             isReady: true,
                             isPublic: false,
                           ));
-                          setState(() {
-                            FFAppState().isBannerUploaded = false;
-                            FFAppState().addVideoLink = '';
-                            FFAppState().stepsList = [];
-                            FFAppState().addIsBasicRecipeInfoAdded = false;
-                            FFAppState().procedureList = [];
-                            FFAppState().counterBtnClicked = 0;
-                            FFAppState().isProcedureItemEdited = false;
-                            FFAppState().procedureJson =
-                                ProcedureStruct.fromSerializableMap(
-                                    jsonDecode('{\"steps\":\"\"}'));
-                            FFAppState().wasProcedureListReordered = false;
-                            FFAppState().ingredientNewList = [];
-                            FFAppState().chosenRecipeCategory = [];
-                            FFAppState().recipeCategoryFromFirebase = [];
-                            FFAppState().attributionTemp = '';
-                            FFAppState().estimatedTimeSpinner =
-                                DateTime.fromMillisecondsSinceEpoch(
-                                    1714665600000);
-                          });
-
+                          _resetAddRecipeAppState();
+                          if (!context.mounted) return;
                           context.goNamed(
                             'home',
                             extra: <String, dynamic>{
-                              kTransitionInfoKey: TransitionInfo(
+                              kTransitionInfoKey: const TransitionInfo(
                                 hasTransition: true,
                                 transitionType: PageTransitionType.fade,
                                 duration: Duration(milliseconds: 0),
@@ -333,9 +251,9 @@ class _PublishDecisionComponentWidgetState
                         text: 'NO',
                         options: FFButtonOptions(
                           height: 40.0,
-                          padding: EdgeInsetsDirectional.fromSTEB(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
                               24.0, 0.0, 24.0, 0.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
+                          iconPadding: const EdgeInsetsDirectional.fromSTEB(
                               0.0, 0.0, 0.0, 0.0),
                           color:
                               FlutterFlowTheme.of(context).secondaryBackground,
@@ -356,7 +274,7 @@ class _PublishDecisionComponentWidgetState
                               FlutterFlowTheme.of(context).primaryText,
                         ),
                       ),
-                    ].divide(SizedBox(height: 8.0)),
+                    ].divide(const SizedBox(height: 8.0)),
                   ),
                 ),
               ],

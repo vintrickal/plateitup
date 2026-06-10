@@ -1,58 +1,27 @@
 import '/flutter_flow/flutter_flow_theme.dart';
-import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'edit_pop_warning_model.dart';
-export 'edit_pop_warning_model.dart';
 
-class EditPopWarningWidget extends StatefulWidget {
+/// Heads-up dialog warning the user that recipe edits go through moderator
+/// review. Returns `true` (Proceed) or `false` (Cancel) via `Navigator.pop`.
+class EditPopWarningWidget extends StatelessWidget {
   const EditPopWarningWidget({super.key});
-
-  @override
-  State<EditPopWarningWidget> createState() => _EditPopWarningWidgetState();
-}
-
-class _EditPopWarningWidgetState extends State<EditPopWarningWidget> {
-  late EditPopWarningModel _model;
-
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => EditPopWarningModel());
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _model.maybeDispose();
-
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: AlignmentDirectional(0.0, 0.0),
+      alignment: const AlignmentDirectional(0.0, 0.0),
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 12.0),
+        padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 12.0),
         child: Container(
           width: double.infinity,
           height: 210.0,
-          constraints: BoxConstraints(
+          constraints: const BoxConstraints(
             maxWidth: 530.0,
           ),
           decoration: BoxDecoration(
             color: FlutterFlowTheme.of(context).secondaryBackground,
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
                 blurRadius: 3.0,
                 color: Color(0x33000000),
@@ -69,9 +38,9 @@ class _EditPopWarningWidgetState extends State<EditPopWarningWidget> {
             ),
           ),
           child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 12.0),
+            padding:
+                const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 12.0),
             child: Column(
-              mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Divider(
@@ -82,44 +51,45 @@ class _EditPopWarningWidgetState extends State<EditPopWarningWidget> {
                   color: FlutterFlowTheme.of(context).primaryBackground,
                 ),
                 Padding(
-                  padding:
-                      EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 16.0),
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                      16.0, 12.0, 16.0, 16.0),
                   child: Column(
-                    mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Heads up!',
-                        style: FlutterFlowTheme.of(context).titleLarge.override(
-                              fontFamily: 'Roboto',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).titleLarge.override(
+                                  fontFamily: 'Roboto',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                       Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 12.0, 0.0, 0.0),
                         child: Text(
                           'Your recipe edit will undergo moderator review to prevent malicious content.',
                           textAlign: TextAlign.start,
-                          style:
-                              FlutterFlowTheme.of(context).labelMedium.override(
-                                    fontFamily: 'Poppins',
-                                    letterSpacing: 0.0,
-                                  ),
+                          style: FlutterFlowTheme.of(context)
+                              .labelMedium
+                              .override(
+                                fontFamily: 'Poppins',
+                                letterSpacing: 0.0,
+                              ),
                         ),
                       ),
                     ],
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(24.0, 0.0, 24.0, 0.0),
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                      24.0, 0.0, 24.0, 0.0),
                   child: Row(
-                    mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 12.0, 0.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0, 0.0, 12.0, 0.0),
                         child: FFButtonWidget(
                           onPressed: () async {
                             Navigator.pop(context, false);
@@ -127,9 +97,9 @@ class _EditPopWarningWidgetState extends State<EditPopWarningWidget> {
                           text: 'Cancel',
                           options: FFButtonOptions(
                             height: 44.0,
-                            padding: EdgeInsetsDirectional.fromSTEB(
+                            padding: const EdgeInsetsDirectional.fromSTEB(
                                 12.0, 0.0, 12.0, 0.0),
-                            iconPadding: EdgeInsetsDirectional.fromSTEB(
+                            iconPadding: const EdgeInsetsDirectional.fromSTEB(
                                 0.0, 0.0, 0.0, 0.0),
                             color: FlutterFlowTheme.of(context)
                                 .secondaryBackground,
@@ -159,20 +129,21 @@ class _EditPopWarningWidgetState extends State<EditPopWarningWidget> {
                         text: 'Proceed',
                         options: FFButtonOptions(
                           height: 44.0,
-                          padding: EdgeInsetsDirectional.fromSTEB(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
                               12.0, 0.0, 12.0, 0.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
+                          iconPadding: const EdgeInsetsDirectional.fromSTEB(
                               0.0, 0.0, 0.0, 0.0),
                           color: FlutterFlowTheme.of(context).success,
-                          textStyle:
-                              FlutterFlowTheme.of(context).titleSmall.override(
-                                    fontFamily: 'Poppins',
-                                    color: Colors.white,
-                                    fontSize: 14.0,
-                                    letterSpacing: 0.0,
-                                  ),
+                          textStyle: FlutterFlowTheme.of(context)
+                              .titleSmall
+                              .override(
+                                fontFamily: 'Poppins',
+                                color: Colors.white,
+                                fontSize: 14.0,
+                                letterSpacing: 0.0,
+                              ),
                           elevation: 2.0,
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: Colors.transparent,
                             width: 1.0,
                           ),

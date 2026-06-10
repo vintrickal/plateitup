@@ -1,13 +1,9 @@
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'terms_of_service_screen_model.dart';
-export 'terms_of_service_screen_model.dart';
 
+/// Static terms of service document page with scrollable text sections.
 class TermsOfServiceScreenWidget extends StatefulWidget {
   const TermsOfServiceScreenWidget({super.key});
 
@@ -18,30 +14,20 @@ class TermsOfServiceScreenWidget extends StatefulWidget {
 
 class _TermsOfServiceScreenWidgetState
     extends State<TermsOfServiceScreenWidget> {
-  late TermsOfServiceScreenModel _model;
-
   final scaffoldKey = GlobalKey<ScaffoldState>();
-
-  @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => TermsOfServiceScreenModel());
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
+  final FocusNode _unfocusNode = FocusNode();
 
   @override
   void dispose() {
-    _model.dispose();
-
+    _unfocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _model.unfocusNode.canRequestFocus
-          ? FocusScope.of(context).requestFocus(_model.unfocusNode)
+      onTap: () => _unfocusNode.canRequestFocus
+          ? FocusScope.of(context).requestFocus(_unfocusNode)
           : FocusScope.of(context).unfocus(),
       child: Scaffold(
         key: scaffoldKey,
@@ -54,7 +40,7 @@ class _TermsOfServiceScreenWidgetState
             borderRadius: 30.0,
             borderWidth: 1.0,
             buttonSize: 54.0,
-            icon: Icon(
+            icon: const Icon(
               Icons.arrow_back_rounded,
               color: Colors.white,
               size: 24.0,
@@ -71,7 +57,7 @@ class _TermsOfServiceScreenWidgetState
                   letterSpacing: 0.0,
                 ),
           ),
-          actions: [],
+          actions: const [],
           centerTitle: true,
           elevation: 2.0,
         ),
@@ -84,10 +70,10 @@ class _TermsOfServiceScreenWidgetState
               color: FlutterFlowTheme.of(context).secondaryBackground,
             ),
             child: Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+              padding:
+                  const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
               child: SingleChildScrollView(
                 child: Column(
-                  mainAxisSize: MainAxisSize.max,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -122,25 +108,27 @@ class _TermsOfServiceScreenWidgetState
                           ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '1.1 Eligibility: By using the PlateitUp App, you represent that you are at least 18 years old and have the legal capacity to enter into this agreement. If you are using the App on behalf of a company or organization, you represent that you have the authority to bind such entity to these Terms.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '1.2 Acceptance: You agree to these Terms by accessing or using the PlateitUp App. If you do not agree to these Terms, you may not use the App.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Text(
@@ -152,25 +140,27 @@ class _TermsOfServiceScreenWidgetState
                           ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '2.1 Creating an Account: Users may create an account by signing in with Google or signing up using their email. Account creation enables users to create and share meal recipes within the community.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '2.2 Public and Private Recipes: Users can create public or private community meal recipes. Public recipes can be reported by users to flag and notify the moderator of malicious content. Private recipes can only be viewed by the creator.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Text(
@@ -182,14 +172,15 @@ class _TermsOfServiceScreenWidgetState
                           ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '3.1 Unique Code: Users may pair with others using a unique code provided by the App. This feature enables users to connect and share recipes with friends or family.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Text(
@@ -201,14 +192,15 @@ class _TermsOfServiceScreenWidgetState
                           ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '4.1 Request Deletion: Users may request account deletion to remove their information from the PlateitUp App. Upon request, we will delete your account and associated data within a reasonable time frame.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Text(
@@ -220,25 +212,27 @@ class _TermsOfServiceScreenWidgetState
                           ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '5.1 Limited License: Subject to these Terms, we grant you a limited, non-exclusive, non-transferable license to download, install, and use the PlateitUp App for your personal, non-commercial use.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '5.2 Restrictions: You may not: (a) modify, adapt, or create derivative works of the App; (b) reverse engineer, decompile, or attempt to extract the source code of the App; (c) distribute, sublicense, or transfer the App to any third party; or (d) use the App in any unlawful manner or for any unlawful purpose.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Text(
@@ -250,25 +244,27 @@ class _TermsOfServiceScreenWidgetState
                           ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '6.1 Ownership: All intellectual property rights in the PlateitUp App and its content are owned by Vince Patrick Alferez. You may not use our trademarks, logos, or other proprietary information without our prior written consent.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '6.2 User Content: By submitting or uploading content to the PlateitUp App, you retain ownership of such content. However, you grant us a worldwide, royalty-free license to use, reproduce, and distribute your content for the purpose of operating and improving the App.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Text(
@@ -280,25 +276,27 @@ class _TermsOfServiceScreenWidgetState
                           ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '7.1 Disclaimer: The PlateitUp App is provided on an \"as is\" and \"as available\" basis, without any warranties of any kind, express or implied. We do not warrant that the App will be error-free or uninterrupted.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '7.2 Limitation of Liability: To the fullest extent permitted by law, we shall not be liable for any indirect, incidental, special, or consequential damages arising out of or in connection with your use of the PlateitUp App.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Text(
@@ -310,25 +308,27 @@ class _TermsOfServiceScreenWidgetState
                           ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '8.1 Governing Law: These Terms shall be governed by and construed in accordance with the laws of the Philippines.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '8.2 Dispute Resolution: Any dispute, controversy, or claim arising out of or relating to this Privacy Policy or the breach, termination, enforcement, interpretation, or validity thereof, including the determination of the scope or applicability of this agreement to arbitrate, shall be determined by arbitration in the Philippines.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Text(
@@ -340,14 +340,15 @@ class _TermsOfServiceScreenWidgetState
                           ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         '9.1 Changes: We reserve the right to update or modify these Terms at any time without prior notice. Your continued use of the PlateitUp App after any changes to these Terms constitutes your acceptance of such changes.',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                     Text(
@@ -359,20 +360,21 @@ class _TermsOfServiceScreenWidgetState
                           ),
                     ),
                     Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 0.0, 0.0),
                       child: Text(
                         'If you have any questions about these Terms, please contact us at plateitupmeal@gmail.com',
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.0,
-                            ),
+                        style:
+                            FlutterFlowTheme.of(context).bodyMedium.override(
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.0,
+                                ),
                       ),
                     ),
                   ]
-                      .divide(SizedBox(height: 16.0))
-                      .addToStart(SizedBox(height: 32.0))
-                      .addToEnd(SizedBox(height: 100.0)),
+                      .divide(const SizedBox(height: 16.0))
+                      .addToStart(const SizedBox(height: 32.0))
+                      .addToEnd(const SizedBox(height: 100.0)),
                 ),
               ),
             ),

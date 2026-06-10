@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// MVP mode: JWT token sign-in stub.
 
-Future<UserCredential?> jwtTokenSignIn(String jwtToken) =>
-    FirebaseAuth.instance.signInWithCustomToken(jwtToken);
+Future<Object?> jwtTokenSignIn(String jwtToken) async => const Object();

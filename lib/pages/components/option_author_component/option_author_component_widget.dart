@@ -1,19 +1,17 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
-import '/backend/schema/structs/index.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/pages/components/confirmation_assign_meal_to_partner_screen/confirmation_assign_meal_to_partner_screen_widget.dart';
 import '/pages/components/confirmation_modal_component/confirmation_modal_component_widget.dart';
 import '/pages/components/reported_container/reported_container_widget.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'option_author_component_model.dart';
-export 'option_author_component_model.dart';
+import '/cubits/app/app_cubit.dart';
 
+/// Bottom-sheet options for a meal recipe the user authored — assign to
+/// partner, save/unsave, report, plus an expandable "More Options" panel
+/// with delete + edit actions.
 class OptionAuthorComponentWidget extends StatefulWidget {
   const OptionAuthorComponentWidget({
     super.key,
@@ -39,37 +37,19 @@ class OptionAuthorComponentWidget extends StatefulWidget {
 
 class _OptionAuthorComponentWidgetState
     extends State<OptionAuthorComponentWidget> {
-  late OptionAuthorComponentModel _model;
-
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => OptionAuthorComponentModel());
-
-    _model.expandableExpandableController =
-        ExpandableController(initialExpanded: false);
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
+  late final ExpandableController _expandableController =
+      ExpandableController(initialExpanded: false);
 
   @override
   void dispose() {
-    _model.maybeDispose();
-
+    _expandableController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
     return Padding(
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       child: StreamBuilder<MealRecipeRecord>(
         stream: MealRecipeRecord.getDocument(widget.mealRef!),
         builder: (context, snapshot) {
@@ -91,7 +71,7 @@ class _OptionAuthorComponentWidgetState
           return Container(
             decoration: BoxDecoration(
               color: FlutterFlowTheme.of(context).secondaryBackground,
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   blurRadius: 4.0,
                   color: Color(0x33000000),
@@ -101,7 +81,7 @@ class _OptionAuthorComponentWidgetState
                   ),
                 )
               ],
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(12.0),
                 bottomRight: Radius.circular(12.0),
                 topLeft: Radius.circular(12.0),
@@ -109,7 +89,8 @@ class _OptionAuthorComponentWidgetState
               ),
             ),
             child: Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 12.0),
+              padding:
+                  const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 12.0),
               child: StreamBuilder<List<SavedRecipeRecord>>(
                 stream: querySavedRecipeRecord(
                   queryBuilder: (savedRecipeRecord) => savedRecipeRecord.where(
@@ -144,12 +125,11 @@ class _OptionAuthorComponentWidgetState
                           ? optionsColumnSavedRecipeRecordList.first
                           : null;
                   return Column(
-                    mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(
+                        padding: const EdgeInsetsDirectional.fromSTEB(
                             12.0, 12.0, 0.0, 0.0),
                         child: Text(
                           'Options',
@@ -161,10 +141,10 @@ class _OptionAuthorComponentWidgetState
                                   ),
                         ),
                       ),
-                      if (FFAppState().hasPartner == true)
+                      if (AppCubit.instance.state.hasPartner == true)
                         Builder(
                           builder: (context) => Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
+                            padding: const EdgeInsetsDirectional.fromSTEB(
                                 0.0, 4.0, 0.0, 4.0),
                             child: InkWell(
                               splashColor: Colors.transparent,
@@ -181,7 +161,8 @@ class _OptionAuthorComponentWidgetState
                                       elevation: 0,
                                       insetPadding: EdgeInsets.zero,
                                       backgroundColor: Colors.transparent,
-                                      alignment: AlignmentDirectional(0.0, 0.0)
+                                      alignment: const AlignmentDirectional(
+                                              0.0, 0.0)
                                           .resolve(Directionality.of(context)),
                                       child:
                                           ConfirmationAssignMealToPartnerScreenWidget(
@@ -190,7 +171,7 @@ class _OptionAuthorComponentWidgetState
                                       ),
                                     );
                                   },
-                                ).then((value) => setState(() {}));
+                                );
                               },
                               child: Container(
                                 decoration: BoxDecoration(
@@ -198,12 +179,12 @@ class _OptionAuthorComponentWidgetState
                                       .secondaryBackground,
                                 ),
                                 child: Row(
-                                  mainAxisSize: MainAxisSize.max,
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          12.0, 0.0, 0.0, 0.0),
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                              12.0, 0.0, 0.0, 0.0),
                                       child: Icon(
                                         Icons.group_add_rounded,
                                         color: FlutterFlowTheme.of(context)
@@ -213,19 +194,16 @@ class _OptionAuthorComponentWidgetState
                                     ),
                                     Expanded(
                                       child: Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            16.0, 0.0, 0.0, 0.0),
-                                        child: Container(
-                                          decoration: BoxDecoration(),
-                                          child: Text(
-                                            'Send Request',
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily: 'Poppins',
-                                                  letterSpacing: 0.0,
-                                                ),
-                                          ),
+                                        padding: const EdgeInsetsDirectional
+                                            .fromSTEB(16.0, 0.0, 0.0, 0.0),
+                                        child: Text(
+                                          'Send Request',
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .override(
+                                                fontFamily: 'Poppins',
+                                                letterSpacing: 0.0,
+                                              ),
                                         ),
                                       ),
                                     ),
@@ -236,8 +214,8 @@ class _OptionAuthorComponentWidgetState
                           ),
                         ),
                       Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(4.0, 4.0, 0.0, 0.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            4.0, 4.0, 0.0, 0.0),
                         child: Stack(
                           children: [
                             if (optionsColumnSavedRecipeRecord
@@ -250,10 +228,7 @@ class _OptionAuthorComponentWidgetState
                                 hoverColor: Colors.transparent,
                                 highlightColor: Colors.transparent,
                                 onTap: () async {
-                                  setState(() {
-                                    FFAppState()
-                                        .addToSavedRecipeList(widget.mealRef!);
-                                  });
+                                  AppCubit.instance.addToSavedRecipeList(widget.mealRef!);
 
                                   await optionsColumnSavedRecipeRecord!
                                       .reference
@@ -276,11 +251,10 @@ class _OptionAuthorComponentWidgetState
                                         .secondaryBackground,
                                   ),
                                   child: Row(
-                                    mainAxisSize: MainAxisSize.max,
                                     children: [
                                       Align(
-                                        alignment:
-                                            AlignmentDirectional(1.0, -1.0),
+                                        alignment: const AlignmentDirectional(
+                                            1.0, -1.0),
                                         child: Container(
                                           width: 32.0,
                                           height: 32.0,
@@ -308,7 +282,7 @@ class _OptionAuthorComponentWidgetState
                                               ),
                                         ),
                                       ),
-                                    ].divide(SizedBox(width: 8.0)),
+                                    ].divide(const SizedBox(width: 8.0)),
                                   ),
                                 ),
                               ),
@@ -322,10 +296,8 @@ class _OptionAuthorComponentWidgetState
                                 hoverColor: Colors.transparent,
                                 highlightColor: Colors.transparent,
                                 onTap: () async {
-                                  setState(() {
-                                    FFAppState().removeFromSavedRecipeList(
-                                        widget.mealRef!);
-                                  });
+                                  AppCubit.instance.removeFromSavedRecipeList(
+                                      widget.mealRef!);
 
                                   await optionsColumnSavedRecipeRecord!
                                       .reference
@@ -346,11 +318,10 @@ class _OptionAuthorComponentWidgetState
                                         .secondaryBackground,
                                   ),
                                   child: Row(
-                                    mainAxisSize: MainAxisSize.max,
                                     children: [
                                       Align(
-                                        alignment:
-                                            AlignmentDirectional(1.0, -1.0),
+                                        alignment: const AlignmentDirectional(
+                                            1.0, -1.0),
                                         child: Container(
                                           width: 32.0,
                                           height: 32.0,
@@ -378,7 +349,7 @@ class _OptionAuthorComponentWidgetState
                                               ),
                                         ),
                                       ),
-                                    ].divide(SizedBox(width: 8.0)),
+                                    ].divide(const SizedBox(width: 8.0)),
                                   ),
                                 ),
                               ),
@@ -399,17 +370,18 @@ class _OptionAuthorComponentWidgetState
                                   elevation: 0,
                                   insetPadding: EdgeInsets.zero,
                                   backgroundColor: Colors.transparent,
-                                  alignment: AlignmentDirectional(0.0, 0.0)
+                                  alignment: const AlignmentDirectional(
+                                          0.0, 0.0)
                                       .resolve(Directionality.of(context)),
-                                  child: Container(
+                                  child: const SizedBox(
                                     height: 150.0,
                                     width: 350.0,
                                     child: ReportedContainerWidget(),
                                   ),
                                 );
                               },
-                            ).then((value) => setState(() {}));
-
+                            );
+                            if (!context.mounted) return;
                             await widget.mealRef!
                                 .update(createMealRecipeRecordData(
                               isRecipeReported: true,
@@ -422,7 +394,6 @@ class _OptionAuthorComponentWidgetState
                                   .secondaryBackground,
                             ),
                             child: Row(
-                              mainAxisSize: MainAxisSize.max,
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Icon(
@@ -440,25 +411,22 @@ class _OptionAuthorComponentWidgetState
                                       ),
                                 ),
                               ]
-                                  .divide(SizedBox(width: 15.0))
-                                  .addToStart(SizedBox(width: 8.0)),
+                                  .divide(const SizedBox(width: 15.0))
+                                  .addToStart(const SizedBox(width: 8.0)),
                             ),
                           ),
                         ),
                       ),
                       Container(
-                        decoration: BoxDecoration(),
-                        child: Container(
-                          width: double.infinity,
-                          color: Colors.white,
-                          child: ExpandableNotifier(
-                            controller: _model.expandableExpandableController,
+                        width: double.infinity,
+                        color: Colors.white,
+                        child: ExpandableNotifier(
+                          controller: _expandableController,
                             child: ExpandablePanel(
                               header: Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
+                                padding: const EdgeInsetsDirectional.fromSTEB(
                                     8.0, 0.0, 0.0, 0.0),
                                 child: Row(
-                                  mainAxisSize: MainAxisSize.max,
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     Icon(
@@ -478,14 +446,13 @@ class _OptionAuthorComponentWidgetState
                                             letterSpacing: 0.0,
                                           ),
                                     ),
-                                  ].divide(SizedBox(width: 8.0)),
+                                  ].divide(const SizedBox(width: 8.0)),
                                 ),
                               ),
                               collapsed: Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
+                                padding: const EdgeInsetsDirectional.fromSTEB(
                                     0.0, 8.0, 0.0, 0.0),
                                 child: Column(
-                                  mainAxisSize: MainAxisSize.max,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Builder(
@@ -503,10 +470,12 @@ class _OptionAuthorComponentWidgetState
                                                 insetPadding: EdgeInsets.zero,
                                                 backgroundColor:
                                                     Colors.transparent,
-                                                alignment: AlignmentDirectional(
-                                                        0.0, 0.0)
-                                                    .resolve(Directionality.of(
-                                                        context)),
+                                                alignment:
+                                                    const AlignmentDirectional(
+                                                            0.0, 0.0)
+                                                        .resolve(
+                                                            Directionality.of(
+                                                                context)),
                                                 child:
                                                     ConfirmationModalComponentWidget(
                                                   deleteBtnText:
@@ -519,7 +488,7 @@ class _OptionAuthorComponentWidgetState
                                                 ),
                                               );
                                             },
-                                          ).then((value) => setState(() {}));
+                                          );
                                         },
                                         child: Container(
                                           decoration: BoxDecoration(
@@ -527,13 +496,13 @@ class _OptionAuthorComponentWidgetState
                                                 .secondaryBackground,
                                           ),
                                           child: Row(
-                                            mainAxisSize: MainAxisSize.max,
                                             mainAxisAlignment:
                                                 MainAxisAlignment.start,
                                             children: [
                                               Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 0.0, 0.0),
                                                 child: Icon(
                                                   Icons.delete_forever,
@@ -544,21 +513,19 @@ class _OptionAuthorComponentWidgetState
                                                 ),
                                               ),
                                               Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 0.0, 0.0),
-                                                child: Container(
-                                                  decoration: BoxDecoration(),
-                                                  child: Text(
-                                                    'Delete',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          fontFamily: 'Poppins',
-                                                          letterSpacing: 0.0,
-                                                        ),
-                                                  ),
+                                                child: Text(
+                                                  'Delete',
+                                                  style: FlutterFlowTheme.of(
+                                                          context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        fontFamily: 'Poppins',
+                                                        letterSpacing: 0.0,
+                                                      ),
                                                 ),
                                               ),
                                             ],
@@ -567,8 +534,8 @@ class _OptionAuthorComponentWidgetState
                                       ),
                                     ),
                                     Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          0.0, 0.0, 0.0, 4.0),
+                                      padding: const EdgeInsetsDirectional
+                                          .fromSTEB(0.0, 0.0, 0.0, 4.0),
                                       child: InkWell(
                                         splashColor: Colors.transparent,
                                         focusColor: Colors.transparent,
@@ -576,11 +543,8 @@ class _OptionAuthorComponentWidgetState
                                         highlightColor: Colors.transparent,
                                         onTap: () async {
                                           Navigator.pop(context);
-                                          setState(() {
-                                            FFAppState().estimatedTimeSpinner =
-                                                optionsContainerMealRecipeRecord
-                                                    .prepTime;
-                                          });
+                                          AppCubit.instance.setEstimatedTimeSpinner(optionsContainerMealRecipeRecord
+                                                  .prepTime);
                                           if (Navigator.of(context).canPop()) {
                                             context.pop();
                                           }
@@ -610,7 +574,7 @@ class _OptionAuthorComponentWidgetState
                                             }.withoutNulls,
                                             extra: <String, dynamic>{
                                               kTransitionInfoKey:
-                                                  TransitionInfo(
+                                                  const TransitionInfo(
                                                 hasTransition: true,
                                                 transitionType:
                                                     PageTransitionType.fade,
@@ -624,13 +588,13 @@ class _OptionAuthorComponentWidgetState
                                                 .secondaryBackground,
                                           ),
                                           child: Row(
-                                            mainAxisSize: MainAxisSize.max,
                                             mainAxisAlignment:
                                                 MainAxisAlignment.start,
                                             children: [
                                               Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 0.0, 0.0),
                                                 child: Icon(
                                                   Icons.edit_outlined,
@@ -641,21 +605,19 @@ class _OptionAuthorComponentWidgetState
                                                 ),
                                               ),
                                               Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
+                                                padding:
+                                                    const EdgeInsetsDirectional
+                                                        .fromSTEB(
                                                         12.0, 0.0, 0.0, 0.0),
-                                                child: Container(
-                                                  decoration: BoxDecoration(),
-                                                  child: Text(
-                                                    'Edit',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          fontFamily: 'Poppins',
-                                                          letterSpacing: 0.0,
-                                                        ),
-                                                  ),
+                                                child: Text(
+                                                  'Edit',
+                                                  style: FlutterFlowTheme.of(
+                                                          context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        fontFamily: 'Poppins',
+                                                        letterSpacing: 0.0,
+                                                      ),
                                                 ),
                                               ),
                                             ],
@@ -663,11 +625,11 @@ class _OptionAuthorComponentWidgetState
                                         ),
                                       ),
                                     ),
-                                  ].divide(SizedBox(height: 16.0)),
+                                  ].divide(const SizedBox(height: 16.0)),
                                 ),
                               ),
                               expanded: Container(),
-                              theme: ExpandableThemeData(
+                              theme: const ExpandableThemeData(
                                 tapHeaderToExpand: true,
                                 tapBodyToExpand: false,
                                 tapBodyToCollapse: false,
@@ -678,8 +640,7 @@ class _OptionAuthorComponentWidgetState
                             ),
                           ),
                         ),
-                      ),
-                    ].divide(SizedBox(height: 12.0)),
+                    ].divide(const SizedBox(height: 12.0)),
                   );
                 },
               ),

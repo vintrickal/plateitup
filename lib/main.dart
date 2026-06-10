@@ -1,36 +1,44 @@
-import 'package:provider/provider.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'auth/firebase_auth/firebase_user_provider.dart';
-import 'auth/firebase_auth/auth_util.dart';
 
+import 'auth/firebase_auth/auth_util.dart';
+import 'auth/firebase_auth/firebase_user_provider.dart';
 import 'backend/firebase/firebase_config.dart';
-import 'flutter_flow/flutter_flow_theme.dart';
-import 'flutter_flow/flutter_flow_util.dart';
+import 'cubits/app/app_cubit.dart';
+import 'cubits/auth/auth_cubit.dart';
 import 'flutter_flow/nav/nav.dart';
-import 'index.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoRouter.optionURLReflectsImperativeAPIs = true;
   usePathUrlStrategy();
+
+  // MVP mode: no real Firebase. `initFirebase()` now seeds the in-memory
+  // `mockFirestore` with demo users and recipes.
   await initFirebase();
 
-  final appState = FFAppState(); // Initialize FFAppState
-  await appState.initializePersistedState();
+  await AppCubit.instance.init();
 
-  runApp(ChangeNotifierProvider(
-    create: (context) => appState,
-    child: MyApp(),
-  ));
+  // Seed AppStateNotifier with the demo user immediately so `loading` (which
+  // depends on `user != null`) collapses to just `showSplashImage`.
+  AppStateNotifier.instance.update(PlateitupFirebaseUser());
+
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider<AppCubit>.value(value: AppCubit.instance),
+        BlocProvider<AuthCubit>.value(value: AuthCubit.instance),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
-  // This widget is the root of your application.
+  const MyApp({super.key});
+
   @override
   State<MyApp> createState() => _MyAppState();
 
@@ -56,11 +64,8 @@ class _MyAppState extends State<MyApp> {
     _router = createRouter(_appStateNotifier);
     userStream = plateitupFirebaseUserStream()
       ..listen((user) => _appStateNotifier.update(user));
-    jwtTokenStream.listen((_) {});
-    Future.delayed(
-      Duration(milliseconds: 1000),
-      () => _appStateNotifier.stopShowingSplashImage(),
-    );
+    // MVP mode: no splash; `showSplashImage` defaults to false in
+    // `AppStateNotifier`, so the home screen renders on first frame.
   }
 
   @override
@@ -79,7 +84,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp.router(
       title: 'Plate it Up!',
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: [
+      localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

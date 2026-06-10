@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// MVP mode: anonymous sign-in stub.
 
-Future<UserCredential?> anonymousSignInFunc() =>
-    FirebaseAuth.instance.signInAnonymously();
+Future<Object?> anonymousSignInFunc() async => const Object();

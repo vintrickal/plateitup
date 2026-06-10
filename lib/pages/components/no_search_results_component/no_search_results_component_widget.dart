@@ -1,12 +1,8 @@
 import '/flutter_flow/flutter_flow_theme.dart';
-import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'no_search_results_component_model.dart';
-export 'no_search_results_component_model.dart';
 
-class NoSearchResultsComponentWidget extends StatefulWidget {
+/// Empty-state shown when a recipe search yields no results.
+class NoSearchResultsComponentWidget extends StatelessWidget {
   const NoSearchResultsComponentWidget({
     super.key,
     required this.searchItemName,
@@ -15,41 +11,10 @@ class NoSearchResultsComponentWidget extends StatefulWidget {
   final String? searchItemName;
 
   @override
-  State<NoSearchResultsComponentWidget> createState() =>
-      _NoSearchResultsComponentWidgetState();
-}
-
-class _NoSearchResultsComponentWidgetState
-    extends State<NoSearchResultsComponentWidget> {
-  late NoSearchResultsComponentModel _model;
-
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => NoSearchResultsComponentModel());
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _model.maybeDispose();
-
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: AlignmentDirectional(0.0, 0.0),
+      alignment: const AlignmentDirectional(0.0, 0.0),
       child: Column(
-        mainAxisSize: MainAxisSize.max,
         children: [
           Icon(
             Icons.search_off_rounded,
@@ -57,7 +22,7 @@ class _NoSearchResultsComponentWidgetState
             size: 72.0,
           ),
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
+            padding: const EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
             child: Text(
               'No Results Found',
               style: FlutterFlowTheme.of(context).headlineMedium.override(
@@ -67,9 +32,9 @@ class _NoSearchResultsComponentWidgetState
             ),
           ),
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(0.0, 4.0, 0.0, 0.0),
+            padding: const EdgeInsetsDirectional.fromSTEB(0.0, 4.0, 0.0, 0.0),
             child: Text(
-              'There are currently no recipes for \"${widget.searchItemName}\"',
+              'There are currently no recipes for \"${searchItemName}\"',
               textAlign: TextAlign.center,
               style: FlutterFlowTheme.of(context).labelMedium.override(
                     fontFamily: 'Poppins',

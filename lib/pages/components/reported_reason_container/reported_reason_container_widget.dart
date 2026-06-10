@@ -1,15 +1,12 @@
-import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'reported_reason_container_model.dart';
-export 'reported_reason_container_model.dart';
 
+/// Text-area form a moderator fills in when rejecting a reported recipe. On
+/// Send the reason gets written back to the meal-recipe doc, the recipe is
+/// pulled from public, and the screen pops twice (modal + reports list).
 class ReportedReasonContainerWidget extends StatefulWidget {
   const ReportedReasonContainerWidget({
     super.key,
@@ -25,36 +22,20 @@ class ReportedReasonContainerWidget extends StatefulWidget {
 
 class _ReportedReasonContainerWidgetState
     extends State<ReportedReasonContainerWidget> {
-  late ReportedReasonContainerModel _model;
-
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => ReportedReasonContainerModel());
-
-    _model.reportedReasonTextfieldTextController ??= TextEditingController();
-    _model.reportedReasonTextfieldFocusNode ??= FocusNode();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
+  final TextEditingController _reasonController = TextEditingController();
+  final FocusNode _reasonFocus = FocusNode();
 
   @override
   void dispose() {
-    _model.maybeDispose();
-
+    _reasonController.dispose();
+    _reasonFocus.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+      padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
       child: Container(
         width: double.infinity,
         height: 250.0,
@@ -63,17 +44,17 @@ class _ReportedReasonContainerWidgetState
           borderRadius: BorderRadius.circular(12.0),
         ),
         child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+          padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
           child: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 8.0, 0.0),
+                  padding:
+                      const EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 8.0, 0.0),
                   child: TextFormField(
-                    controller: _model.reportedReasonTextfieldTextController,
-                    focusNode: _model.reportedReasonTextfieldFocusNode,
+                    controller: _reasonController,
+                    focusNode: _reasonFocus,
                     autofocus: true,
                     obscureText: false,
                     decoration: InputDecoration(
@@ -121,32 +102,29 @@ class _ReportedReasonContainerWidgetState
                           fontFamily: 'Poppins',
                           letterSpacing: 0.0,
                         ),
-                    validator: _model
-                        .reportedReasonTextfieldTextControllerValidator
-                        .asValidator(context),
                   ),
                 ),
                 Align(
-                  alignment: AlignmentDirectional(1.0, 1.0),
+                  alignment: const AlignmentDirectional(1.0, 1.0),
                   child: FFButtonWidget(
                     onPressed: () async {
                       await widget.mealRef!.update(createMealRecipeRecordData(
                         adminApproved: false,
                         isPublic: false,
-                        reportedReason:
-                            _model.reportedReasonTextfieldTextController.text,
+                        reportedReason: _reasonController.text,
                         isRecipeReported: false,
                       ));
+                      if (!context.mounted) return;
                       Navigator.pop(context);
                       context.safePop();
                     },
                     text: 'Send',
                     options: FFButtonOptions(
                       height: 40.0,
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                      iconPadding:
-                          EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          12.0, 0.0, 12.0, 0.0),
+                      iconPadding: const EdgeInsetsDirectional.fromSTEB(
+                          0.0, 0.0, 0.0, 0.0),
                       color: FlutterFlowTheme.of(context).success,
                       textStyle:
                           FlutterFlowTheme.of(context).titleSmall.override(
@@ -156,7 +134,7 @@ class _ReportedReasonContainerWidgetState
                                 letterSpacing: 0.0,
                               ),
                       elevation: 3.0,
-                      borderSide: BorderSide(
+                      borderSide: const BorderSide(
                         color: Colors.transparent,
                         width: 1.0,
                       ),
@@ -165,9 +143,9 @@ class _ReportedReasonContainerWidgetState
                   ),
                 ),
               ]
-                  .divide(SizedBox(height: 16.0))
-                  .addToStart(SizedBox(height: 32.0))
-                  .addToEnd(SizedBox(height: 32.0)),
+                  .divide(const SizedBox(height: 16.0))
+                  .addToStart(const SizedBox(height: 32.0))
+                  .addToEnd(const SizedBox(height: 32.0)),
             ),
           ),
         ),

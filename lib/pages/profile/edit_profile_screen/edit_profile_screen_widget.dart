@@ -1,24 +1,32 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_debounce/easy_debounce.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
+import '/cubits/app/app_cubit.dart';
+import '/cubits/app/app_state.dart' as app;
+import '/flutter_flow/custom_functions.dart' as functions;
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/pages/components/email_verification_sent_component/email_verification_sent_component_widget.dart';
 import '/pages/components/upload_image_modal/upload_image_modal_widget.dart';
-import '/custom_code/actions/index.dart' as actions;
-import '/flutter_flow/custom_functions.dart' as functions;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:easy_debounce/easy_debounce.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'edit_profile_screen_model.dart';
-export 'edit_profile_screen_model.dart';
+import 'edit_profile_cubit.dart';
+import 'edit_profile_state.dart';
 
-class EditProfileScreenWidget extends StatefulWidget {
+/// Edit-profile screen — Cubit conversion.
+///
+/// [EditProfileCubit] owns the password-visibility toggles, the
+/// change-password call, and the change-email/verification call.
+/// Text controllers stay widget-local so they can be lazy-initialised with
+/// the user's current values from the [StreamBuilder<UsersRecord>] snapshot.
+class EditProfileScreenWidget extends StatelessWidget {
   const EditProfileScreenWidget({
     super.key,
     required this.userDocRef,
@@ -27,44 +35,83 @@ class EditProfileScreenWidget extends StatefulWidget {
   final DocumentReference? userDocRef;
 
   @override
-  State<EditProfileScreenWidget> createState() =>
-      _EditProfileScreenWidgetState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => EditProfileCubit(),
+      child: _EditProfileView(userDocRef: userDocRef),
+    );
+  }
 }
 
-class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
-  late EditProfileScreenModel _model;
+class _EditProfileView extends StatefulWidget {
+  const _EditProfileView({required this.userDocRef});
 
-  final scaffoldKey = GlobalKey<ScaffoldState>();
+  final DocumentReference? userDocRef;
 
   @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => EditProfileScreenModel());
+  State<_EditProfileView> createState() => _EditProfileViewState();
+}
 
-    _model.displayNameTextfieldFocusNode ??= FocusNode();
+class _EditProfileViewState extends State<_EditProfileView> {
+  final scaffoldKey = GlobalKey<ScaffoldState>();
 
-    _model.emailTextfieldFocusNode ??= FocusNode();
-
-    _model.currentPasswordTextfieldTextController ??= TextEditingController();
-    _model.currentPasswordTextfieldFocusNode ??= FocusNode();
-
-    _model.newPasswordTextfieldTextController ??= TextEditingController();
-    _model.newPasswordTextfieldFocusNode ??= FocusNode();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
+  // Lazy-init in the StreamBuilder builder using `??=`: first build with a
+  // snapshot seeds the text from the user record; subsequent builds reuse
+  // the same controller so the user's edits aren't blown away on rebuild.
+  TextEditingController? _displayNameController;
+  TextEditingController? _emailController;
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
+  final FocusNode _displayNameFocus = FocusNode();
+  final FocusNode _emailFocus = FocusNode();
+  final FocusNode _currentPasswordFocus = FocusNode();
+  final FocusNode _newPasswordFocus = FocusNode();
 
   @override
   void dispose() {
-    _model.dispose();
-
+    _displayNameController?.dispose();
+    _emailController?.dispose();
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _displayNameFocus.dispose();
+    _emailFocus.dispose();
+    _currentPasswordFocus.dispose();
+    _newPasswordFocus.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
+    return BlocListener<EditProfileCubit, EditProfileState>(
+      listenWhen: (prev, curr) =>
+          prev.lastEventId != curr.lastEventId &&
+          curr.changePasswordMessage != null,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              state.changePasswordMessage!,
+              style: TextStyle(
+                color: FlutterFlowTheme.of(context).secondaryBackground,
+                fontSize: 14.0,
+              ),
+            ),
+            duration: const Duration(milliseconds: 4000),
+            backgroundColor: FlutterFlowTheme.of(context).secondary,
+          ),
+        );
+      },
+      child: BlocBuilder<AppCubit, app.AppState>(
+        builder: (context, appState) => BlocBuilder<EditProfileCubit,
+            EditProfileState>(builder: (context, editState) {
+          return _buildBody(context, editState);
+        }),
+      ),
+    );
+  }
 
+  Widget _buildBody(BuildContext context, EditProfileState editState) {
     return StreamBuilder<UsersRecord>(
       stream: UsersRecord.getDocument(widget.userDocRef!),
       builder: (context, snapshot) {
@@ -335,23 +382,20 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                                 children: [
                                   Expanded(
                                     child: TextFormField(
-                                      controller: _model
-                                              .displayNameTextfieldTextController ??=
+                                      controller: _displayNameController ??=
                                           TextEditingController(
                                         text: editProfileScreenUsersRecord
                                             .displayName,
                                       ),
-                                      focusNode:
-                                          _model.displayNameTextfieldFocusNode,
+                                      focusNode: _displayNameFocus,
                                       onChanged: (_) => EasyDebounce.debounce(
-                                        '_model.displayNameTextfieldTextController',
-                                        Duration(milliseconds: 2000),
+                                        '_displayNameController',
+                                        const Duration(milliseconds: 2000),
                                         () async {
                                           await widget.userDocRef!
                                               .update(createUsersRecordData(
-                                            displayName: _model
-                                                .displayNameTextfieldTextController
-                                                .text,
+                                            displayName:
+                                                _displayNameController!.text,
                                           ));
                                         },
                                       ),
@@ -420,9 +464,6 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                                       maxLength: 20,
                                       maxLengthEnforcement:
                                           MaxLengthEnforcement.enforced,
-                                      validator: _model
-                                          .displayNameTextfieldTextControllerValidator
-                                          .asValidator(context),
                                     ),
                                   ),
                                 ],
@@ -430,18 +471,17 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                               Stack(
                                 children: [
                                   Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        0.0, 17.0, 0.0, 0.0),
+                                    padding: const EdgeInsetsDirectional
+                                        .fromSTEB(0.0, 17.0, 0.0, 0.0),
                                     child: TextFormField(
-                                      controller: _model
-                                              .emailTextfieldTextController ??=
+                                      controller: _emailController ??=
                                           TextEditingController(
                                         text:
                                             editProfileScreenUsersRecord.email,
                                       ),
-                                      focusNode: _model.emailTextfieldFocusNode,
+                                      focusNode: _emailFocus,
                                       readOnly:
-                                          FFAppState().isChangeEmailBtnTapped ==
+                                          AppCubit.instance.state.isChangeEmailBtnTapped ==
                                               false,
                                       obscureText: false,
                                       decoration: InputDecoration(
@@ -507,9 +547,6 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                                                 .primaryText,
                                             letterSpacing: 0.0,
                                           ),
-                                      validator: _model
-                                          .emailTextfieldTextControllerValidator
-                                          .asValidator(context),
                                     ),
                                   ),
                                   if (currentUserEmailVerified == false)
@@ -545,69 +582,56 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                                 child: Builder(
                                   builder: (context) => FFButtonWidget(
                                     onPressed: () async {
-                                      if (FFAppState().isChangeEmailBtnTapped ==
-                                          true) {
-                                        if (_model.emailTextfieldTextController
-                                            .text.isEmpty) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Email required!',
-                                              ),
-                                            ),
-                                          );
-                                          return;
-                                        }
-
-                                        await authManager.updateEmail(
-                                          email: _model
-                                              .emailTextfieldTextController
-                                              .text,
-                                          context: context,
-                                        );
-                                        setState(() {});
-
-                                        await authManager
-                                            .sendEmailVerification();
-
-                                        await widget.userDocRef!
-                                            .update(createUsersRecordData(
-                                          email: _model
-                                              .emailTextfieldTextController
-                                              .text,
-                                        ));
-                                        await showDialog(
-                                          context: context,
-                                          builder: (dialogContext) {
-                                            return Dialog(
-                                              elevation: 0,
-                                              insetPadding: EdgeInsets.zero,
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              alignment:
-                                                  AlignmentDirectional(0.0, 0.0)
-                                                      .resolve(
-                                                          Directionality.of(
-                                                              context)),
-                                              child:
-                                                  EmailVerificationSentComponentWidget(),
-                                            );
-                                          },
-                                        ).then((value) => setState(() {}));
-
-                                        setState(() {
-                                          FFAppState().isChangeEmailBtnTapped =
-                                              false;
-                                        });
-                                      } else {
-                                        setState(() {
-                                          FFAppState().isChangeEmailBtnTapped =
-                                              true;
-                                        });
+                                      // Two-step UX: first tap arms the
+                                      // field (read-only → editable), second
+                                      // tap submits.
+                                      if (!AppCubit.instance.state.isChangeEmailBtnTapped) {
+                                        AppCubit.instance.setIsChangeEmailBtnTapped(true);
+                                        return;
                                       }
+                                      final newEmail =
+                                          _emailController?.text ?? '';
+                                      if (newEmail.isEmpty) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Email required!'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      final err = await context
+                                          .read<EditProfileCubit>()
+                                          .updateEmail(
+                                            newEmail: newEmail,
+                                            userDocRef: widget.userDocRef!,
+                                          );
+                                      if (!context.mounted) return;
+                                      if (err != null) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(content: Text(err)),
+                                        );
+                                        return;
+                                      }
+                                      await showDialog<void>(
+                                        context: context,
+                                        builder: (dialogContext) => Dialog(
+                                          elevation: 0,
+                                          insetPadding: EdgeInsets.zero,
+                                          backgroundColor: Colors.transparent,
+                                          alignment:
+                                              const AlignmentDirectional(
+                                                      0.0, 0.0)
+                                                  .resolve(Directionality.of(
+                                                      context)),
+                                          child:
+                                              EmailVerificationSentComponentWidget(),
+                                        ),
+                                      );
+                                      AppCubit.instance.setIsChangeEmailBtnTapped(false);
                                     },
-                                    text: FFAppState().isChangeEmailBtnTapped ==
+                                    text: AppCubit.instance.state.isChangeEmailBtnTapped ==
                                             true
                                         ? 'Save Changes'
                                         : 'Change Email',
@@ -618,8 +642,7 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                                       iconPadding:
                                           EdgeInsetsDirectional.fromSTEB(
                                               0.0, 0.0, 0.0, 0.0),
-                                      color: FFAppState()
-                                                  .isChangeEmailBtnTapped ==
+                                      color: AppCubit.instance.state.isChangeEmailBtnTapped ==
                                               true
                                           ? FlutterFlowTheme.of(context).success
                                           : FlutterFlowTheme.of(context)
@@ -643,15 +666,10 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                                 ),
                               ),
                               TextFormField(
-                                controller: _model
-                                    .currentPasswordTextfieldTextController,
-                                focusNode:
-                                    _model.currentPasswordTextfieldFocusNode,
-                                readOnly:
-                                    FFAppState().isChangePasswordBtnClicked ==
-                                        false,
-                                obscureText:
-                                    !_model.currentPasswordTextfieldVisibility,
+                                controller: _currentPasswordController,
+                                focusNode: _currentPasswordFocus,
+                                readOnly: !AppCubit.instance.state.isChangePasswordBtnClicked,
+                                obscureText: !editState.currentPasswordVisible,
                                 decoration: InputDecoration(
                                   labelText: 'Current Password',
                                   labelStyle: FlutterFlowTheme.of(context)
@@ -701,18 +719,15 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                                   fillColor: FlutterFlowTheme.of(context)
                                       .secondaryBackground,
                                   suffixIcon: InkWell(
-                                    onTap: () => setState(
-                                      () => _model
-                                              .currentPasswordTextfieldVisibility =
-                                          !_model
-                                              .currentPasswordTextfieldVisibility,
-                                    ),
+                                    onTap: context
+                                        .read<EditProfileCubit>()
+                                        .toggleCurrentPasswordVisibility,
                                     focusNode: FocusNode(skipTraversal: true),
                                     child: Icon(
-                                      _model.currentPasswordTextfieldVisibility
+                                      editState.currentPasswordVisible
                                           ? Icons.visibility_outlined
                                           : Icons.visibility_off_outlined,
-                                      color: Color(0xFF757575),
+                                      color: const Color(0xFF757575),
                                       size: 22.0,
                                     ),
                                   ),
@@ -725,19 +740,14 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                                           .primaryText,
                                       letterSpacing: 0.0,
                                     ),
-                                validator: _model
-                                    .currentPasswordTextfieldTextControllerValidator
-                                    .asValidator(context),
                               ),
-                              if (FFAppState().isChangePasswordBtnClicked ==
+                              if (AppCubit.instance.state.isChangePasswordBtnClicked ==
                                   true)
                                 TextFormField(
-                                  controller:
-                                      _model.newPasswordTextfieldTextController,
-                                  focusNode:
-                                      _model.newPasswordTextfieldFocusNode,
+                                  controller: _newPasswordController,
+                                  focusNode: _newPasswordFocus,
                                   obscureText:
-                                      !_model.newPasswordTextfieldVisibility,
+                                      !editState.newPasswordVisible,
                                   decoration: InputDecoration(
                                     labelText: 'New Password',
                                     labelStyle: FlutterFlowTheme.of(context)
@@ -789,18 +799,15 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                                     fillColor: FlutterFlowTheme.of(context)
                                         .secondaryBackground,
                                     suffixIcon: InkWell(
-                                      onTap: () => setState(
-                                        () => _model
-                                                .newPasswordTextfieldVisibility =
-                                            !_model
-                                                .newPasswordTextfieldVisibility,
-                                      ),
+                                      onTap: context
+                                          .read<EditProfileCubit>()
+                                          .toggleNewPasswordVisibility,
                                       focusNode: FocusNode(skipTraversal: true),
                                       child: Icon(
-                                        _model.newPasswordTextfieldVisibility
+                                        editState.newPasswordVisible
                                             ? Icons.visibility_outlined
                                             : Icons.visibility_off_outlined,
-                                        color: Color(0xFF757575),
+                                        color: const Color(0xFF757575),
                                         size: 22.0,
                                       ),
                                     ),
@@ -813,11 +820,8 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                                             .primaryText,
                                         letterSpacing: 0.0,
                                       ),
-                                  validator: _model
-                                      .newPasswordTextfieldTextControllerValidator
-                                      .asValidator(context),
                                 ),
-                              if (FFAppState().isPasswordValidated == false)
+                              if (AppCubit.instance.state.isPasswordValidated == false)
                                 Text(
                                   'Password must have minimum 8 characters, at least one letter, one number and one special character',
                                   style: FlutterFlowTheme.of(context)
@@ -833,79 +837,37 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                                 alignment: AlignmentDirectional(1.0, 1.0),
                                 child: FFButtonWidget(
                                   onPressed: () async {
-                                    if (FFAppState()
-                                            .isChangePasswordBtnClicked ==
-                                        true) {
-                                      if (functions.validatePassword(_model
-                                              .newPasswordTextfieldTextController
-                                              .text) ==
-                                          true) {
-                                        _model.changePasswordOutput =
-                                            await actions.changePassword(
-                                          _model
-                                              .currentPasswordTextfieldTextController
-                                              .text,
-                                          _model
-                                              .newPasswordTextfieldTextController
-                                              .text,
-                                          editProfileScreenUsersRecord.email,
-                                        );
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              _model.changePasswordOutput!,
-                                              style: TextStyle(
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryBackground,
-                                                fontSize: 14.0,
-                                              ),
-                                            ),
-                                            duration:
-                                                Duration(milliseconds: 4000),
-                                            backgroundColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .secondary,
-                                          ),
-                                        );
-                                        setState(() {
-                                          FFAppState().isPasswordValidated =
-                                              true;
-                                          FFAppState()
-                                                  .isChangePasswordBtnClicked =
-                                              false;
-                                        });
-                                        setState(() {
-                                          _model
-                                              .currentPasswordTextfieldTextController
-                                              ?.clear();
-                                          _model
-                                              .newPasswordTextfieldTextController
-                                              ?.clear();
-                                        });
-                                      } else {
-                                        setState(() {
-                                          FFAppState().isPasswordValidated =
-                                              false;
-                                        });
-                                      }
-                                    } else {
-                                      setState(() {
-                                        _model
-                                            .currentPasswordTextfieldTextController
-                                            ?.clear();
-                                      });
-                                      setState(() {
-                                        FFAppState()
-                                            .isChangePasswordBtnClicked = true;
-                                      });
+                                    // First tap arms (reveal "new password"
+                                    // field); second tap submits.
+                                    if (!AppCubit.instance.state.isChangePasswordBtnClicked) {
+                                      _currentPasswordController.clear();
+                                      AppCubit.instance.setIsChangePasswordBtnClicked(true);
+                                      return;
                                     }
-
-                                    setState(() {});
+                                    final newPw = _newPasswordController.text;
+                                    if (functions.validatePassword(newPw) !=
+                                        true) {
+                                      AppCubit.instance.setIsPasswordValidated(false);
+                                      return;
+                                    }
+                                    await context
+                                        .read<EditProfileCubit>()
+                                        .changePassword(
+                                          currentPassword:
+                                              _currentPasswordController.text,
+                                          newPassword: newPw,
+                                          email:
+                                              editProfileScreenUsersRecord
+                                                  .email,
+                                        );
+                                    if (!context.mounted) return;
+                                    AppCubit.instance.setIsPasswordValidated(true);
+                                    AppCubit.instance.setIsChangePasswordBtnClicked(false);
+                                    _currentPasswordController.clear();
+                                    _newPasswordController.clear();
                                   },
                                   text:
-                                      FFAppState().isChangePasswordBtnClicked ==
+                                      AppCubit.instance.state.isChangePasswordBtnClicked ==
                                               true
                                           ? 'Save Changes'
                                           : 'Change Password',
@@ -915,8 +877,7 @@ class _EditProfileScreenWidgetState extends State<EditProfileScreenWidget> {
                                         12.0, 0.0, 12.0, 0.0),
                                     iconPadding: EdgeInsetsDirectional.fromSTEB(
                                         0.0, 0.0, 0.0, 0.0),
-                                    color: FFAppState()
-                                                .isChangePasswordBtnClicked ==
+                                    color: AppCubit.instance.state.isChangePasswordBtnClicked ==
                                             true
                                         ? FlutterFlowTheme.of(context).success
                                         : FlutterFlowTheme.of(context).tertiary,

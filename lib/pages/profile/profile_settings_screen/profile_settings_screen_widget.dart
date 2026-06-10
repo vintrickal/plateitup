@@ -1,19 +1,27 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '/cubits/auth/auth_cubit.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/pages/components/existing_paired_active_alert/existing_paired_active_alert_widget.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'profile_settings_screen_model.dart';
-export 'profile_settings_screen_model.dart';
+import 'profile_settings_cubit.dart';
+import 'profile_settings_state.dart';
+import '/cubits/app/app_cubit.dart';
 
-class ProfileSettingsScreenWidget extends StatefulWidget {
+/// Profile-settings — Cubit conversion.
+///
+/// [ProfileSettingsCubit] handles the "is this user still paired?" check
+/// before letting them delete their account. Everything else is a stateless
+/// nav list rendered over a `StreamBuilder<UsersRecord>`.
+class ProfileSettingsScreenWidget extends StatelessWidget {
   const ProfileSettingsScreenWidget({
     super.key,
     required this.userRef,
@@ -22,36 +30,73 @@ class ProfileSettingsScreenWidget extends StatefulWidget {
   final DocumentReference? userRef;
 
   @override
-  State<ProfileSettingsScreenWidget> createState() =>
-      _ProfileSettingsScreenWidgetState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => ProfileSettingsCubit(),
+      child: _ProfileSettingsView(userRef: userRef),
+    );
+  }
 }
 
-class _ProfileSettingsScreenWidgetState
-    extends State<ProfileSettingsScreenWidget> {
-  late ProfileSettingsScreenModel _model;
+class _ProfileSettingsView extends StatefulWidget {
+  const _ProfileSettingsView({required this.userRef});
 
-  final scaffoldKey = GlobalKey<ScaffoldState>();
+  final DocumentReference? userRef;
 
   @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => ProfileSettingsScreenModel());
+  State<_ProfileSettingsView> createState() => _ProfileSettingsViewState();
+}
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
+class _ProfileSettingsViewState extends State<_ProfileSettingsView> {
+  final scaffoldKey = GlobalKey<ScaffoldState>();
+  final _unfocusNode = FocusNode();
 
   @override
   void dispose() {
-    _model.dispose();
-
+    _unfocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
-    return StreamBuilder<UsersRecord>(
+    return BlocListener<ProfileSettingsCubit, ProfileSettingsState>(
+      // Drive the dialog/navigation off the guard outcome. lastEventId
+      // means re-tapping after dismissal fires the listener again.
+      listenWhen: (prev, curr) => prev.lastEventId != curr.lastEventId,
+      listener: (context, state) async {
+        switch (state.deleteGuard) {
+          case DeleteGuard.pairedAsReceiver:
+          case DeleteGuard.pairedAsSender:
+            await showDialog<void>(
+              context: context,
+              builder: (dialogContext) => Dialog(
+                elevation: 0,
+                insetPadding: EdgeInsets.zero,
+                backgroundColor: Colors.transparent,
+                alignment: const AlignmentDirectional(0.0, 0.0)
+                    .resolve(Directionality.of(context)),
+                child: GestureDetector(
+                  onTap: () => _unfocusNode.canRequestFocus
+                      ? FocusScope.of(context).requestFocus(_unfocusNode)
+                      : FocusScope.of(context).unfocus(),
+                  child: ExistingPairedActiveAlertWidget(),
+                ),
+              ),
+            );
+            if (context.mounted) {
+              context.read<ProfileSettingsCubit>().resetDeleteGuard();
+            }
+            break;
+          case DeleteGuard.clear:
+            context.pushNamed('profile_deletion_survey_screen');
+            context.read<ProfileSettingsCubit>().resetDeleteGuard();
+            break;
+          case DeleteGuard.idle:
+          case DeleteGuard.checking:
+            break;
+        }
+      },
+      child: StreamBuilder<UsersRecord>(
       stream: UsersRecord.getDocument(widget.userRef!),
       builder: (context, snapshot) {
         // Customize what your widget looks like when it's loading.
@@ -73,8 +118,8 @@ class _ProfileSettingsScreenWidgetState
         }
         final profileSettingsScreenUsersRecord = snapshot.data!;
         return GestureDetector(
-          onTap: () => _model.unfocusNode.canRequestFocus
-              ? FocusScope.of(context).requestFocus(_model.unfocusNode)
+          onTap: () => _unfocusNode.canRequestFocus
+              ? FocusScope.of(context).requestFocus(_unfocusNode)
               : FocusScope.of(context).unfocus(),
           child: Scaffold(
             key: scaffoldKey,
@@ -349,7 +394,7 @@ class _ProfileSettingsScreenWidgetState
                                   ),
                         ),
                       ),
-                      if (FFAppState().tempHideWidget == false)
+                      if (AppCubit.instance.state.tempHideWidget == false)
                         Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(
                               16.0, 12.0, 16.0, 0.0),
@@ -637,87 +682,11 @@ class _ProfileSettingsScreenWidgetState
                             focusColor: Colors.transparent,
                             hoverColor: Colors.transparent,
                             highlightColor: Colors.transparent,
-                            onTap: () async {
-                              _model.receiverPairedDetails =
-                                  await queryPairedUserRecordOnce(
-                                queryBuilder: (pairedUserRecord) =>
-                                    pairedUserRecord.where(
-                                  'recipient',
-                                  isEqualTo: profileSettingsScreenUsersRecord
-                                      .reference,
-                                ),
-                                singleRecord: true,
-                              ).then((s) => s.firstOrNull);
-                              if ((_model.receiverPairedDetails != null) ==
-                                  true) {
-                                await showDialog(
-                                  context: context,
-                                  builder: (dialogContext) {
-                                    return Dialog(
-                                      elevation: 0,
-                                      insetPadding: EdgeInsets.zero,
-                                      backgroundColor: Colors.transparent,
-                                      alignment: AlignmentDirectional(0.0, 0.0)
-                                          .resolve(Directionality.of(context)),
-                                      child: GestureDetector(
-                                        onTap: () => _model
-                                                .unfocusNode.canRequestFocus
-                                            ? FocusScope.of(context)
-                                                .requestFocus(
-                                                    _model.unfocusNode)
-                                            : FocusScope.of(context).unfocus(),
-                                        child:
-                                            ExistingPairedActiveAlertWidget(),
-                                      ),
-                                    );
-                                  },
-                                ).then((value) => setState(() {}));
-                              } else {
-                                _model.senderPairedDetails =
-                                    await queryPairedUserRecordOnce(
-                                  queryBuilder: (pairedUserRecord) =>
-                                      pairedUserRecord.where(
-                                    'sender',
-                                    isEqualTo: profileSettingsScreenUsersRecord
-                                        .reference,
-                                  ),
-                                  singleRecord: true,
-                                ).then((s) => s.firstOrNull);
-                                if ((_model.senderPairedDetails != null) ==
-                                    true) {
-                                  await showDialog(
-                                    context: context,
-                                    builder: (dialogContext) {
-                                      return Dialog(
-                                        elevation: 0,
-                                        insetPadding: EdgeInsets.zero,
-                                        backgroundColor: Colors.transparent,
-                                        alignment:
-                                            AlignmentDirectional(0.0, 0.0)
-                                                .resolve(
-                                                    Directionality.of(context)),
-                                        child: GestureDetector(
-                                          onTap: () => _model
-                                                  .unfocusNode.canRequestFocus
-                                              ? FocusScope.of(context)
-                                                  .requestFocus(
-                                                      _model.unfocusNode)
-                                              : FocusScope.of(context)
-                                                  .unfocus(),
-                                          child:
-                                              ExistingPairedActiveAlertWidget(),
-                                        ),
-                                      );
-                                    },
-                                  ).then((value) => setState(() {}));
-                                } else {
-                                  context.pushNamed(
-                                      'profile_deletion_survey_screen');
-                                }
-                              }
-
-                              setState(() {});
-                            },
+                            onTap: () => context
+                                .read<ProfileSettingsCubit>()
+                                .checkDeleteAccount(
+                                    profileSettingsScreenUsersRecord
+                                        .reference),
                             child: Container(
                               width: double.infinity,
                               height: 60.0,
@@ -780,9 +749,9 @@ class _ProfileSettingsScreenWidgetState
                       child: FFButtonWidget(
                         onPressed: () async {
                           GoRouter.of(context).prepareAuthEvent();
-                          await authManager.signOut();
+                          await context.read<AuthCubit>().signOut();
+                          if (!context.mounted) return;
                           GoRouter.of(context).clearRedirectLocation();
-
                           context.goNamedAuth('login_screen', context.mounted);
                         },
                         text: 'LOG OUT',
@@ -817,6 +786,7 @@ class _ProfileSettingsScreenWidgetState
           ),
         );
       },
+    ),
     );
   }
 }

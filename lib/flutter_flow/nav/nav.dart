@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:provider/provider.dart';
 import '/backend/backend.dart';
 import '/backend/schema/structs/index.dart';
 
@@ -30,7 +29,10 @@ class AppStateNotifier extends ChangeNotifier {
 
   BaseAuthUser? initialUser;
   BaseAuthUser? user;
-  bool showSplashImage = true;
+  // MVP mode: no splash. The demo user is seeded synchronously in main(),
+  // so there's nothing to wait for. Kept as a field (not removed) because
+  // `stopShowingSplashImage()` is still called from elsewhere.
+  bool showSplashImage = false;
   String? _redirectLocation;
 
   /// Determines whether the app will refresh and build again when a sign
@@ -79,23 +81,25 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
       initialLocation: '/',
       debugLogDiagnostics: true,
       refreshListenable: appStateNotifier,
-      errorBuilder: (context, state) =>
-          appStateNotifier.loggedIn ? HomeWidget() : LoginScreenWidget(),
+      // MVP mode: the demo user is always "signed in", so every route falls
+      // back to HomeWidget instead of LoginScreen.
+      errorBuilder: (context, state) => HomeWidget(),
       routes: [
         FFRoute(
           name: '_initialize',
-          path: '/home',
-          builder: (context, _) =>
-              appStateNotifier.loggedIn ? HomeWidget() : LoginScreenWidget(),
+          path: '/',
+          builder: (context, _) => HomeWidget(),
         ),
         FFRoute(
           name: 'home',
           path: '/home',
+          requireAuth: true,
           builder: (context, params) => HomeWidget(),
         ),
         FFRoute(
           name: 'details_screen',
           path: '/detailsScreen',
+          requireAuth: true,
           builder: (context, params) => DetailsScreenWidget(
             mealRef: params.getParam(
               'mealRef',
@@ -114,6 +118,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: 'add_recipe_screen',
           path: '/addRecipeScreen',
+          requireAuth: true,
           builder: (context, params) => AddRecipeScreenWidget(
             userRef: params.getParam(
               'userRef',
@@ -132,6 +137,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: 'profile_screen',
           path: '/profileScreen',
+          requireAuth: true,
           builder: (context, params) => ProfileScreenWidget(
             userDocRef: params.getParam(
               'userDocRef',
@@ -154,6 +160,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: 'pairing_screen',
           path: '/pairingScreen',
+          requireAuth: true,
           builder: (context, params) => PairingScreenWidget(
             uniqueCode: params.getParam(
               'uniqueCode',
@@ -164,6 +171,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: 'profile_settings_screen',
           path: '/profileSettingsScreen',
+          requireAuth: true,
           builder: (context, params) => ProfileSettingsScreenWidget(
             userRef: params.getParam(
               'userRef',
@@ -176,6 +184,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: 'edit_recipe_screen',
           path: '/editRecipeScreen',
+          requireAuth: true,
           builder: (context, params) => EditRecipeScreenWidget(
             mealRef: params.getParam(
               'mealRef',
@@ -205,6 +214,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: 'edit_profile_screen',
           path: '/editProfileScreen',
+          requireAuth: true,
           builder: (context, params) => EditProfileScreenWidget(
             userDocRef: params.getParam(
               'userDocRef',
@@ -227,6 +237,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: 'meal_request_notification_screen',
           path: '/mealRequestNotificationScreen',
+          requireAuth: true,
           builder: (context, params) => MealRequestNotificationScreenWidget(
             pairedUserRef: params.getParam(
               'pairedUserRef',
@@ -239,11 +250,13 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: 'admin_home',
           path: '/adminHome',
+          requireAuth: true,
           builder: (context, params) => AdminHomeWidget(),
         ),
         FFRoute(
           name: 'profile_deletion_survey_screen',
           path: '/profileDeletionSurveyScreen',
+          requireAuth: true,
           builder: (context, params) => ProfileDeletionSurveyScreenWidget(),
         ),
         FFRoute(
@@ -264,6 +277,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: 'notification_settings_screen',
           path: '/notificationSettingsScreen',
+          requireAuth: true,
           builder: (context, params) => NotificationSettingsScreenWidget(),
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
@@ -333,7 +347,7 @@ extension GoRouterExtensions on GoRouter {
       !ignoreRedirect && appState.hasRedirect();
   void clearRedirectLocation() => appState.clearRedirectLocation();
   void setRedirectLocationIfUnset(String location) =>
-      appState.updateNotifyOnAuthChange(false);
+      appState.setRedirectLocationIfUnset(location);
 }
 
 extension _GoRouterStateExtensions on GoRouterState {
@@ -429,6 +443,13 @@ class FFRoute {
         name: name,
         path: path,
         redirect: (context, state) {
+          // Don't make redirect decisions before auth has resolved — the
+          // splash page-builder is already showing, and a premature
+          // `loggedIn == false` read here would bounce a logged-in user
+          // to `/loginScreen` while their session is still loading.
+          if (appStateNotifier.loading) {
+            return null;
+          }
           if (appStateNotifier.shouldRedirect) {
             final redirectLocation = appStateNotifier.getRedirectLocation();
             appStateNotifier.clearRedirectLocation();
@@ -450,19 +471,9 @@ class FFRoute {
                   builder: (context, _) => builder(context, ffParams),
                 )
               : builder(context, ffParams);
-          final child = appStateNotifier.loading
-              ? Container(
-                  color: FlutterFlowTheme.of(context).success,
-                  child: Center(
-                    child: Image.asset(
-                      'assets/images/plateitup_illustration-png.png',
-                      width: 250.0,
-                      height: 250.0,
-                      fit: BoxFit.fitWidth,
-                    ),
-                  ),
-                )
-              : page;
+          // MVP mode: no splash. The demo user is already seeded, so render
+          // the page immediately.
+          final child = page;
 
           final transitionInfo = state.transitionInfo;
           return transitionInfo.hasTransition
@@ -505,26 +516,6 @@ class TransitionInfo {
   final Alignment? alignment;
 
   static TransitionInfo appDefault() => TransitionInfo(hasTransition: false);
-}
-
-class RootPageContext {
-  const RootPageContext(this.isRootPage, [this.errorRoute]);
-  final bool isRootPage;
-  final String? errorRoute;
-
-  static bool isInactiveRootPage(BuildContext context) {
-    final rootPageContext = context.read<RootPageContext?>();
-    final isRootPage = rootPageContext?.isRootPage ?? false;
-    final location = GoRouterState.of(context).uri.toString();
-    return isRootPage &&
-        location != '/' &&
-        location != rootPageContext?.errorRoute;
-  }
-
-  static Widget wrap(Widget child, {String? errorRoute}) => Provider.value(
-        value: RootPageContext(true, errorRoute),
-        child: child,
-      );
 }
 
 extension GoRouterLocationExtension on GoRouter {

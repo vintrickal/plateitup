@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 
 import '/backend/schema/util/firestore_util.dart';
 import '/backend/schema/util/schema_util.dart';
+import '/mock/mock_firestore.dart';
 
 import 'index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -62,7 +63,7 @@ class MealRequestedNotificationRecord extends FirestoreRecord {
   }
 
   static CollectionReference get collection =>
-      FirebaseFirestore.instance.collection('meal-requested-notification');
+      mockFirestore.collection('meal-requested-notification');
 
   static Stream<MealRequestedNotificationRecord> getDocument(
           DocumentReference ref) =>

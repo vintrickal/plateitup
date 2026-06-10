@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
 import 'package:time_picker_spinner/time_picker_spinner.dart';
+import '/cubits/app/app_cubit.dart';
 
 class CustomTimeSpinner extends StatefulWidget {
   const CustomTimeSpinner({
@@ -31,7 +32,7 @@ class _CustomTimeSpinnerState extends State<CustomTimeSpinner> {
 
   @override
   void initState() {
-    time = FFAppState().estimatedTimeSpinner!;
+    time = AppCubit.instance.state.estimatedTimeSpinner!;
     super.initState();
   }
 
@@ -52,11 +53,7 @@ class _CustomTimeSpinnerState extends State<CustomTimeSpinner> {
         isForce2Digits: true,
         onTimeChange: (time) {
           setState(() {});
-          FFAppState().update(
-            () {
-              FFAppState().estimatedTimeSpinner = time;
-            },
-          );
+          AppCubit.instance.setEstimatedTimeSpinner(time);;
         },
       ),
     );

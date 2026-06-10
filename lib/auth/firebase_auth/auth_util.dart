@@ -1,29 +1,24 @@
-import 'dart:async';
+// MVP mode: the `currentUser*` globals point at the seeded demo user.
+// Widgets call `currentUserReference`, `currentUserUid`, `currentUserEmail`
+// etc. — these still work, they just resolve to the demo user in
+// `mockFirestore` instead of the real Firebase signed-in user.
 
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import '../auth_manager.dart';
-import '../base_auth_user_provider.dart';
-import '../../flutter_flow/flutter_flow_util.dart';
-
-import '/backend/backend.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:stream_transform/stream_transform.dart';
-import 'firebase_auth_manager.dart';
+import 'package:flutter/material.dart';
 
-export 'firebase_auth_manager.dart';
+import '../base_auth_user_provider.dart';
+import '/backend/backend.dart';
+import '/mock/sample_data.dart';
 
-final _authManager = FirebaseAuthManager();
-FirebaseAuthManager get authManager => _authManager;
+export '../base_auth_user_provider.dart';
 
 String get currentUserEmail =>
-    currentUserDocument?.email ?? currentUser?.email ?? '';
+    currentUserDocument?.email ?? currentUser?.email ?? 'demo@plateitup.app';
 
-String get currentUserUid => currentUser?.uid ?? '';
+String get currentUserUid => currentUser?.uid ?? demoUserUid;
 
 String get currentUserDisplayName =>
-    currentUserDocument?.displayName ?? currentUser?.displayName ?? '';
+    currentUserDocument?.displayName ?? currentUser?.displayName ?? 'Demo User';
 
 String get currentUserPhoto =>
     currentUserDocument?.photoUrl ?? currentUser?.photoUrl ?? '';
@@ -31,33 +26,30 @@ String get currentUserPhoto =>
 String get currentPhoneNumber =>
     currentUserDocument?.phoneNumber ?? currentUser?.phoneNumber ?? '';
 
-String get currentJwtToken => _currentJwtToken ?? '';
+/// JWT token isn't used at runtime in MVP mode — return an empty string so
+/// any callsite that expects a non-null doesn't crash. The single subscription
+/// in `main.dart` to `jwtTokenStream` becomes a no-op.
+String get currentJwtToken => '';
 
-bool get currentUserEmailVerified => currentUser?.emailVerified ?? false;
+bool get currentUserEmailVerified => true;
 
-/// Create a Stream that listens to the current user's JWT Token, since Firebase
-/// generates a new token every hour.
-String? _currentJwtToken;
-final jwtTokenStream = FirebaseAuth.instance
-    .idTokenChanges()
-    .map((user) async => _currentJwtToken = await user?.getIdToken())
-    .asBroadcastStream();
+final jwtTokenStream = const Stream<String?>.empty().asBroadcastStream();
 
 DocumentReference? get currentUserReference =>
-    loggedIn ? UsersRecord.collection.doc(currentUser!.uid) : null;
+    UsersRecord.collection.doc(currentUser?.uid ?? demoUserUid);
 
 UsersRecord? currentUserDocument;
-final authenticatedUserStream = FirebaseAuth.instance
-    .authStateChanges()
-    .map<String>((user) => user?.uid ?? '')
-    .switchMap(
-      (uid) => uid.isEmpty
-          ? Stream.value(null)
-          : UsersRecord.getDocument(UsersRecord.collection.doc(uid))
-              .handleError((_) {}),
-    )
-    .map((user) => currentUserDocument = user)
-    .asBroadcastStream();
+
+/// Lazily resolves the demo user's UsersRecord on first access. Watched by
+/// widgets via `StreamBuilder`s that read `currentUserDocument` mid-frame.
+final authenticatedUserStream = UsersRecord.collection
+    .doc(demoUserUid)
+    .snapshots()
+    .map<UsersRecord?>((s) {
+  if (!s.exists) return null;
+  currentUserDocument = UsersRecord.fromSnapshot(s);
+  return currentUserDocument;
+}).asBroadcastStream();
 
 class AuthUserStreamWidget extends StatelessWidget {
   const AuthUserStreamWidget({Key? key, required this.builder})

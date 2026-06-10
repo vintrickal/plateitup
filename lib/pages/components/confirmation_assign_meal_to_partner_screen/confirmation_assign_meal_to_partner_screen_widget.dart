@@ -1,19 +1,17 @@
-import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/pages/components/duplicate_request_message/duplicate_request_message_widget.dart';
 import '/pages/components/successfully_sent_component/successfully_sent_component_widget.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'confirmation_assign_meal_to_partner_screen_model.dart';
-export 'confirmation_assign_meal_to_partner_screen_model.dart';
+import '/cubits/app/app_cubit.dart';
 
-class ConfirmationAssignMealToPartnerScreenWidget extends StatefulWidget {
+/// Confirms whether the user wants to send a meal-prep request to their
+/// paired partner. Creates the meal-requested-notification plus matching
+/// receiver/sender notification docs, deduping pending/approved requests.
+class ConfirmationAssignMealToPartnerScreenWidget extends StatelessWidget {
   const ConfirmationAssignMealToPartnerScreenWidget({
     super.key,
     required this.pairedUserRef,
@@ -24,44 +22,13 @@ class ConfirmationAssignMealToPartnerScreenWidget extends StatefulWidget {
   final DocumentReference? mealRecipeRef;
 
   @override
-  State<ConfirmationAssignMealToPartnerScreenWidget> createState() =>
-      _ConfirmationAssignMealToPartnerScreenWidgetState();
-}
-
-class _ConfirmationAssignMealToPartnerScreenWidgetState
-    extends State<ConfirmationAssignMealToPartnerScreenWidget> {
-  late ConfirmationAssignMealToPartnerScreenModel _model;
-
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _model = createModel(
-        context, () => ConfirmationAssignMealToPartnerScreenModel());
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _model.maybeDispose();
-
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: AlignmentDirectional(0.0, 0.0),
+      alignment: const AlignmentDirectional(0.0, 0.0),
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 16.0),
+        padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 16.0),
         child: StreamBuilder<MealRecipeRecord>(
-          stream: MealRecipeRecord.getDocument(widget.mealRecipeRef!),
+          stream: MealRecipeRecord.getDocument(mealRecipeRef!),
           builder: (context, snapshot) {
             // Customize what your widget looks like when it's loading.
             if (!snapshot.hasData) {
@@ -81,20 +48,20 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
             return Container(
               width: 450.0,
               height: 240.0,
-              constraints: BoxConstraints(
+              constraints: const BoxConstraints(
                 maxWidth: 570.0,
               ),
               decoration: BoxDecoration(
                 color: FlutterFlowTheme.of(context).secondaryBackground,
                 borderRadius: BorderRadius.circular(12.0),
                 border: Border.all(
-                  color: Color(0xFFE0E3E7),
+                  color: const Color(0xFFE0E3E7),
                 ),
               ),
               child: Padding(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                 child: StreamBuilder<PairedUserRecord>(
-                  stream: PairedUserRecord.getDocument(widget.pairedUserRef!),
+                  stream: PairedUserRecord.getDocument(pairedUserRef!),
                   builder: (context, snapshot) {
                     // Customize what your widget looks like when it's loading.
                     if (!snapshot.hasData) {
@@ -112,19 +79,18 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                     }
                     final pairedUserColumnPairedUserRecord = snapshot.data!;
                     return Column(
-                      mainAxisSize: MainAxisSize.max,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
                               0.0, 16.0, 0.0, 0.0),
                           child: Row(
-                            mainAxisSize: MainAxisSize.max,
                             children: [
                               Expanded(
                                 child: Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0.0, 0.0, 12.0, 0.0),
+                                  padding:
+                                      const EdgeInsetsDirectional.fromSTEB(
+                                          0.0, 0.0, 12.0, 0.0),
                                   child: Text(
                                     'You want this meal to be prepared by your partner?',
                                     style: FlutterFlowTheme.of(context)
@@ -143,10 +109,11 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                         Divider(
                           height: 18.0,
                           thickness: 2.0,
-                          color: FlutterFlowTheme.of(context).primaryBackground,
+                          color:
+                              FlutterFlowTheme.of(context).primaryBackground,
                         ),
                         Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
                               0.0, 16.0, 0.0, 0.0),
                           child: StreamBuilder<UsersRecord>(
                             stream: UsersRecord.getDocument(
@@ -159,7 +126,8 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                     width: 24.0,
                                     height: 24.0,
                                     child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                      valueColor:
+                                          AlwaysStoppedAnimation<Color>(
                                         FlutterFlowTheme.of(context).success,
                                       ),
                                     ),
@@ -168,7 +136,6 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                               }
                               final senderColumnUsersRecord = snapshot.data!;
                               return Column(
-                                mainAxisSize: MainAxisSize.max,
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Builder(
@@ -184,7 +151,8 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                             child: SizedBox(
                                               width: 24.0,
                                               height: 24.0,
-                                              child: CircularProgressIndicator(
+                                              child:
+                                                  CircularProgressIndicator(
                                                 valueColor:
                                                     AlwaysStoppedAnimation<
                                                         Color>(
@@ -199,23 +167,19 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                             snapshot.data!;
                                         return FFButtonWidget(
                                           onPressed: () async {
-                                            _model.mealRequestNotificationCOUNT =
+                                            final mealRequestNotificationCOUNT =
                                                 await queryMealRequestedNotificationRecordCount(
                                               queryBuilder:
                                                   (mealRequestedNotificationRecord) =>
                                                       mealRequestedNotificationRecord
                                                           .where(
                                                 'paired_user_id',
-                                                isEqualTo: widget.pairedUserRef,
+                                                isEqualTo: pairedUserRef,
                                               ),
                                             );
-                                            if (_model
-                                                    .mealRequestNotificationCOUNT ==
+                                            if (mealRequestNotificationCOUNT ==
                                                 0) {
-                                              setState(() {
-                                                FFAppState()
-                                                    .yesPleaseBtnPressed = true;
-                                              });
+                                              AppCubit.instance.setYesPleaseBtnPressed(true);
 
                                               var mealRequestedNotificationRecordReference1 =
                                                   MealRequestedNotificationRecord
@@ -224,10 +188,9 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                               await mealRequestedNotificationRecordReference1
                                                   .set({
                                                 ...createMealRequestedNotificationRecordData(
-                                                  pairedUserId:
-                                                      widget.pairedUserRef,
+                                                  pairedUserId: pairedUserRef,
                                                   requestedMealId:
-                                                      widget.mealRecipeRef,
+                                                      mealRecipeRef,
                                                   contentWasTapped: false,
                                                   contentStatus: 'pending',
                                                   reviewed: false,
@@ -242,27 +205,6 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                   },
                                                 ),
                                               });
-                                              _model.createdRequest =
-                                                  MealRequestedNotificationRecord
-                                                      .getDocumentFromData({
-                                                ...createMealRequestedNotificationRecordData(
-                                                  pairedUserId:
-                                                      widget.pairedUserRef,
-                                                  requestedMealId:
-                                                      widget.mealRecipeRef,
-                                                  contentWasTapped: false,
-                                                  contentStatus: 'pending',
-                                                  reviewed: false,
-                                                ),
-                                                ...mapToFirestore(
-                                                  {
-                                                    'date_requested':
-                                                        DateTime.now(),
-                                                    'date_action_taken':
-                                                        DateTime.now(),
-                                                  },
-                                                ),
-                                              }, mealRequestedNotificationRecordReference1);
                                               // receiver-notification-collection
 
                                               var receiverNotificationRecordReference1 =
@@ -280,9 +222,9 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                         .title,
                                                 mealStatusMessage:
                                                     '${senderColumnUsersRecord.displayName} has requested to have this meal prepared',
-                                                mealId: widget.mealRecipeRef,
+                                                mealId: mealRecipeRef,
                                               ));
-                                              _model.receiverNotificationCreation =
+                                              final receiverNotificationCreation =
                                                   ReceiverNotificationRecord
                                                       .getDocumentFromData(
                                                           createReceiverNotificationRecordData(
@@ -296,21 +238,19 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                                     .title,
                                                             mealStatusMessage:
                                                                 '${senderColumnUsersRecord.displayName} has requested to have this meal prepared',
-                                                            mealId: widget
-                                                                .mealRecipeRef,
+                                                            mealId:
+                                                                mealRecipeRef,
                                                           ),
                                                           receiverNotificationRecordReference1);
                                               // Update UID of receiver-notification collection
 
-                                              await _model
-                                                  .receiverNotificationCreation!
+                                              await receiverNotificationCreation
                                                   .reference
                                                   .update(
                                                       createReceiverNotificationRecordData(
-                                                uidReceiver: _model
-                                                    .receiverNotificationCreation
-                                                    ?.reference
-                                                    .id,
+                                                uidReceiver:
+                                                    receiverNotificationCreation
+                                                        .reference.id,
                                               ));
                                               // sender-notification-collection
 
@@ -321,49 +261,46 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                               await senderNotificationRecordReference1
                                                   .set(
                                                       createSenderNotificationRecordData(
-                                                userId: senderColumnUsersRecord
-                                                    .reference,
+                                                userId:
+                                                    senderColumnUsersRecord
+                                                        .reference,
                                                 isShownToUser: true,
                                                 mealTitle:
                                                     mealRecipeContainerMealRecipeRecord
                                                         .title,
                                                 mealStatusMessage: ' ',
-                                                mealId: widget.mealRecipeRef,
+                                                mealId: mealRecipeRef,
                                               ));
-                                              _model.senderNotificationCreation =
+                                              final senderNotificationCreation =
                                                   SenderNotificationRecord
                                                       .getDocumentFromData(
                                                           createSenderNotificationRecordData(
                                                             userId:
                                                                 senderColumnUsersRecord
                                                                     .reference,
-                                                            isShownToUser: true,
+                                                            isShownToUser:
+                                                                true,
                                                             mealTitle:
                                                                 mealRecipeContainerMealRecipeRecord
                                                                     .title,
                                                             mealStatusMessage:
                                                                 ' ',
-                                                            mealId: widget
-                                                                .mealRecipeRef,
+                                                            mealId:
+                                                                mealRecipeRef,
                                                           ),
                                                           senderNotificationRecordReference1);
                                               // Update UID of sender-notification collection
 
-                                              await _model
-                                                  .senderNotificationCreation!
+                                              await senderNotificationCreation
                                                   .reference
                                                   .update(
                                                       createSenderNotificationRecordData(
-                                                uidSender: _model
-                                                    .senderNotificationCreation
-                                                    ?.reference
-                                                    .id,
+                                                uidSender:
+                                                    senderNotificationCreation
+                                                        .reference.id,
                                               ));
-                                              setState(() {
-                                                FFAppState()
-                                                        .yesPleaseBtnPressed =
-                                                    false;
-                                              });
+                                              AppCubit.instance.setYesPleaseBtnPressed(false);
+                                              if (!context.mounted) return;
                                               Navigator.pop(context);
                                               await showDialog(
                                                 context: context,
@@ -375,12 +312,12 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                     backgroundColor:
                                                         Colors.transparent,
                                                     alignment:
-                                                        AlignmentDirectional(
+                                                        const AlignmentDirectional(
                                                                 0.0, 0.0)
                                                             .resolve(
-                                                                Directionality.of(
-                                                                    context)),
-                                                    child: Container(
+                                                                Directionality
+                                                                    .of(context)),
+                                                    child: const SizedBox(
                                                       height: 100.0,
                                                       width: 160.0,
                                                       child:
@@ -388,18 +325,17 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                     ),
                                                   );
                                                 },
-                                              ).then(
-                                                  (value) => setState(() {}));
+                                              );
                                             } else {
-                                              _model.mealRequestedNotificationPENDING =
+                                              final mealRequestedNotificationPENDING =
                                                   await queryMealRequestedNotificationRecordOnce(
                                                 queryBuilder:
                                                     (mealRequestedNotificationRecord) =>
                                                         mealRequestedNotificationRecord
                                                             .where(
                                                               'paired_user_id',
-                                                              isEqualTo: widget
-                                                                  .pairedUserRef,
+                                                              isEqualTo:
+                                                                  pairedUserRef,
                                                             )
                                                             .where(
                                                               'content_status',
@@ -408,14 +344,15 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                             )
                                                             .where(
                                                               'requested_meal_id',
-                                                              isEqualTo: widget
-                                                                  .mealRecipeRef,
+                                                              isEqualTo:
+                                                                  mealRecipeRef,
                                                             ),
                                                 singleRecord: true,
                                               ).then((s) => s.firstOrNull);
-                                              if ((_model.mealRequestedNotificationPENDING !=
+                                              if ((mealRequestedNotificationPENDING !=
                                                       null) ==
                                                   true) {
+                                                if (!context.mounted) return;
                                                 Navigator.pop(context);
                                                 await showDialog(
                                                   context: context,
@@ -427,12 +364,12 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                       backgroundColor:
                                                           Colors.transparent,
                                                       alignment:
-                                                          AlignmentDirectional(
+                                                          const AlignmentDirectional(
                                                                   0.0, 0.0)
                                                               .resolve(
-                                                                  Directionality.of(
-                                                                      context)),
-                                                      child: Container(
+                                                                  Directionality
+                                                                      .of(context)),
+                                                      child: const SizedBox(
                                                         height: 120.0,
                                                         width: 300.0,
                                                         child:
@@ -440,18 +377,17 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                       ),
                                                     );
                                                   },
-                                                ).then(
-                                                    (value) => setState(() {}));
+                                                );
                                               } else {
-                                                _model.mealRequestedNotificationAPPROVED =
+                                                final mealRequestedNotificationAPPROVED =
                                                     await queryMealRequestedNotificationRecordOnce(
                                                   queryBuilder:
                                                       (mealRequestedNotificationRecord) =>
                                                           mealRequestedNotificationRecord
                                                               .where(
                                                                 'paired_user_id',
-                                                                isEqualTo: widget
-                                                                    .pairedUserRef,
+                                                                isEqualTo:
+                                                                    pairedUserRef,
                                                               )
                                                               .where(
                                                                 'content_status',
@@ -460,31 +396,32 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                               )
                                                               .where(
                                                                 'requested_meal_id',
-                                                                isEqualTo: widget
-                                                                    .mealRecipeRef,
+                                                                isEqualTo:
+                                                                    mealRecipeRef,
                                                               ),
                                                   singleRecord: true,
                                                 ).then((s) => s.firstOrNull);
-                                                if ((_model.mealRequestedNotificationAPPROVED !=
+                                                if ((mealRequestedNotificationAPPROVED !=
                                                         null) ==
                                                     true) {
+                                                  if (!context.mounted) return;
                                                   Navigator.pop(context);
                                                   await showDialog(
                                                     context: context,
-                                                    builder: (dialogContext) {
+                                                    builder:
+                                                        (dialogContext) {
                                                       return Dialog(
                                                         elevation: 0,
                                                         insetPadding:
                                                             EdgeInsets.zero,
-                                                        backgroundColor:
-                                                            Colors.transparent,
-                                                        alignment:
-                                                            AlignmentDirectional(
-                                                                    0.0, 0.0)
-                                                                .resolve(
-                                                                    Directionality.of(
-                                                                        context)),
-                                                        child: Container(
+                                                        backgroundColor: Colors
+                                                            .transparent,
+                                                        alignment: const AlignmentDirectional(
+                                                                0.0, 0.0)
+                                                            .resolve(
+                                                                Directionality
+                                                                    .of(context)),
+                                                        child: const SizedBox(
                                                           height: 120.0,
                                                           width: 300.0,
                                                           child:
@@ -492,14 +429,9 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                         ),
                                                       );
                                                     },
-                                                  ).then((value) =>
-                                                      setState(() {}));
+                                                  );
                                                 } else {
-                                                  setState(() {
-                                                    FFAppState()
-                                                            .yesPleaseBtnPressed =
-                                                        true;
-                                                  });
+                                                  AppCubit.instance.setYesPleaseBtnPressed(true);
 
                                                   var mealRequestedNotificationRecordReference2 =
                                                       MealRequestedNotificationRecord
@@ -509,9 +441,9 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                       .set({
                                                     ...createMealRequestedNotificationRecordData(
                                                       pairedUserId:
-                                                          widget.pairedUserRef,
+                                                          pairedUserRef,
                                                       requestedMealId:
-                                                          widget.mealRecipeRef,
+                                                          mealRecipeRef,
                                                       contentWasTapped: false,
                                                       contentStatus: 'pending',
                                                       reviewed: false,
@@ -527,27 +459,6 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                       },
                                                     ),
                                                   });
-                                                  _model.createdRequestChecker =
-                                                      MealRequestedNotificationRecord
-                                                          .getDocumentFromData({
-                                                    ...createMealRequestedNotificationRecordData(
-                                                      pairedUserId:
-                                                          widget.pairedUserRef,
-                                                      requestedMealId:
-                                                          widget.mealRecipeRef,
-                                                      contentWasTapped: false,
-                                                      contentStatus: 'pending',
-                                                      reviewed: false,
-                                                    ),
-                                                    ...mapToFirestore(
-                                                      {
-                                                        'date_requested':
-                                                            DateTime.now(),
-                                                        'date_action_taken':
-                                                            DateTime.now(),
-                                                      },
-                                                    ),
-                                                  }, mealRequestedNotificationRecordReference2);
                                                   // receiver-notification-collection
 
                                                   var receiverNotificationRecordReference2 =
@@ -566,10 +477,9 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                             .title,
                                                     mealStatusMessage:
                                                         '${senderColumnUsersRecord.displayName} has requested to have this meal prepared',
-                                                    mealId:
-                                                        widget.mealRecipeRef,
+                                                    mealId: mealRecipeRef,
                                                   ));
-                                                  _model.receiverNotificationCreationITEM =
+                                                  final receiverNotificationCreationITEM =
                                                       ReceiverNotificationRecord
                                                           .getDocumentFromData(
                                                               createReceiverNotificationRecordData(
@@ -583,21 +493,19 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                                         .title,
                                                                 mealStatusMessage:
                                                                     '${senderColumnUsersRecord.displayName} has requested to have this meal prepared',
-                                                                mealId: widget
-                                                                    .mealRecipeRef,
+                                                                mealId:
+                                                                    mealRecipeRef,
                                                               ),
                                                               receiverNotificationRecordReference2);
                                                   // Update UID of receiver-notification collection
 
-                                                  await _model
-                                                      .receiverNotificationCreationITEM!
+                                                  await receiverNotificationCreationITEM
                                                       .reference
                                                       .update(
                                                           createReceiverNotificationRecordData(
-                                                    uidReceiver: _model
-                                                        .receiverNotificationCreationITEM
-                                                        ?.reference
-                                                        .id,
+                                                    uidReceiver:
+                                                        receiverNotificationCreationITEM
+                                                            .reference.id,
                                                   ));
                                                   // sender-notification-collection
 
@@ -616,10 +524,9 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                         mealRecipeContainerMealRecipeRecord
                                                             .title,
                                                     mealStatusMessage: ' ',
-                                                    mealId:
-                                                        widget.mealRecipeRef,
+                                                    mealId: mealRecipeRef,
                                                   ));
-                                                  _model.senderNotificationCreationITEM =
+                                                  final senderNotificationCreationITEM =
                                                       SenderNotificationRecord
                                                           .getDocumentFromData(
                                                               createSenderNotificationRecordData(
@@ -633,44 +540,39 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                                         .title,
                                                                 mealStatusMessage:
                                                                     ' ',
-                                                                mealId: widget
-                                                                    .mealRecipeRef,
+                                                                mealId:
+                                                                    mealRecipeRef,
                                                               ),
                                                               senderNotificationRecordReference2);
                                                   // Update UID of sender-notification collection
 
-                                                  await _model
-                                                      .senderNotificationCreationITEM!
+                                                  await senderNotificationCreationITEM
                                                       .reference
                                                       .update(
                                                           createSenderNotificationRecordData(
-                                                    uidSender: _model
-                                                        .senderNotificationCreationITEM
-                                                        ?.reference
-                                                        .id,
+                                                    uidSender:
+                                                        senderNotificationCreationITEM
+                                                            .reference.id,
                                                   ));
-                                                  setState(() {
-                                                    FFAppState()
-                                                            .yesPleaseBtnPressed =
-                                                        false;
-                                                  });
+                                                  AppCubit.instance.setYesPleaseBtnPressed(false);
+                                                  if (!context.mounted) return;
                                                   Navigator.pop(context);
                                                   await showDialog(
                                                     context: context,
-                                                    builder: (dialogContext) {
+                                                    builder:
+                                                        (dialogContext) {
                                                       return Dialog(
                                                         elevation: 0,
                                                         insetPadding:
                                                             EdgeInsets.zero,
-                                                        backgroundColor:
-                                                            Colors.transparent,
-                                                        alignment:
-                                                            AlignmentDirectional(
-                                                                    0.0, 0.0)
-                                                                .resolve(
-                                                                    Directionality.of(
-                                                                        context)),
-                                                        child: Container(
+                                                        backgroundColor: Colors
+                                                            .transparent,
+                                                        alignment: const AlignmentDirectional(
+                                                                0.0, 0.0)
+                                                            .resolve(
+                                                                Directionality
+                                                                    .of(context)),
+                                                        child: const SizedBox(
                                                           height: 100.0,
                                                           width: 160.0,
                                                           child:
@@ -678,22 +580,20 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                         ),
                                                       );
                                                     },
-                                                  ).then((value) =>
-                                                      setState(() {}));
+                                                  );
                                                 }
                                               }
                                             }
-
-                                            setState(() {});
                                           },
                                           text: 'YES, PLEASE',
                                           options: FFButtonOptions(
                                             height: 40.0,
-                                            padding:
-                                                EdgeInsetsDirectional.fromSTEB(
-                                                    24.0, 0.0, 24.0, 0.0),
+                                            padding: const EdgeInsetsDirectional
+                                                .fromSTEB(
+                                                24.0, 0.0, 24.0, 0.0),
                                             iconPadding:
-                                                EdgeInsetsDirectional.fromSTEB(
+                                                const EdgeInsetsDirectional
+                                                    .fromSTEB(
                                                     0.0, 0.0, 0.0, 0.0),
                                             color: FlutterFlowTheme.of(context)
                                                 .secondaryBackground,
@@ -702,17 +602,22 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                                 .bodySmall
                                                 .override(
                                                   fontFamily: 'Poppins',
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .success,
+                                                  color:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .success,
                                                   fontSize: 12.0,
                                                   letterSpacing: 0.0,
-                                                  fontWeight: FontWeight.w600,
+                                                  fontWeight:
+                                                      FontWeight.w600,
                                                 ),
                                             elevation: 0.0,
-                                            borderRadius: BorderRadius.only(
-                                              bottomLeft: Radius.circular(0.0),
-                                              bottomRight: Radius.circular(0.0),
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                              bottomLeft:
+                                                  Radius.circular(0.0),
+                                              bottomRight:
+                                                  Radius.circular(0.0),
                                               topLeft: Radius.circular(0.0),
                                               topRight: Radius.circular(0.0),
                                             ),
@@ -734,10 +639,11 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                     text: 'NO, I CHANGE MY MIND',
                                     options: FFButtonOptions(
                                       height: 40.0,
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          24.0, 0.0, 24.0, 0.0),
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                              24.0, 0.0, 24.0, 0.0),
                                       iconPadding:
-                                          EdgeInsetsDirectional.fromSTEB(
+                                          const EdgeInsetsDirectional.fromSTEB(
                                               0.0, 0.0, 0.0, 0.0),
                                       color: FlutterFlowTheme.of(context)
                                           .secondaryBackground,
@@ -760,7 +666,7 @@ class _ConfirmationAssignMealToPartnerScreenWidgetState
                                               .primaryText,
                                     ),
                                   ),
-                                ].divide(SizedBox(height: 8.0)),
+                                ].divide(const SizedBox(height: 8.0)),
                               );
                             },
                           ),
