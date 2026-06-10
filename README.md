@@ -1,29 +1,40 @@
 # Plate it Up!
 
-A community recipe app for sharing with your partner or the entire community.
+A community recipe app for sharing meals with your partner or the wider community. Save your favorite recipes privately, pair up with someone special to swap meal ideas, or post to the public feed for everyone to discover.
 
 ## Table of Contents
 
 - [Features](#features)
+- [Tech Stack](#tech-stack)
 - [Installation](#installation)
+- [Download](#download)
 - [Screenshots](#screenshots)
+- [Permissions](#permissions)
+- [License](#license)
 
 ## Features
 
-- **User Authentication:** Users can sign in with Google or sign up using email without providing birtdate or phone number information.
-- **Public Community Recipes:** Users can create public community meal recipes upon account creation.
-- **Private Recipes:** Users can set their community meal recipes to public or private, with private recipes viewable only by the creator.
-- **Recipe Reporting:** Users can report public recipes to flag them and notify the moderator of any malicious content.
-- **Pairing with Others:** Users can pair with others using a unique code to share meal recipes.
-- **Account Deletion:** Users can request account deletion to remove their information from the app.
-- **Camera Access:** Some app features require camera access if the user chooses not to use a link for image upload.
-- **Notification:** Get notifications when paired users share new recipes.
+- **User Authentication** — Sign in with Google or sign up using email. No birthdate or phone number required.
+- **Public Community Recipes** — Share recipes with the entire Plate it Up! community after creating an account.
+- **Private Recipes** — Toggle any recipe to private so only you can see it.
+- **Pair with a Partner** — Connect with another user via a unique pairing code to share recipes one-to-one.
+- **Push Notifications** — Get notified when a paired user posts a new recipe.
+- **Recipe Reporting** — Flag malicious or inappropriate public recipes for moderator review.
+- **Account Deletion** — Request full removal of your account and data at any time.
+
+## Tech Stack
+
+- **Frontend:** Flutter
+- **Backend:** _TODO — e.g. Firebase, custom REST API_
+- **Authentication:** _TODO — e.g. Firebase Auth, Google Sign-In_
+- **Storage:** _TODO — e.g. Cloud Storage / S3_
+- **Notifications:** _TODO — e.g. Firebase Cloud Messaging_
 
 ## Installation
 
 ### Prerequisites
 
-- Flutter SDK: [Install Flutter](https://flutter.dev/docs/get-started/install)
+- [Flutter SDK](https://flutter.dev/docs/get-started/install)
 
 ### Steps
 
@@ -31,31 +42,43 @@ A community recipe app for sharing with your partner or the entire community.
    ```sh
    git clone https://github.com/vintrickal/plateitup.git
    cd plateitup
+   ```
 
 2. Install dependencies:
    ```sh
    flutter pub get
+   ```
 
 3. Run the app:
    ```sh
    flutter run
+   ```
+
+## Download
+
+The latest Android build is available on the [Releases](https://github.com/vintrickal/plateitup/releases/latest) page.
+
+> **Note:** Plate it Up! is distributed as an APK outside the Play Store. You may need to enable installs from unknown sources on your device the first time.
 
 ## Screenshots
 
-### Login
-<img src="assets/screenshots/(1).png" alt="Login" width="400"/>
+| Login | Home | Recipe Details |
+|:-----:|:----:|:--------------:|
+| <img src="assets/screenshots/(1).png" alt="Login" width="240"/> | <img src="assets/screenshots/(6).png" alt="Home" width="240"/> | <img src="assets/screenshots/(3).png" alt="Recipe Details" width="240"/> |
 
-### Home
-<img src="assets/screenshots/(6).png" alt="Home" width="400"/>
+| Profile | Notifications | Profile Settings |
+|:-------:|:-------------:|:----------------:|
+| <img src="assets/screenshots/(4).png" alt="Profile" width="240"/> | <img src="assets/screenshots/(2).png" alt="Notifications" width="240"/> | <img src="assets/screenshots/(5).png" alt="Profile Settings" width="240"/> |
 
-### Recipe Details
-<img src="assets/screenshots/(3).png" alt="Recipe Details" width="400"/>
+## Permissions
 
-### Profile
-<img src="assets/screenshots/(4).png" alt="Profile" width="400"/>
+- **Camera** — Required only if you choose to take a photo for a recipe image instead of uploading via a link.
+- **Notifications** — Used to alert you when a paired user shares a new recipe.
 
-### Notifications
-<img src="assets/screenshots/(2).png" alt="Notifications" width="400"/>
+## License
 
-### Profile Settings
-<img src="assets/screenshots/(5).png" alt="Profile Settings" width="400"/>
+_TODO — e.g. MIT, Apache 2.0, or "All rights reserved"._
+
+## Author
+
+Built by [@vintrickal](https://github.com/vintrickal).
